@@ -1,0 +1,33 @@
+# Visual Studio 빌드 결과물 및 캐시
+.vs/
+out/
+build/
+bin/
+bin-int/
+x64/
+x86/
+Debug/
+Release/
+*.user
+*.aps
+*.pdb
+*.suo
+*.db
+*.opendb
+*.VC.db
+*.sln.doccache
+
+# 컴파일러 생성 파일
+*.obj
+*.exe
+*.pdb
+*.ilk
+*.lib
+*.dll
+*.exp
+
+# 임시 파일
+*.tmp
+*.log
+
+# Dependencies/
