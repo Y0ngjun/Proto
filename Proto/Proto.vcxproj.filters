@@ -1,46 +1,141 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="소스 파일">
+    <Filter Include="�ҽ� ����">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="헤더 파일">
+    <Filter Include="��� ����">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="리소스 파일">
+    <Filter Include="���ҽ� ����">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>�ҽ� ����</Filter>
     </ClCompile>
     <ClCompile Include="Dependencies\include\glad\glad.c">
-      <Filter>소스 파일</Filter>
+      <Filter>�ҽ� ����</Filter>
     </ClCompile>
     <ClCompile Include="Dependencies\imgui\imgui.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>�ҽ� ����</Filter>
     </ClCompile>
     <ClCompile Include="Dependencies\imgui\imgui_demo.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>�ҽ� ����</Filter>
     </ClCompile>
     <ClCompile Include="Dependencies\imgui\imgui_draw.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>�ҽ� ����</Filter>
     </ClCompile>
     <ClCompile Include="Dependencies\imgui\imgui_impl_glfw.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>�ҽ� ����</Filter>
     </ClCompile>
     <ClCompile Include="Dependencies\imgui\imgui_impl_opengl3.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>�ҽ� ����</Filter>
     </ClCompile>
     <ClCompile Include="Dependencies\imgui\imgui_tables.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>�ҽ� ����</Filter>
     </ClCompile>
     <ClCompile Include="Dependencies\imgui\imgui_widgets.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>�ҽ� ����</Filter>
     </ClCompile>
+    <ClCompile Include="src\Core\Window.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Application.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Input.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\Buffer.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\Shader.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\VertexArray.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\Renderer.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\GameObject.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\Components\Transform.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\Scene.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\SceneCamera.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\SceneHierarchyPanel.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Core\Window.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Application.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Input.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Buffer.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Shader.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\VertexArray.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Renderer.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\Component.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\GameObject.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\Components\Transform.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\Components\MeshRenderer.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\Scene.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Camera.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\SceneCamera.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\Components\CameraComponent.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Test\CubeTest.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\SceneHierarchyPanel.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".github\copilot-instructions.md" />
+    <None Include="docs\Architecture_Spec.md" />
+    <None Include="imgui.ini" />
+    <None Include="Proto.slnx" />
   </ItemGroup>
 </Project>
