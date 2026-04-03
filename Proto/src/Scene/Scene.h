@@ -7,6 +7,8 @@
 
 namespace Proto {
 
+	class EditorCamera;
+
 	class Scene {
 	public:
 		Scene() = default;
@@ -14,7 +16,10 @@ namespace Proto {
 
 		GameObject* CreateGameObject(const std::string& name = "GameObject");
 
-		void OnUpdate(float deltaTime);
+		void OnUpdateRuntime(float deltaTime);
+		void OnUpdateEditor(float deltaTime, EditorCamera& camera);
+
+		void OnViewportResize(uint32_t width, uint32_t height);
 
 		std::vector<std::unique_ptr<GameObject>>& GetGameObjects() { return m_GameObjects; }
 

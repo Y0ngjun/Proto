@@ -40,6 +40,11 @@ namespace Proto
 		m_Scene = scene;
 		if (m_SceneHierarchyPanel)
 			m_SceneHierarchyPanel->SetContext(m_Scene);
+
+		if (m_Scene && m_Framebuffer)
+		{
+			m_Scene->OnViewportResize(m_Framebuffer->GetSpecification().Width, m_Framebuffer->GetSpecification().Height);
+		}
 	}
 
 	void Application::Init()
@@ -64,6 +69,14 @@ namespace Proto
 		ImGui_ImplOpenGL3_Init("#version 330");
 
 		m_SceneHierarchyPanel = std::make_unique<SceneHierarchyPanel>();
+
+		FramebufferSpecification fbSpec;
+		fbSpec.Width = m_Window.GetWidth();
+		fbSpec.Height = m_Window.GetHeight();
+		m_Framebuffer = std::make_unique<Framebuffer>(fbSpec);
+		m_GameFramebuffer = std::make_unique<Framebuffer>(fbSpec);
+
+		m_EditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
 
 		m_LastFrameTime = static_cast<float>(glfwGetTime());
 		m_IsInitialized = true;
@@ -119,14 +132,38 @@ namespace Proto
 
 	void Application::Render()
 	{
+		if (m_IsViewportFocused)
+			m_EditorCamera.OnUpdate(m_DeltaTime);
+
+		// 1. Render Editor Scene
+		m_Framebuffer->Bind();
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Added Depth buffer clean
 		glEnable(GL_DEPTH_TEST);
 
 		if (m_Scene)
 		{
-			m_Scene->OnUpdate(m_DeltaTime);
+			// Render for Scene View (Editor Camera)
+			m_Scene->OnUpdateEditor(m_DeltaTime, m_EditorCamera);
 		}
+		m_Framebuffer->Unbind();
+
+		// 2. Render Game Scene
+		m_GameFramebuffer->Bind();
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+
+		if (m_Scene)
+		{
+			// Render for Game View (Game Camera + Logic)
+			m_Scene->OnUpdateRuntime(m_DeltaTime);
+		}
+		m_GameFramebuffer->Unbind();
+
+
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		BeginImGuiFrame();
 
@@ -154,6 +191,40 @@ namespace Proto
 
 		ImGui::End();
 		ImGui::PopStyleColor();
+
+		// --- Scene View Panel ---
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+		ImGui::Begin("Scene View");
+		m_IsViewportFocused = ImGui::IsWindowFocused();
+		m_IsViewportHovered = ImGui::IsWindowHovered();
+
+		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+		if (m_Framebuffer->GetSpecification().Width != viewportPanelSize.x || m_Framebuffer->GetSpecification().Height != viewportPanelSize.y)
+		{
+			m_Framebuffer->Resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y);
+			m_EditorCamera.SetViewportSize(viewportPanelSize.x, viewportPanelSize.y);
+		}
+
+		uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+		ImGui::Image(reinterpret_cast<void*>((uintptr_t)textureID), ImVec2{ viewportPanelSize.x, viewportPanelSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+		ImGui::End();
+		ImGui::PopStyleVar();
+
+		// --- Game View Panel ---
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+		ImGui::Begin("Game View");
+		ImVec2 gameViewportPanelSize = ImGui::GetContentRegionAvail();
+		if (m_GameFramebuffer->GetSpecification().Width != gameViewportPanelSize.x || m_GameFramebuffer->GetSpecification().Height != gameViewportPanelSize.y)
+		{
+			m_GameFramebuffer->Resize((uint32_t)gameViewportPanelSize.x, (uint32_t)gameViewportPanelSize.y);
+			if (m_Scene)
+				m_Scene->OnViewportResize((uint32_t)gameViewportPanelSize.x, (uint32_t)gameViewportPanelSize.y);
+		}
+
+		uint32_t gameTextureID = m_GameFramebuffer->GetColorAttachmentRendererID();
+		ImGui::Image(reinterpret_cast<void*>((uintptr_t)gameTextureID), ImVec2{ gameViewportPanelSize.x, gameViewportPanelSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+		ImGui::End();
+		ImGui::PopStyleVar();
 
 		if (m_SceneHierarchyPanel)
 			m_SceneHierarchyPanel->OnImGuiRender();

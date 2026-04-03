@@ -10,7 +10,7 @@ int main()
 	{
 		auto& app = Proto::Application::Get();
 
-		// Proto::Test::SetupCubeTest(app);
+		Proto::Test::SetupCubeTest(app);
 
 		app.Run();
 	}

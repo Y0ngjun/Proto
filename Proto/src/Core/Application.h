@@ -3,6 +3,9 @@
 #include "Window.h"
 #include <functional>
 #include <memory>
+#include "../Renderer/Framebuffer.h"
+
+#include "../Renderer/EditorCamera.h"
 
 namespace Proto
 {
@@ -40,6 +43,13 @@ namespace Proto
 		float m_DeltaTime;
 		float m_LastFrameTime;
 		bool m_IsInitialized;
+
+		std::unique_ptr<Framebuffer> m_Framebuffer;
+		std::unique_ptr<Framebuffer> m_GameFramebuffer;
+		EditorCamera m_EditorCamera;
+
+		bool m_IsViewportFocused = false;
+		bool m_IsViewportHovered = false;
 
 		class Scene* m_Scene = nullptr;
 		std::unique_ptr<SceneHierarchyPanel> m_SceneHierarchyPanel;
