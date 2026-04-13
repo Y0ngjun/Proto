@@ -1,15 +1,17 @@
 #pragma once
 
-#include "GameObject.h"
 #include <vector>
 #include <memory>
 #include <string>
 
-namespace Proto {
+#include "GameObject.h"
 
+namespace Proto
+{
 	class EditorCamera;
 
-	class Scene {
+	class Scene
+	{
 	public:
 		Scene() = default;
 		~Scene() = default;

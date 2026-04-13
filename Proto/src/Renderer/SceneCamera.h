@@ -1,11 +1,13 @@
 #pragma once
 
-#include "Camera.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace Proto {
+#include "Camera.h"
 
-	class SceneCamera : public Camera {
+namespace Proto
+{
+	class SceneCamera : public Camera
+	{
 	public:
 		SceneCamera();
 		virtual ~SceneCamera() = default;
@@ -25,5 +27,4 @@ namespace Proto {
 
 		float m_AspectRatio = 0.0f;
 	};
-
 }

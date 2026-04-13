@@ -1,14 +1,16 @@
 #pragma once
 
-#include "Component.h"
 #include <string>
 #include <vector>
 #include <memory>
 #include <typeinfo>
 
-namespace Proto {
+#include "Component.h"
 
-	class GameObject {
+namespace Proto
+{
+	class GameObject
+	{
 	public:
 		GameObject(const std::string& name = "GameObject");
 		~GameObject();
@@ -17,7 +19,8 @@ namespace Proto {
 		void Update(float deltaTime);
 
 		template<typename T, typename... Args>
-		T* AddComponent(Args... args) {
+		T* AddComponent(Args... args)
+		{
 			T* component = new T(std::forward<Args>(args)...);
 			component->m_GameObject = this;
 			m_Components.push_back(std::unique_ptr<Component>(component));
@@ -26,10 +29,13 @@ namespace Proto {
 		}
 
 		template<typename T>
-		T* GetComponent() {
-			for (auto& comp : m_Components) {
+		T* GetComponent()
+		{
+			for (auto& comp : m_Components)
+			{
 				T* target = dynamic_cast<T*>(comp.get());
-				if (target) {
+				if (target)
+				{
 					return target;
 				}
 			}
@@ -40,5 +46,4 @@ namespace Proto {
 		std::string m_Name;
 		std::vector<std::unique_ptr<Component>> m_Components;
 	};
-
 }

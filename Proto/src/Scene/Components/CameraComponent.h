@@ -3,9 +3,10 @@
 #include "../Component.h"
 #include "../../Renderer/SceneCamera.h"
 
-namespace Proto {
-
-	class CameraComponent : public Component {
+namespace Proto
+{
+	class CameraComponent : public Component
+	{
 	public:
 		SceneCamera Camera;
 
@@ -16,5 +17,4 @@ namespace Proto {
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
 	};
-
 }

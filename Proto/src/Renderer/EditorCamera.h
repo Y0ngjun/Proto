@@ -1,12 +1,14 @@
 #pragma once
 
-#include "Camera.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace Proto {
+#include "Camera.h"
 
-	class EditorCamera : public Camera {
+namespace Proto
+{
+	class EditorCamera : public Camera
+	{
 	public:
 		EditorCamera() = default;
 		EditorCamera(float fov, float aspectRatio, float nearClip, float farClip);
@@ -14,7 +16,7 @@ namespace Proto {
 		void OnUpdate(float deltaTime);
 
 		inline void SetViewportSize(float width, float height) { m_ViewportWidth = width; m_ViewportHeight = height; UpdateProjection(); }
-		
+
 		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
 		glm::mat4 GetViewProjection() const { return m_Projection * m_ViewMatrix; }
 
@@ -51,5 +53,4 @@ namespace Proto {
 
 		float m_ViewportWidth = 1280, m_ViewportHeight = 720;
 	};
-
 }

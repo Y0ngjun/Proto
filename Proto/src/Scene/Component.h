@@ -1,9 +1,11 @@
 #pragma once
 
-namespace Proto {
+namespace Proto
+{
 	class GameObject;
 
-	class Component {
+	class Component
+	{
 	public:
 		virtual ~Component() = default;
 

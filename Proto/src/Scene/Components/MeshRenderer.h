@@ -1,13 +1,15 @@
 #pragma once
 
+#include <memory>
+
 #include "../Component.h"
 #include "../../Renderer/VertexArray.h"
 #include "../../Renderer/Shader.h"
-#include <memory>
 
-namespace Proto {
-
-	class MeshRenderer : public Component {
+namespace Proto
+{
+	class MeshRenderer : public Component
+	{
 	public:
 		MeshRenderer() = default;
 		MeshRenderer(const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<Shader>& shader)
@@ -23,5 +25,4 @@ namespace Proto {
 		std::shared_ptr<VertexArray> m_VertexArray;
 		std::shared_ptr<Shader> m_Shader;
 	};
-
 }

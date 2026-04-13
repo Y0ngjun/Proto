@@ -1,13 +1,14 @@
-#include "EditorCamera.h"
-#include "../Core/Input.h"
-#include <glfw/glfw3.h>
-
 #define GLM_ENABLE_EXPERIMENTAL
+
+#include <glfw/glfw3.h>
 #include <glm/gtx/quaternion.hpp>
 #include <iostream>
 
-namespace Proto {
+#include "EditorCamera.h"
+#include "../Core/Input.h"
 
+namespace Proto
+{
 	EditorCamera::EditorCamera(float fov, float aspectRatio, float nearClip, float farClip)
 		: m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip)
 	{
@@ -59,14 +60,14 @@ namespace Proto {
 	{
 		double xpos, ypos;
 		Input::GetMousePosition(xpos, ypos);
-		glm::vec2 mouse{(float)xpos, (float)ypos};
+		glm::vec2 mouse{ (float)xpos, (float)ypos };
 		glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
 		m_InitialMousePosition = mouse;
 
 		if (Input::GetMouseButton(GLFW_MOUSE_BUTTON_RIGHT))
 		{
 			MouseRotate(delta);
-			
+
 			float speed = 5.0f * deltaTime;
 			if (Input::GetKey(GLFW_KEY_W))
 				m_FocalPoint += GetForwardDirection() * speed;
@@ -110,5 +111,4 @@ namespace Proto {
 		if (m_Distance < 0.1f)
 			m_Distance = 0.1f;
 	}
-
 }

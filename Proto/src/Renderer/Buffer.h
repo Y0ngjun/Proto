@@ -2,9 +2,10 @@
 
 #include <cstdint>
 
-namespace Proto {
-
-	class VertexBuffer {
+namespace Proto
+{
+	class VertexBuffer
+	{
 	public:
 		VertexBuffer(const void* vertices, uint32_t size);
 		~VertexBuffer();
@@ -16,7 +17,8 @@ namespace Proto {
 		uint32_t m_RendererID;
 	};
 
-	class IndexBuffer {
+	class IndexBuffer
+	{
 	public:
 		IndexBuffer(const uint32_t* indices, uint32_t count);
 		~IndexBuffer();
@@ -30,5 +32,4 @@ namespace Proto {
 		uint32_t m_RendererID;
 		uint32_t m_Count;
 	};
-
 }

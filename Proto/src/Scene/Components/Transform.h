@@ -1,15 +1,17 @@
 #pragma once
 
-#include "../Component.h"
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-namespace Proto {
+#include "../Component.h"
 
-	class Transform : public Component {
+namespace Proto
+{
+	class Transform : public Component
+	{
 	public:
 		glm::vec3 Translation = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 Rotation = { 0.0f, 0.0f, 0.0f };
@@ -21,5 +23,4 @@ namespace Proto {
 
 		glm::mat4 GetTransform() const;
 	};
-
 }

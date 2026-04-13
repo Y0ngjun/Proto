@@ -148,6 +148,7 @@
     <ClCompile Include="src\Core\Application.cpp" />
     <ClCompile Include="src\Core\Input.cpp" />
     <ClCompile Include="src\Core\Window.cpp" />
+    <ClCompile Include="src\Editor\InspectorPanel.cpp" />
     <ClCompile Include="src\Editor\SceneHierarchyPanel.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Renderer\Buffer.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="src\Core\Application.h" />
     <ClInclude Include="src\Core\Input.h" />
     <ClInclude Include="src\Core\Window.h" />
+    <ClInclude Include="src\Editor\InspectorPanel.h" />
     <ClInclude Include="src\Editor\SceneHierarchyPanel.h" />
     <ClInclude Include="src\Renderer\Buffer.h" />
     <ClInclude Include="src\Renderer\Camera.h" />

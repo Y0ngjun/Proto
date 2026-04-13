@@ -1,12 +1,13 @@
 #pragma once
 
-#include <string>
 #include <glm/glm.hpp>
+#include <string>
 #include <cstdint>
 
-namespace Proto {
-
-	class Shader {
+namespace Proto
+{
+	class Shader
+	{
 	public:
 		Shader(const std::string& vertexSrc, const std::string& fragmentSrc);
 		~Shader();
@@ -24,5 +25,4 @@ namespace Proto {
 
 		void CompileShader(uint32_t shader, const std::string& source);
 	};
-
 }

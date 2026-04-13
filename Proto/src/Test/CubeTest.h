@@ -1,5 +1,9 @@
 #pragma once
 
+#include <memory>
+#include <string>
+#include <cmath>
+
 #include "../Core/Application.h"
 #include "../Scene/Scene.h"
 #include "../Scene/Components/Transform.h"
@@ -8,14 +12,12 @@
 #include "../Renderer/VertexArray.h"
 #include "../Renderer/Shader.h"
 
-#include <memory>
-#include <string>
-#include <cmath>
-
-namespace Proto {
-	namespace Test {
-
-		inline void SetupCubeTest(Application& app) {
+namespace Proto
+{
+	namespace Test
+	{
+		inline void SetupCubeTest(Application& app)
+		{
 			Scene* scene = new Scene();
 			app.SetScene(scene);
 
@@ -27,7 +29,8 @@ namespace Proto {
 			cameraComponent.Camera.SetViewportSize(1920, 1080);
 
 			// Cube Setup
-			float vertices[] = {
+			float vertices[] =
+			{
 				-0.5f, -0.5f,  0.5f,
 				 0.5f, -0.5f,  0.5f,
 				 0.5f,  0.5f,  0.5f,
@@ -35,10 +38,11 @@ namespace Proto {
 				-0.5f, -0.5f, -0.5f,
 				 0.5f, -0.5f, -0.5f,
 				 0.5f,  0.5f, -0.5f,
-				-0.5f,  0.5f, -0.5f 
+				-0.5f,  0.5f, -0.5f
 			};
 
-			uint32_t indices[] = {
+			uint32_t indices[] =
+			{
 				0, 1, 2, 2, 3, 0, // Front
 				1, 5, 6, 6, 2, 1, // Right
 				5, 4, 7, 7, 6, 5, // Back
@@ -80,17 +84,19 @@ namespace Proto {
 			cubeGo->AddComponent<MeshRenderer>(vao, shader);
 
 			// 람다 함수를 통해 Application 루프 안에서 큐브가 회전 및 스케일링 될 수 있도록 Update 콜백 등록
-			app.SetUpdateCallback([cubeGo, time = 0.0f](float deltaTime) mutable {
-				/*auto transform = cubeGo->GetComponent<Transform>();
-				if (transform) {
-					transform->Rotation.x += deltaTime * 0.5f;
-					transform->Rotation.y += deltaTime * 1.0f;
+			app.SetUpdateCallback([cubeGo, time = 0.0f](float deltaTime) mutable
+				{
+					auto transform = cubeGo->GetComponent<Transform>();
+					if (transform)
+					{
+						transform->Rotation.x += deltaTime * 0.5f;
+						transform->Rotation.y += deltaTime * 1.0f;
 
-					time += deltaTime;
-					float scale = 1.0f + 0.5f * std::sin(time * 2.0f);
-					transform->Scale = { scale, scale, scale };
-				}*/
-			});
+						time += deltaTime;
+						float scale = 1.0f + 0.5f * std::sin(time * 2.0f);
+						transform->Scale = { scale, scale, scale };
+					}
+				});
 		}
 
 	}

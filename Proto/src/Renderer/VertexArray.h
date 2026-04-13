@@ -1,12 +1,14 @@
 #pragma once
 
-#include "Buffer.h"
 #include <memory>
 #include <vector>
 
-namespace Proto {
+#include "Buffer.h"
 
-	class VertexArray {
+namespace Proto
+{
+	class VertexArray
+	{
 	public:
 		VertexArray();
 		~VertexArray();
@@ -25,5 +27,4 @@ namespace Proto {
 		std::vector<std::shared_ptr<VertexBuffer>> m_VertexBuffers;
 		std::shared_ptr<IndexBuffer> m_IndexBuffer;
 	};
-
 }

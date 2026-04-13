@@ -1,15 +1,17 @@
 #pragma once
 
-#include "Window.h"
 #include <functional>
 #include <memory>
-#include "../Renderer/Framebuffer.h"
 
+#include "Window.h"
+
+#include "../Renderer/Framebuffer.h"
 #include "../Renderer/EditorCamera.h"
 
 namespace Proto
 {
 	class SceneHierarchyPanel;
+	class InspectorPanel;
 
 	class Application
 	{
@@ -25,7 +27,6 @@ namespace Proto
 	private:
 		Application();
 		~Application();
-
 
 		void Init();
 		void Shutdown();
@@ -44,7 +45,7 @@ namespace Proto
 		float m_LastFrameTime;
 		bool m_IsInitialized;
 
-		std::unique_ptr<Framebuffer> m_Framebuffer;
+		std::unique_ptr<Framebuffer> m_EditorFramebuffer;
 		std::unique_ptr<Framebuffer> m_GameFramebuffer;
 		EditorCamera m_EditorCamera;
 
@@ -53,6 +54,7 @@ namespace Proto
 
 		class Scene* m_Scene = nullptr;
 		std::unique_ptr<SceneHierarchyPanel> m_SceneHierarchyPanel;
+		std::unique_ptr<InspectorPanel> m_InspectorPanel;
 
 		std::function<void(float)> m_UpdateCallback;
 	};

@@ -2,9 +2,10 @@
 
 #include <glm/glm.hpp>
 
-namespace Proto {
-
-	class Camera {
+namespace Proto
+{
+	class Camera
+	{
 	public:
 		Camera() = default;
 		virtual ~Camera() = default;
@@ -14,5 +15,4 @@ namespace Proto {
 	protected:
 		glm::mat4 m_Projection = glm::mat4(1.0f);
 	};
-
 }

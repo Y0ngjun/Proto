@@ -1,11 +1,13 @@
 #pragma once
 
-#include "../Scene/Scene.h"
 #include <memory>
 
-namespace Proto {
+#include "../Scene/Scene.h"
 
-	class SceneHierarchyPanel {
+namespace Proto
+{
+	class SceneHierarchyPanel
+	{
 	public:
 		SceneHierarchyPanel() = default;
 		SceneHierarchyPanel(Scene* context);
@@ -19,11 +21,8 @@ namespace Proto {
 
 	private:
 		void DrawEntityNode(GameObject* gameObject);
-		void DrawComponents(GameObject* gameObject);
 
-	private:
 		Scene* m_Context = nullptr;
 		GameObject* m_SelectionContext = nullptr;
 	};
-
 }

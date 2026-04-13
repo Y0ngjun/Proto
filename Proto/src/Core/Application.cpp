@@ -10,15 +10,47 @@
 
 #include "../Scene/Scene.h"
 #include "../Editor/SceneHierarchyPanel.h"
+#include "../Editor/InspectorPanel.h"
 
 namespace Proto
-
 {
 	Application& Application::Get()
-
 	{
 		static Application instance;
 		return instance;
+	}
+
+	void Application::Run()
+	{
+		while (!m_Window.ShouldClose())
+		{
+			m_Window.PollEvents();
+
+			Update();
+			Render();
+
+			m_Window.SwapBuffers();
+		}
+	}
+
+	float Application::GetDeltaTime() const
+	{
+		return m_DeltaTime;
+	}
+
+	void Application::SetScene(Scene* scene)
+	{
+		m_Scene = scene;
+
+		if (m_SceneHierarchyPanel)
+		{
+			m_SceneHierarchyPanel->SetContext(m_Scene);
+		}
+
+		if (m_Scene && m_EditorFramebuffer)
+		{
+			m_Scene->OnViewportResize(m_EditorFramebuffer->GetSpecification().Width, m_EditorFramebuffer->GetSpecification().Height);
+		}
 	}
 
 	Application::Application()
@@ -33,18 +65,6 @@ namespace Proto
 	Application::~Application()
 	{
 		Shutdown();
-	}
-
-	void Application::SetScene(Scene* scene)
-	{
-		m_Scene = scene;
-		if (m_SceneHierarchyPanel)
-			m_SceneHierarchyPanel->SetContext(m_Scene);
-
-		if (m_Scene && m_Framebuffer)
-		{
-			m_Scene->OnViewportResize(m_Framebuffer->GetSpecification().Width, m_Framebuffer->GetSpecification().Height);
-		}
 	}
 
 	void Application::Init()
@@ -63,17 +83,21 @@ namespace Proto
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+		// 폰트 스케일
+		io.FontGlobalScale = 1.1f;
+
 		ImGui::StyleColorsDark();
 
 		ImGui_ImplGlfw_InitForOpenGL(m_Window.GetNativeWindow(), true);
 		ImGui_ImplOpenGL3_Init("#version 330");
 
 		m_SceneHierarchyPanel = std::make_unique<SceneHierarchyPanel>();
+		m_InspectorPanel = std::make_unique<InspectorPanel>();
 
 		FramebufferSpecification fbSpec;
 		fbSpec.Width = m_Window.GetWidth();
 		fbSpec.Height = m_Window.GetHeight();
-		m_Framebuffer = std::make_unique<Framebuffer>(fbSpec);
+		m_EditorFramebuffer = std::make_unique<Framebuffer>(fbSpec);
 		m_GameFramebuffer = std::make_unique<Framebuffer>(fbSpec);
 
 		m_EditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
@@ -82,10 +106,7 @@ namespace Proto
 		m_IsInitialized = true;
 	}
 
-
 	void Application::Shutdown()
-
-
 	{
 		if (!m_IsInitialized)
 		{
@@ -105,20 +126,6 @@ namespace Proto
 		m_IsInitialized = false;
 	}
 
-
-	void Application::Run()
-	{
-		while (!m_Window.ShouldClose())
-		{
-			m_Window.PollEvents();
-
-			Update();
-			Render();
-
-			m_Window.SwapBuffers();
-		}
-	}
-
 	void Application::Update()
 	{
 		UpdateFrameTiming();
@@ -133,20 +140,21 @@ namespace Proto
 	void Application::Render()
 	{
 		if (m_IsViewportFocused)
+		{
 			m_EditorCamera.OnUpdate(m_DeltaTime);
+		}
 
 		// 1. Render Editor Scene
-		m_Framebuffer->Bind();
-		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Added Depth buffer clean
+		m_EditorFramebuffer->Bind();
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 
 		if (m_Scene)
 		{
-			// Render for Scene View (Editor Camera)
 			m_Scene->OnUpdateEditor(m_DeltaTime, m_EditorCamera);
 		}
-		m_Framebuffer->Unbind();
+		m_EditorFramebuffer->Unbind();
 
 		// 2. Render Game Scene
 		m_GameFramebuffer->Bind();
@@ -156,18 +164,16 @@ namespace Proto
 
 		if (m_Scene)
 		{
-			// Render for Game View (Game Camera + Logic)
 			m_Scene->OnUpdateRuntime(m_DeltaTime);
 		}
 		m_GameFramebuffer->Unbind();
 
-
+		// 3. Render UI
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		BeginImGuiFrame();
 
-		// Set docking workspace to a transparent state to fix obscured 3D view
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(viewport->Pos);
 		ImGui::SetNextWindowSize(viewport->Size);
@@ -175,22 +181,19 @@ namespace Proto
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | 
-										ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | 
-										ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | 
-										ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
+			ImGuiWindowFlags_NoNavFocus;
 
-		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 		ImGui::Begin("DockSpace", nullptr, window_flags);
 		ImGui::PopStyleVar(2);
 
 		ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-		// 1 << 0 is commonly ImGuiDockNodeFlags_PassthroughCentralNode in docking branch
-		ImGuiDockNodeFlags dockspace_flags = 1 << 0; 
+		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
 		ImGui::End();
-		ImGui::PopStyleColor();
 
 		// --- Scene View Panel ---
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
@@ -199,13 +202,13 @@ namespace Proto
 		m_IsViewportHovered = ImGui::IsWindowHovered();
 
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-		if (m_Framebuffer->GetSpecification().Width != viewportPanelSize.x || m_Framebuffer->GetSpecification().Height != viewportPanelSize.y)
+		if (m_EditorFramebuffer->GetSpecification().Width != viewportPanelSize.x || m_EditorFramebuffer->GetSpecification().Height != viewportPanelSize.y)
 		{
-			m_Framebuffer->Resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y);
+			m_EditorFramebuffer->Resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y);
 			m_EditorCamera.SetViewportSize(viewportPanelSize.x, viewportPanelSize.y);
 		}
 
-		uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+		uint32_t textureID = m_EditorFramebuffer->GetColorAttachmentRendererID();
 		ImGui::Image(reinterpret_cast<void*>((uintptr_t)textureID), ImVec2{ viewportPanelSize.x, viewportPanelSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 		ImGui::End();
 		ImGui::PopStyleVar();
@@ -217,8 +220,11 @@ namespace Proto
 		if (m_GameFramebuffer->GetSpecification().Width != gameViewportPanelSize.x || m_GameFramebuffer->GetSpecification().Height != gameViewportPanelSize.y)
 		{
 			m_GameFramebuffer->Resize((uint32_t)gameViewportPanelSize.x, (uint32_t)gameViewportPanelSize.y);
+
 			if (m_Scene)
+			{
 				m_Scene->OnViewportResize((uint32_t)gameViewportPanelSize.x, (uint32_t)gameViewportPanelSize.y);
+			}
 		}
 
 		uint32_t gameTextureID = m_GameFramebuffer->GetColorAttachmentRendererID();
@@ -227,11 +233,17 @@ namespace Proto
 		ImGui::PopStyleVar();
 
 		if (m_SceneHierarchyPanel)
+		{
 			m_SceneHierarchyPanel->OnImGuiRender();
+		}
+
+		if (m_InspectorPanel && m_SceneHierarchyPanel)
+		{
+			m_InspectorPanel->OnImGuiRender(m_SceneHierarchyPanel->GetSelectedGameObject());
+		}
 
 		EndImGuiFrame();
 	}
-
 
 	void Application::UpdateFrameTiming()
 	{
@@ -259,10 +271,5 @@ namespace Proto
 	{
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	}
-
-	float Application::GetDeltaTime() const
-	{
-		return m_DeltaTime;
 	}
 }
