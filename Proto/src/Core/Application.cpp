@@ -215,14 +215,22 @@ namespace Proto
 		bool isPlaying = m_SceneState == SceneState::Play;
 		const char* buttonLabel = isPlaying ? "Stop" : "Play";
 
-		float buttonWidth = 60.0f;
-		float buttonHeight = 24.0f;
+		float buttonWidth = 80.0f;
+		float buttonHeight = 32.0f;
 
 		// 버튼을 중앙 정렬
 		float availX = ImGui::GetContentRegionAvail().x;
 		float availY = ImGui::GetContentRegionAvail().y;
-		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availX * 0.5f) - (buttonWidth * 0.5f));
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (availY * 0.5f) - (buttonHeight * 0.5f));
+
+		float offsetX = (availX - buttonWidth) * 0.5f;
+		float offsetY = (availY - buttonHeight) * 0.5f;
+
+		// 가용 공간이 버튼보다 작을 때 커서가 화면 밖(음수)으로 밀려 영구적으로 잘리는 현상 방지
+		if (offsetX < 0.0f) offsetX = 0.0f;
+		if (offsetY < 0.0f) offsetY = 0.0f;
+
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offsetX);
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + offsetY);
 
 		if (isPlaying)
 		{
