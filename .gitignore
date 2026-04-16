@@ -33,4 +33,4 @@ Release/
 # Dependencies/
 
 # ImGui
-*.ini
+Proto/imgui.ini
