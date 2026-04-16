@@ -83,10 +83,17 @@ namespace Proto
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-		// 폰트 스케일
-		io.FontGlobalScale = 1.1f;
+		// 1. 주 모니터의 DPI 배율(Scale) 가져오기
+		float xscale, yscale;
+		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xscale, &yscale);
+
+		// 2. 폰트 스케일에 배율 적용
+		io.FontGlobalScale = 1.1f * xscale;
 
 		ImGui::StyleColorsDark();
+
+		// 3. ImGui 스타일 전체 요소(패딩, 창 크기 등)에 배율 곱하기
+		ImGui::GetStyle().ScaleAllSizes(xscale);
 
 		ImGui_ImplGlfw_InitForOpenGL(m_Window.GetNativeWindow(), true);
 		ImGui_ImplOpenGL3_Init("#version 330");
