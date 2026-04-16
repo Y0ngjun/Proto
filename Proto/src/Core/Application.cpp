@@ -215,8 +215,11 @@ namespace Proto
 		bool isPlaying = m_SceneState == SceneState::Play;
 		const char* buttonLabel = isPlaying ? "Stop" : "Play";
 
-		float buttonWidth = 80.0f;
-		float buttonHeight = 32.0f;
+		float xscale, yscale;
+		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xscale, &yscale);
+
+		float buttonWidth = 55.0f * xscale;
+		float buttonHeight = 23.0f * yscale;
 
 		// 버튼을 중앙 정렬
 		float availX = ImGui::GetContentRegionAvail().x;
