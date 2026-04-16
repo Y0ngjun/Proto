@@ -21,6 +21,9 @@ namespace Proto
 		void Unbind();
 
 		void Resize(uint32_t width, uint32_t height);
+		int ReadPixel(uint32_t attachmentIndex, int x, int y);
+
+		void ClearAttachment(uint32_t attachmentIndex, int value);
 
 		uint32_t GetColorAttachmentRendererID() const { return m_ColorAttachment; }
 
@@ -28,7 +31,7 @@ namespace Proto
 
 	private:
 		uint32_t m_RendererID = 0;
-		uint32_t m_ColorAttachment = 0, m_DepthAttachment = 0;
+		uint32_t m_ColorAttachment = 0, m_EntityIDAttachment = 0, m_DepthAttachment = 0;
 		FramebufferSpecification m_Specification;
 	};
 }

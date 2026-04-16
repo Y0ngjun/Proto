@@ -23,7 +23,11 @@ namespace Proto
 
 		void OnViewportResize(uint32_t width, uint32_t height);
 
+		void OnRuntimeStart();
+		void OnRuntimeStop();
+
 		std::vector<std::unique_ptr<GameObject>>& GetGameObjects() { return m_GameObjects; }
+		GameObject* GetGameObjectByID(uint32_t id);
 
 	private:
 

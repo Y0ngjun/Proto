@@ -16,6 +16,7 @@ namespace Proto
 		~GameObject();
 
 		const std::string& GetName() const { return m_Name; }
+		uint32_t GetID() const { return m_ID; }
 		void Update(float deltaTime);
 
 		template<typename T, typename... Args>
@@ -43,6 +44,7 @@ namespace Proto
 		}
 
 	private:
+		uint32_t m_ID;
 		std::string m_Name;
 		std::vector<std::unique_ptr<Component>> m_Components;
 	};

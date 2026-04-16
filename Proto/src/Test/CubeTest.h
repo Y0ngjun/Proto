@@ -71,10 +71,13 @@ namespace Proto
 
 			const std::string fragmentSrc = R"(
 				#version 330 core
+				layout(location = 0) out vec4 color;
+				layout(location = 1) out int color2;
 				in vec3 v_Position;
-				out vec4 color;
+				uniform int u_EntityID;
 				void main() {
 					color = vec4(v_Position * 0.5 + 0.5, 1.0);
+					color2 = u_EntityID;
 				}
 			)";
 
@@ -83,7 +86,7 @@ namespace Proto
 			auto cubeGo = scene->CreateGameObject("Cube");
 			cubeGo->AddComponent<MeshRenderer>(vao, shader);
 
-			// 람다 함수를 통해 Application 루프 안에서 큐브가 회전 및 스케일링 될 수 있도록 Update 콜백 등록
+			// ť�� �׽�Ʈ
 			app.SetUpdateCallback([cubeGo, time = 0.0f](float deltaTime) mutable
 				{
 					auto transform = cubeGo->GetComponent<Transform>();

@@ -2,9 +2,7 @@
 
 #include <functional>
 #include <memory>
-
 #include "Window.h"
-
 #include "../Renderer/Framebuffer.h"
 #include "../Renderer/EditorCamera.h"
 
@@ -55,6 +53,15 @@ namespace Proto
 		class Scene* m_Scene = nullptr;
 		std::unique_ptr<SceneHierarchyPanel> m_SceneHierarchyPanel;
 		std::unique_ptr<InspectorPanel> m_InspectorPanel;
+
+		int m_GizmoType = 7; // ImGuizmo::OPERATION::TRANSLATE (기본값 이동)
+
+		enum class SceneState
+		{
+			Edit = 0, Play = 1
+		};
+
+		SceneState m_SceneState = SceneState::Edit;
 
 		std::function<void(float)> m_UpdateCallback;
 	};

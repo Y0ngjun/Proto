@@ -23,6 +23,14 @@ namespace Proto
 		return ptr;
 	}
 
+	void Scene::OnRuntimeStart()
+	{
+	}
+
+	void Scene::OnRuntimeStop()
+	{
+	}
+
 	void Scene::OnUpdateRuntime(float deltaTime)
 	{
 		for (auto& go : m_GameObjects)
@@ -91,6 +99,7 @@ namespace Proto
 					shader->Bind();
 					shader->UploadUniformMat4("u_ViewProjection", viewProjection);
 					shader->UploadUniformMat4("u_Transform", transform->GetTransform());
+					shader->UploadUniformInt("u_EntityID", (int)go->GetID());
 					Renderer::Submit(mesh, shader);
 				}
 			}
@@ -107,6 +116,16 @@ namespace Proto
 				cameraComponent->Camera.SetViewportSize(width, height);
 			}
 		}
+	}
+
+	GameObject* Scene::GetGameObjectByID(uint32_t id)
+	{
+		for (auto& go : m_GameObjects)
+		{
+			if (go->GetID() == id)
+				return go.get();
+		}
+		return nullptr;
 	}
 
 }
