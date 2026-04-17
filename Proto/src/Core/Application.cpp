@@ -83,16 +83,16 @@ namespace Proto
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-		// 1. 주 모니터의 DPI 배율(Scale) 가져오기
+		// 주 모니터의 DPI 배율 가져오기
 		float xscale, yscale;
 		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xscale, &yscale);
 
-		// 2. 폰트 스케일에 배율 적용
+		// 폰트 스케일에 배율 적용
 		io.FontGlobalScale = 1.1f * xscale;
 
 		ImGui::StyleColorsDark();
 
-		// 3. ImGui 스타일 전체 요소(패딩, 창 크기 등)에 배율 곱하기
+		// ImGui 스타일 전체 요소(패딩, 창 크기 등)에 배율 곱하기
 		ImGui::GetStyle().ScaleAllSizes(xscale);
 
 		ImGui_ImplGlfw_InitForOpenGL(m_Window.GetNativeWindow(), true);
@@ -154,7 +154,7 @@ namespace Proto
 			m_EditorCamera.OnUpdate(m_DeltaTime);
 		}
 
-		// 1. Render Editor Scene
+		// Render Editor Scene
 		m_EditorFramebuffer->Bind();
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -167,7 +167,7 @@ namespace Proto
 		}
 		m_EditorFramebuffer->Unbind();
 
-		// 2. Render Game Scene
+		// Render Game Scene
 		m_GameFramebuffer->Bind();
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -179,7 +179,7 @@ namespace Proto
 		}
 		m_GameFramebuffer->Unbind();
 
-		// 3. Render UI
+		// Render UI
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
