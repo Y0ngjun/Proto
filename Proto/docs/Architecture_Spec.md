@@ -60,6 +60,8 @@
 ---
 
 ## 6. Development Milestones
-- **Phase 1 (Core & Renderer)**: 창 띄우기, 입력 처리, 3D 큐브 및 카메라 렌더링.
-- **Phase 2 (Scene & Editor)**: GameObject/Component 구조 도입, ImGui 에디터 패널 연동.
-- **Phase 3 (Physics & Polish)**: 기초 충돌(AABB), 스크립트 시스템, 최종 데모 빌드.
+- **Phase 1 (Core & Renderer)**: 창 띄우기, 입력 처리, 3D 큐브 및 카메라 렌더링. (완료)
+- **Phase 2 (Scene & Editor)**: GameObject/Component 구조 도입, ImGui 에디터 패널 연동, 에디터 렌더링 고도화(격자/피킹). (완료)
+- **Phase 3 (Engine Core & Serialization)**: 고유 식별자(UUID) 시스템, 라이프사이클(안전한 객체 삭제) 관리, YAML 기반 데이터 직렬화(Save/Load), 에셋 매니저(Asset Manager) 뼈대 구축.
+- **Phase 4 (Logic & Physics)**: 커스텀 C++ 로직 확장을 위한 `ScriptComponent`, 기초 물리 연동 및 AABB 충돌 처리.
+- **Phase 5 (Graphics Polish & Final)**: 텍스처(Texture2D) 맵핑, 재질(Material) 시스템, 그림자(Shadow Mapping) 렌더링 고도화 및 최종 데모 씬 작성.
