@@ -156,7 +156,7 @@ namespace Proto
 
 		// Render Editor Scene
 		m_EditorFramebuffer->Bind();
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // Unity 스타일 에디터 배경색
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		m_EditorFramebuffer->ClearAttachment(1, -1);
 		glEnable(GL_DEPTH_TEST);
@@ -169,7 +169,7 @@ namespace Proto
 
 		// Render Game Scene
 		m_GameFramebuffer->Bind();
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 
@@ -180,7 +180,7 @@ namespace Proto
 		m_GameFramebuffer->Unbind();
 
 		// Render UI
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // UI 배경은 기존 유지 (다크 모드)
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		BeginImGuiFrame();

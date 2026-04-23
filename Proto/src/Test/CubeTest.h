@@ -25,7 +25,8 @@ namespace Proto
 			// Camera Setup
 			auto cameraGo = scene->CreateGameObject("MainCamera");
 			auto& transform = *cameraGo->GetComponent<Transform>();
-			transform.Translation = { 0.0f, 0.0f, 5.0f }; // Move camera back
+			transform.Translation = { 0.0f, 3.0f, 5.0f }; // Move camera back
+			transform.Rotation = { glm::radians(-30.0f), 0.0f, 0.0f};
 			auto& cameraComponent = *cameraGo->AddComponent<CameraComponent>();
 			cameraComponent.Camera.SetViewportSize(1920, 1080);
 
@@ -77,6 +78,7 @@ namespace Proto
 			auto vao = std::make_shared<VertexArray>();
 			vao->AddVertexBuffer(vbo);
 			vao->SetIndexBuffer(ebo);
+			vao->Unbind(); // OpenGL VAO ìƒíƒœê°€ ìœ ì§€ë˜ì–´ ë’¤ì—ì„œ ìƒì„±ë˜ëŠ” EBOê°€ ë®ì–´ì”Œì›Œì§€ëŠ” í˜„ìƒ ë°©ì§€
 
 			const std::string vertexSrc = R"(
 				#version 330 core
@@ -91,7 +93,7 @@ namespace Proto
 
 				void main() {
 					v_FragPos = vec3(u_Transform * vec4(a_Position, 1.0));
-					// ¹ı¼± Çà·Ä: ºñÀ²(Scale) º¯Çü ½Ã ¹ı¼±ÀÌ ¿Ö°îµÇ´Â °ÍÀ» ¹æÁö
+					// ë²•ì„  í–‰ë ¬: ë¹„ìœ¨(Scale) ë³€í˜• ì‹œ ë²•ì„ ì´ ì™œê³¡ë˜ëŠ” ê²ƒì„ ë°©ì§€
 					v_Normal = mat3(transpose(inverse(u_Transform))) * a_Normal;
 					gl_Position = u_ViewProjection * vec4(v_FragPos, 1.0);
 				}
@@ -111,20 +113,20 @@ namespace Proto
 				uniform vec3 u_LightColor;
 
 				void main() {
-					// ±âº» Å¥ºê »ö»ó ÁöÁ¤
+					// ê¸°ë³¸ íë¸Œ ìƒ‰ìƒ ì§€ì •
 					vec3 objectColor = vec3(1.0, 0.5, 0.31); 
 
-					// 1. Ambient (ÁÖº¯±¤)
+					// 1. Ambient (ì£¼ë³€ê´‘)
 					float ambientStrength = 0.2;
 					vec3 ambient = ambientStrength * u_LightColor;
 
-					// 2. Diffuse (³­¹İ»ç±¤)
+					// 2. Diffuse (ë‚œë°˜ì‚¬ê´‘)
 					vec3 norm = normalize(v_Normal);
-					vec3 lightDir = normalize(-u_LightDir); // ºûÀÌ ÇâÇÏ´Â ¹æÇâÀÇ ¹İ´ë ¹æÇâ °è»ê
+					vec3 lightDir = normalize(-u_LightDir); // ë¹›ì´ í–¥í•˜ëŠ” ë°©í–¥ì˜ ë°˜ëŒ€ ë°©í–¥ ê³„ì‚°
 					float diff = max(dot(norm, lightDir), 0.0);
 					vec3 diffuse = diff * u_LightColor;
 
-					// 3. Specular (Á¤¹İ»ç±¤)
+					// 3. Specular (ì •ë°˜ì‚¬ê´‘)
 					float specularStrength = 0.5;
 					vec3 viewDir = normalize(u_ViewPos - v_FragPos);
 					vec3 reflectDir = reflect(-lightDir, norm);
@@ -139,17 +141,77 @@ namespace Proto
 
 			auto shader = std::make_shared<Shader>(vertexSrc, fragmentSrc);
 
-			// ºû °´Ã¼ »ı¼º
+			// --- Floor Plane Setup ---
+			float planeVertices[] = {
+				// Position               // Normal
+				-2.5f, 0.0f,  2.5f,       0.0f, 1.0f, 0.0f, // 0: Bottom-left
+				 2.5f, 0.0f,  2.5f,       0.0f, 1.0f, 0.0f, // 1: Bottom-right
+				 2.5f, 0.0f, -2.5f,       0.0f, 1.0f, 0.0f, // 2: Top-right
+				-2.5f, 0.0f, -2.5f,       0.0f, 1.0f, 0.0f  // 3: Top-left
+			};
+			uint32_t planeIndices[] = { 0, 1, 2, 2, 3, 0 };
+
+			auto planeVBO = std::make_shared<VertexBuffer>(planeVertices, sizeof(planeVertices));
+			auto planeEBO = std::make_shared<IndexBuffer>(planeIndices, sizeof(planeIndices) / sizeof(uint32_t));
+			auto planeVAO = std::make_shared<VertexArray>();
+			planeVAO->AddVertexBuffer(planeVBO);
+			planeVAO->SetIndexBuffer(planeEBO);
+
+			const std::string planeFragmentSrc = R"(
+				#version 330 core
+				layout(location = 0) out vec4 color;
+				layout(location = 1) out int color2;
+
+				in vec3 v_FragPos;
+				in vec3 v_Normal;
+
+				uniform int u_EntityID;
+				uniform vec3 u_ViewPos;
+				uniform vec3 u_LightDir;
+				uniform vec3 u_LightColor;
+
+				void main() {
+					// ë°”ë‹¥ì€ í•˜ì–€ìƒ‰ì— ê°€ê¹Œìš´ ë°ì€ íšŒìƒ‰
+					vec3 objectColor = vec3(0.8, 0.8, 0.8); 
+
+					float ambientStrength = 0.2;
+					vec3 ambient = ambientStrength * u_LightColor;
+
+					vec3 norm = normalize(v_Normal);
+					vec3 lightDir = normalize(-u_LightDir);
+					float diff = max(dot(norm, lightDir), 0.0);
+					vec3 diffuse = diff * u_LightColor;
+
+					float specularStrength = 0.1; // ë°”ë‹¥ì€ ë°˜ì‚¬ê´‘ì„ ì ê²Œ
+					vec3 viewDir = normalize(u_ViewPos - v_FragPos);
+					vec3 reflectDir = reflect(-lightDir, norm);
+					float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16); 
+					vec3 specular = specularStrength * spec * u_LightColor;
+
+					vec3 result = (ambient + diffuse + specular) * objectColor;
+					color = vec4(result, 1.0);
+					color2 = u_EntityID;
+				}
+			)";
+			auto planeShader = std::make_shared<Shader>(vertexSrc, planeFragmentSrc);
+
+			// ë¹› ê°ì²´ ìƒì„±
 			auto lightGo = scene->CreateGameObject("DirectionalLight");
 			auto& lightTrans = *lightGo->GetComponent<Transform>();
-			// ÅÂ¾ç ºûÃ³·³ ¾Æ·¡¿Í ¾à°£ ´ë°¢¼±À¸·Î ºñÃßµµ·Ï È¸Àü°ªÀ» ¼³Á¤
+			// íƒœì–‘ ë¹›ì²˜ëŸ¼ ì•„ë˜ì™€ ì•½ê°„ ëŒ€ê°ì„ ìœ¼ë¡œ ë¹„ì¶”ë„ë¡ íšŒì „ê°’ì„ ì„¤ì •
 			lightTrans.Rotation = glm::vec3(glm::radians(45.0f), glm::radians(30.0f), 0.0f);
 			lightGo->AddComponent<LightComponent>(glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
 
+			// Floor Object
+			auto planeGo = scene->CreateGameObject("FloorPlane");
+			planeGo->AddComponent<MeshRenderer>(planeVAO, planeShader);
+			planeGo->GetComponent<Transform>()->Translation.y = 0.1f;
+
 			auto cubeGo = scene->CreateGameObject("Cube");
 			cubeGo->AddComponent<MeshRenderer>(vao, shader);
+			cubeGo->GetComponent<Transform>()->Translation.y += 1;
 
-			// Å¥ºê Å×½ºÆ®
+			// íë¸Œ í…ŒìŠ¤íŠ¸
 			app.SetUpdateCallback([cubeGo, time = 0.0f](float deltaTime) mutable
 				{
 					auto transform = cubeGo->GetComponent<Transform>();

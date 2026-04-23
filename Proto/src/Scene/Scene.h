@@ -13,7 +13,7 @@ namespace Proto
 	class Scene
 	{
 	public:
-		Scene() = default;
+		Scene();
 		~Scene() = default;
 
 		GameObject* CreateGameObject(const std::string& name = "GameObject");
@@ -32,6 +32,9 @@ namespace Proto
 	private:
 
 		std::vector<std::unique_ptr<GameObject>> m_GameObjects;
+
+		std::shared_ptr<class VertexArray> m_GridVAO;
+		std::shared_ptr<class Shader> m_GridShader;
 	};
 
 }
