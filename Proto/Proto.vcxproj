@@ -485,6 +485,7 @@
     <ClInclude Include="src\Renderer\VertexArray.h" />
     <ClInclude Include="src\Scene\Component.h" />
     <ClInclude Include="src\Scene\Components\CameraComponent.h" />
+    <ClInclude Include="src\Scene\Components\LightComponent.h" />
     <ClInclude Include="src\Scene\Components\MeshRenderer.h" />
     <ClInclude Include="src\Scene\Components\Transform.h" />
     <ClInclude Include="src\Scene\GameObject.h" />
