@@ -96,6 +96,15 @@
     <ClCompile Include="Dependencies\include\glm\glm.cppm">
       <Filter>�ҽ� ����</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scene\Components\MeshRenderer.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\Components\CameraComponent.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\Components\LightComponent.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\Window.h">
@@ -1076,7 +1085,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".github\copilot-instructions.md" />
-    <None Include="docs\Architecture_Spec.md" />
     <None Include="imgui.ini" />
     <None Include="Proto.slnx" />
     <None Include="Dependencies\include\glm\detail\func_common.inl">
@@ -1499,5 +1507,15 @@
     <None Include="Dependencies\include\glm\gtx\wrap.inl">
       <Filter>��� ����</Filter>
     </None>
+    <None Include="docs\spec\design.md" />
+    <None Include="docs\spec\architecture.md" />
+    <None Include="docs\progress.md" />
+    <None Include="src\Core.md" />
+    <None Include="src\Scene.md" />
+    <None Include="src\Renderer.md" />
+    <None Include="src\Editor.md" />
+    <None Include="docs\workflow.md" />
+    <None Include="docs\style-guide.md" />
+    <None Include="docs\testing.md" />
   </ItemGroup>
 </Project>

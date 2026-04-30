@@ -21,6 +21,11 @@ namespace Proto
 		const std::shared_ptr<VertexArray>& GetMesh() const { return m_VertexArray; }
 		const std::shared_ptr<Shader>& GetShader() const { return m_Shader; }
 
+		// 직렬화
+		void Serialize(YAML::Emitter& out) const override;
+		void Deserialize(const YAML::Node& node) override;
+		const char* GetComponentTypeName() const override { return "MeshRenderer"; }
+
 	private:
 		std::shared_ptr<VertexArray> m_VertexArray;
 		std::shared_ptr<Shader> m_Shader;

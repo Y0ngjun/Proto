@@ -22,6 +22,13 @@ namespace Proto
 		void SetScene(class Scene* scene);
 		void SetUpdateCallback(const std::function<void(float)>& callback) { m_UpdateCallback = callback; }
 
+		int GetGizmoType() const { return m_GizmoType; }
+		void SetGizmoType(int type) { m_GizmoType = type; }
+
+		// Scene Save/Load
+		void SaveScene(const std::string& filePath);
+		void LoadScene(const std::string& filePath);
+
 	private:
 		Application();
 		~Application();
@@ -34,6 +41,7 @@ namespace Proto
 		void ProcessInput();
 		void BeginImGuiFrame() const;
 		void EndImGuiFrame() const;
+		void HandleObjectPicking(const glm::vec2* viewportBounds, const glm::vec2& viewportSize);
 
 		Application(const Application&) = delete;
 		Application& operator=(const Application&) = delete;

@@ -206,6 +206,38 @@ namespace Proto
 
 		ImGui::End();
 
+		// --- Main Menu Bar ---
+		if (ImGui::BeginMainMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
+				{
+					if (m_Scene)
+					{
+						// 기본 경로: scenes/untitled.yaml
+						std::string defaultPath = "scenes/scene.yaml";
+						SaveScene(defaultPath);
+					}
+				}
+				if (ImGui::MenuItem("Load Scene", "Ctrl+L"))
+				{
+					if (m_Scene)
+					{
+						std::string defaultPath = "scenes/scene.yaml";
+						LoadScene(defaultPath);
+					}
+				}
+				ImGui::Separator();
+				if (ImGui::MenuItem("Exit", "Alt+F4"))
+				{
+					m_Window.SetShouldClose(true);
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndMainMenuBar();
+		}
+
 		// --- Toolbar Panel ---
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
@@ -292,36 +324,12 @@ namespace Proto
 		uint32_t textureID = m_EditorFramebuffer->GetColorAttachmentRendererID();
 		ImGui::Image(reinterpret_cast<void*>((uintptr_t)textureID), ImVec2{ viewportPanelSize.x, viewportPanelSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
-		if (m_IsViewportHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGuizmo::IsOver())
-		{
-			ImVec2 mousePos = ImGui::GetMousePos();
-			mousePos.x -= viewportBounds[0].x;
-			mousePos.y -= viewportBounds[0].y;
-			ImVec2 viewportSize = { viewportBounds[1].x - viewportBounds[0].x, viewportBounds[1].y - viewportBounds[0].y };
-
-			// Y축이 뒤집혀 있으므로 보정 (OpenGL 좌표계)
-			mousePos.y = viewportSize.y - mousePos.y;
-
-			int mouseX = (int)mousePos.x;
-			int mouseY = (int)mousePos.y;
-
-			if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
-			{
-				m_EditorFramebuffer->Bind();
-				int pixelData = m_EditorFramebuffer->ReadPixel(1, mouseX, mouseY);
-				m_EditorFramebuffer->Unbind();
-
-				if (pixelData != -1 && m_Scene)
-				{
-					GameObject* pickedEntity = m_Scene->GetGameObjectByID((uint32_t)pixelData);
-					if (m_SceneHierarchyPanel) m_SceneHierarchyPanel->SetSelectedGameObject(pickedEntity);
-				}
-				else
-				{
-					if (m_SceneHierarchyPanel) m_SceneHierarchyPanel->SetSelectedGameObject(nullptr);
-				}
-			}
-		}
+		glm::vec2 viewportBoundsArray[2] = {
+			{ viewportBounds[0].x, viewportBounds[0].y },
+			{ viewportBounds[1].x, viewportBounds[1].y }
+		};
+		glm::vec2 viewportSize = { viewportBounds[1].x - viewportBounds[0].x, viewportBounds[1].y - viewportBounds[0].y };
+		HandleObjectPicking(viewportBoundsArray, viewportSize);
 
 		// ImGuizmo
 		GameObject* selectedEntity = m_SceneHierarchyPanel ? m_SceneHierarchyPanel->GetSelectedGameObject() : nullptr;
@@ -439,5 +447,39 @@ namespace Proto
 	{
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	}
+
+	void Application::HandleObjectPicking(const glm::vec2* viewportBounds, const glm::vec2& viewportSize)
+	{
+		if (!m_IsViewportHovered || !ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGuizmo::IsOver())
+		{
+			return;
+		}
+
+		ImVec2 mousePos = ImGui::GetMousePos();
+		mousePos.x -= viewportBounds[0].x;
+		mousePos.y -= viewportBounds[0].y;
+
+		mousePos.y = viewportSize.y - mousePos.y;
+
+		int mouseX = (int)mousePos.x;
+		int mouseY = (int)mousePos.y;
+
+		if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
+		{
+			m_EditorFramebuffer->Bind();
+			int pixelData = m_EditorFramebuffer->ReadPixel(1, mouseX, mouseY);
+			m_EditorFramebuffer->Unbind();
+
+			if (pixelData != -1 && m_Scene)
+			{
+				GameObject* pickedEntity = m_Scene->GetGameObjectByID((uint32_t)pixelData);
+				if (m_SceneHierarchyPanel) m_SceneHierarchyPanel->SetSelectedGameObject(pickedEntity);
+			}
+			else
+			{
+				if (m_SceneHierarchyPanel) m_SceneHierarchyPanel->SetSelectedGameObject(nullptr);
+			}
+		}
 	}
 }

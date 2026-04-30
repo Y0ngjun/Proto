@@ -43,6 +43,8 @@ namespace Proto
 			return nullptr;
 		}
 
+		const std::vector<std::unique_ptr<Component>>& GetComponents() const { return m_Components; }
+
 	private:
 		uint32_t m_ID;
 		std::string m_Name;

@@ -29,6 +29,10 @@ namespace Proto
 		std::vector<std::unique_ptr<GameObject>>& GetGameObjects() { return m_GameObjects; }
 		GameObject* GetGameObjectByID(uint32_t id);
 
+		// 직렬화
+		void SaveScene(const std::string& filepath);
+		void LoadScene(const std::string& filepath);
+
 	private:
 
 		std::vector<std::unique_ptr<GameObject>> m_GameObjects;

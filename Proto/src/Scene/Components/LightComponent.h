@@ -14,5 +14,10 @@ namespace Proto
 		LightComponent() = default;
 		LightComponent(const glm::vec3& color, float intensity)
 			: Color(color), Intensity(intensity) {}
+
+		// 직렬화
+		void Serialize(YAML::Emitter& out) const override;
+		void Deserialize(const YAML::Node& node) override;
+		const char* GetComponentTypeName() const override { return "LightComponent"; }
 	};
 }

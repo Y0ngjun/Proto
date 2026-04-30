@@ -1,13 +1,75 @@
-# Copilot Instructions
+# copilot-instructions.md
 
-## General Guidelines
-- User follows a strict 3-step iterative process sequentially per turn: 
-  - Step 1: Plan & propose. Wait for confirmation. 
-  - Step 2: Implement once confirmed. 
-  - Step 3: Explain the implementation.
-- User prefers code to be generated without inline comments, relying on the AI assistant to provide explanations in the chat instead.
-- User values seeing visual verification (like a spinning 3D cube) to confirm the integrated functionality of the renderer, scene, and components, rather than just relying on successful builds.
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-## Project-Specific Rules
-- Proto MVP scope is fixed: focus on a mini-Unity style C++ engine prioritizing physics collision and logic systems over graphics polish; architecture is GameObject-Component with script attach support and Unity-like dockable editor UI.
-- User uses the ImGui Docking branch; expects a basic engine view with Hierarchy and Inspector panels.
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+
+## 1. Think Before Coding
+
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+## 2. Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+## 5. Project Context & Documentation
+
+**Always reference project structure before implementing.**
+
+→ **`docs/workflow.md` 참조** (4단계 절차)
+
+- **한국어**: 코드 주석, 모든 문서는 한국어로 작성
+- **디렉토리 md**: `src/Core.md`, `src/Scene.md`, `src/Renderer.md`, `src/Editor.md`
+- **프로젝트 문서**: `docs/spec/design.md`, `docs/spec/architecture.md`, `docs/progress.md`
+
+---
+
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.

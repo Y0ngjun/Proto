@@ -22,5 +22,10 @@ namespace Proto
 			: Translation(translation) {}
 
 		glm::mat4 GetTransform() const;
+
+		// 직렬화
+		void Serialize(YAML::Emitter& out) const override;
+		void Deserialize(const YAML::Node& node) override;
+		const char* GetComponentTypeName() const override { return "Transform"; }
 	};
 }

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -71,10 +71,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)Dependencies\include;$(SolutionDir)Dependencies\imgui;%(AdditionalIncludeDirectories);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Dependencies\yaml-cpp\include;$(SolutionDir)Dependencies\include;$(SolutionDir)Dependencies\imgui;%(AdditionalIncludeDirectories);$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Dependencies\yaml-cpp\build\Debug\
+  $(SolutionDir)Dependencies\yaml-cpp\build\Release\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)Dependencies\include;$(SolutionDir)Dependencies\imgui;%(AdditionalIncludeDirectories);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Dependencies\yaml-cpp\include;$(SolutionDir)Dependencies\include;$(SolutionDir)Dependencies\imgui;%(AdditionalIncludeDirectories);$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Dependencies\yaml-cpp\build\Debug\
+  $(SolutionDir)Dependencies\yaml-cpp\build\Release\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -115,8 +119,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\lib;%(AdditionalLibraryDirectories)$(SolutionDir)Dependencies\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\yaml-cpp\build\Debug;$(SolutionDir)Dependencies\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>yaml-cppd.lib;glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -132,8 +136,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\lib;%(AdditionalLibraryDirectories)$(SolutionDir)Dependencies\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\yaml-cpp\build\Release;$(SolutionDir)Dependencies\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>yaml-cpp.lib;glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -161,6 +165,9 @@
     <ClCompile Include="src\Renderer\SceneCamera.cpp" />
     <ClCompile Include="src\Renderer\Shader.cpp" />
     <ClCompile Include="src\Renderer\VertexArray.cpp" />
+    <ClCompile Include="src\Scene\Components\CameraComponent.cpp" />
+    <ClCompile Include="src\Scene\Components\LightComponent.cpp" />
+    <ClCompile Include="src\Scene\Components\MeshRenderer.cpp" />
     <ClCompile Include="src\Scene\Components\Transform.cpp" />
     <ClCompile Include="src\Scene\GameObject.cpp" />
     <ClCompile Include="src\Scene\Scene.cpp" />
@@ -634,9 +641,23 @@
     <None Include="Dependencies\include\glm\gtx\vector_angle.inl" />
     <None Include="Dependencies\include\glm\gtx\vector_query.inl" />
     <None Include="Dependencies\include\glm\gtx\wrap.inl" />
-    <None Include="docs\Architecture_Spec.md" />
+    <None Include="docs\progress.md" />
+    <None Include="docs\spec\architecture.md" />
+    <None Include="docs\spec\design.md">
+      <SubType>
+      </SubType>
+    </None>
+    <None Include="docs\style-guide.md" />
+    <None Include="docs\testing.md" />
+    <None Include="docs\workflow.md" />
+    <None Include="fix_vcxproj.ps1" />
     <None Include="imgui.ini" />
+    <None Include="modify_vcxproj.ps1" />
     <None Include="Proto.slnx" />
+    <None Include="src\Core.md" />
+    <None Include="src\Editor.md" />
+    <None Include="src\Renderer.md" />
+    <None Include="src\Scene.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

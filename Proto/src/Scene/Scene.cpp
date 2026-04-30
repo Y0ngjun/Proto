@@ -2,6 +2,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <yaml-cpp/yaml.h>
+#include <fstream>
 
 #include "Scene.h"
 #include "Components/Transform.h"
@@ -273,6 +275,93 @@ namespace Proto
 				return go.get();
 		}
 		return nullptr;
+	}
+
+	void Scene::SaveScene(const std::string& filepath)
+	{
+		YAML::Emitter out;
+		out << YAML::BeginMap;
+		out << YAML::Key << "Scene" << YAML::Value << "Proto Scene";
+		out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
+
+		for (auto& go : m_GameObjects)
+		{
+			out << YAML::BeginMap;
+			out << YAML::Key << "GameObject" << YAML::Value << go->GetName();
+			out << YAML::Key << "ID" << YAML::Value << go->GetID();
+			out << YAML::Key << "Components" << YAML::Value << YAML::BeginSeq;
+
+			for (const auto& comp : go->GetComponents())
+			{
+				comp->Serialize(out);
+			}
+
+			out << YAML::EndSeq;
+			out << YAML::EndMap;
+		}
+
+		out << YAML::EndSeq;
+		out << YAML::EndMap;
+
+		std::ofstream file(filepath);
+		file << out.c_str();
+		file.close();
+	}
+
+	void Scene::LoadScene(const std::string& filepath)
+	{
+		std::ifstream file(filepath);
+		if (!file.is_open())
+		{
+			return;
+		}
+
+		YAML::Node root = YAML::LoadFile(filepath);
+
+		if (!root["GameObjects"])
+		{
+			return;
+		}
+
+		for (const auto& goNode : root["GameObjects"])
+		{
+			std::string name = goNode["GameObject"].as<std::string>();
+			uint32_t id = goNode["ID"].as<uint32_t>();
+
+			GameObject* go = CreateGameObject(name);
+
+			if (goNode["Components"])
+			{
+				for (const auto& compNode : goNode["Components"])
+				{
+					std::string componentType = compNode["Component"].as<std::string>();
+
+					if (componentType == "Transform")
+					{
+						auto* transform = go->GetComponent<Transform>();
+						if (transform)
+						{
+							transform->Deserialize(compNode);
+						}
+					}
+					else if (componentType == "CameraComponent")
+					{
+						auto* camera = go->AddComponent<CameraComponent>();
+						camera->Deserialize(compNode);
+					}
+					else if (componentType == "LightComponent")
+					{
+						auto* light = go->AddComponent<LightComponent>();
+						light->Deserialize(compNode);
+					}
+					else if (componentType == "MeshRenderer")
+					{
+						auto* meshRenderer = go->AddComponent<MeshRenderer>();
+						meshRenderer->Deserialize(compNode);
+					}
+				}
+			}
+		}
 	}
 
 }
