@@ -21,7 +21,17 @@ namespace Proto
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-		m_Window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+		// 주 모니터 해상도 가져오기
+		GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
+		
+		m_Width = videoMode->width;
+		m_Height = videoMode->height;
+
+		// 윈도우를 최대화(전체 화면 꽉 차게) 상태로 시작하도록 설정
+		glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+
+		m_Window = glfwCreateWindow(m_Width, m_Height, title, nullptr, nullptr);
 		if (!m_Window)
 		{
 			glfwTerminate();

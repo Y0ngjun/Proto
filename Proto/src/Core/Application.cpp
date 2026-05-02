@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include "../../Dependencies/ImGuizmo/ImGuizmo.h"
@@ -44,6 +45,7 @@ namespace Proto
 	void Application::SetScene(Scene* scene)
 	{
 		m_Scene = scene;
+		m_UpdateCallback = nullptr;
 
 		if (m_SceneHierarchyPanel)
 		{
@@ -180,7 +182,10 @@ namespace Proto
 
 		if (m_Scene)
 		{
-			m_Scene->OnUpdateRuntime(m_DeltaTime);
+			if (m_SceneState == SceneState::Play)
+				m_Scene->OnUpdateRuntime(m_DeltaTime);
+			else
+				m_Scene->OnUpdateRuntime(0.0f); // 렌더링만 수행 (업데이트 중지)
 		}
 		m_GameFramebuffer->Unbind();
 
@@ -191,11 +196,89 @@ namespace Proto
 		BeginImGuiFrame();
 
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
+
+		// 모니터 스케일에 맞춘 Toolbar 높이 계산
+		float xscale, yscale;
+		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xscale, &yscale);
+		float toolbarHeight = 36.0f * yscale;
+
+		// --- Toolbar Panel (Fixed, Non-dockable) ---
+		ImGui::SetNextWindowPos(viewport->WorkPos);
+		ImGui::SetNextWindowSize(ImVec2(viewport->WorkSize.x, toolbarHeight));
+		ImGui::SetNextWindowViewport(viewport->ID);
+
+		ImGuiWindowFlags toolbar_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+			ImGuiWindowFlags_NoSavedSettings;
+
+		bool isPlaying = m_SceneState == SceneState::Play;
+
+		// 바(Toolbar)의 배경색도 상태에 따라 변경
+		if (isPlaying)
+		{
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.3f, 0.15f, 0.15f, 1.0f)); // 어두운 빨간색 배경
+		}
+		else
+		{
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.15f, 0.25f, 0.15f, 1.0f)); // 어두운 녹색 배경
+		}
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 4));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		ImGui::Begin("Toolbar", nullptr, toolbar_flags);
+		ImGui::PopStyleColor(); // WindowBg 팝
+
+		const char* buttonLabel = isPlaying ? "Stop" : "Play";
+
+		float buttonWidth = 55.0f * xscale;
+		float buttonHeight = 25.0f * yscale;
+
+		float windowWidth = ImGui::GetWindowWidth();
+		float windowHeight = ImGui::GetWindowHeight();
+		float offsetX = (windowWidth - buttonWidth) * 0.5f;
+		float offsetY = (windowHeight - buttonHeight) * 0.5f;
+		if (offsetX < 0.0f) offsetX = 0.0f;
+		if (offsetY < 0.0f) offsetY = 0.0f;
+
+		ImGui::SetCursorPosX(offsetX);
+		ImGui::SetCursorPosY(offsetY);
+
+		if (isPlaying)
+		{
+			// Stop 상태 (빨간색)
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.3f, 0.3f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.1f, 0.1f, 1.0f));
+		}
+		else
+		{
+			// Play 상태 (녹색)
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.8f, 0.3f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.6f, 0.1f, 1.0f));
+		}
+
+		if (ImGui::Button(buttonLabel, ImVec2(buttonWidth, buttonHeight)))
+		{
+			if (m_SceneState == SceneState::Edit) OnScenePlay();
+			else if (m_SceneState == SceneState::Play) OnSceneStop();
+		}
+
+		ImGui::PopStyleColor(3);
+		ImGui::End();
+		ImGui::PopStyleVar(2);
+
+		// --- DockSpace ---
+		ImVec2 dockspacePos = ImVec2(viewport->WorkPos.x, viewport->WorkPos.y + toolbarHeight);
+		ImVec2 dockspaceSize = ImVec2(viewport->WorkSize.x, viewport->WorkSize.y - toolbarHeight);
+
+		ImGui::SetNextWindowPos(dockspacePos);
+		ImGui::SetNextWindowSize(dockspaceSize);
 		ImGui::SetNextWindowViewport(viewport->ID);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
 			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
@@ -203,12 +286,39 @@ namespace Proto
 			ImGuiWindowFlags_NoNavFocus;
 
 		ImGui::Begin("DockSpace", nullptr, window_flags);
-		ImGui::PopStyleVar(2);
+		ImGui::PopStyleVar(3);
 
 		ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
 		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
+		static bool first_time = true;
+		if (first_time)
+		{
+			first_time = false;
+			
+			// ini 파일에서 불러온 레이아웃이 없을 때만 기본 레이아웃 구성
+			if (ImGui::DockBuilderGetNode(dockspace_id) == nullptr)
+			{
+				ImGui::DockBuilderRemoveNode(dockspace_id);
+				ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
+				ImGui::DockBuilderSetNodeSize(dockspace_id, dockspaceSize);
+
+				auto dock_id_main = dockspace_id;
+
+				auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Right, 0.5f, nullptr, &dock_id_main);
+				auto dock_id_right_left = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Left, 0.5f, nullptr, &dock_id_right);
+				auto dock_id_bottom = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Down, 0.5f, nullptr, &dock_id_main);
+
+				ImGui::DockBuilderDockWindow("Scene Hierarchy", dock_id_right_left);
+				ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
+				ImGui::DockBuilderDockWindow("Scene View", dock_id_main);
+				ImGui::DockBuilderDockWindow("Game View", dock_id_bottom);
+
+				ImGui::DockBuilderFinish(dockspace_id);
+			}
+		}
+
+		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 		ImGui::End();
 
 		// --- Main Menu Bar ---
@@ -240,68 +350,6 @@ namespace Proto
 			}
 			ImGui::EndMainMenuBar();
 		}
-
-		// --- Toolbar Panel ---
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-
-		ImGui::Begin("Toolbar", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-
-		bool isPlaying = m_SceneState == SceneState::Play;
-		const char* buttonLabel = isPlaying ? "Stop" : "Play";
-
-		float xscale, yscale;
-		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xscale, &yscale);
-
-		float buttonWidth = 55.0f * xscale;
-		float buttonHeight = 23.0f * yscale;
-
-		// 버튼을 중앙 정렬
-		float availX = ImGui::GetContentRegionAvail().x;
-		float availY = ImGui::GetContentRegionAvail().y;
-
-		float offsetX = (availX - buttonWidth) * 0.5f;
-		float offsetY = (availY - buttonHeight) * 0.5f;
-
-		// 가용 공간이 버튼보다 작을 때 커서가 화면 밖(음수)으로 밀려 영구적으로 잘리는 현상 방지
-		if (offsetX < 0.0f) offsetX = 0.0f;
-		if (offsetY < 0.0f) offsetY = 0.0f;
-
-		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offsetX);
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + offsetY);
-
-		if (isPlaying)
-		{
-			// 어두운 회색
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-		}
-		else
-		{
-			// 밝은 회색
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
-		}
-
-		if (ImGui::Button(buttonLabel, ImVec2(buttonWidth, buttonHeight)))
-		{
-			if (m_SceneState == SceneState::Edit)
-			{
-				m_SceneState = SceneState::Play;
-				if (m_Scene) m_Scene->OnRuntimeStart();
-			}
-			else if (m_SceneState == SceneState::Play)
-			{
-				m_SceneState = SceneState::Edit;
-				if (m_Scene) m_Scene->OnRuntimeStop();
-			}
-		}
-
-		ImGui::PopStyleColor(3);
-		ImGui::End();
-		ImGui::PopStyleVar(2);
 
 		// --- Scene View Panel ---
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
@@ -510,6 +558,43 @@ namespace Proto
 		else
 		{
 			delete newScene;
+		}
+	}
+
+	void Application::OnScenePlay()
+	{
+		m_SceneState = SceneState::Play;
+
+		if (m_Scene)
+		{
+			SceneSerializer serializer(m_Scene);
+			m_SceneBackupString = serializer.SerializeToString();
+			m_Scene->OnRuntimeStart();
+		}
+	}
+
+	void Application::OnSceneStop()
+	{
+		m_SceneState = SceneState::Edit;
+
+		if (m_Scene)
+		{
+			m_Scene->OnRuntimeStop();
+		}
+
+		if (!m_SceneBackupString.empty())
+		{
+			Scene* newScene = new Scene();
+			SceneSerializer serializer(newScene);
+			if (serializer.DeserializeFromString(m_SceneBackupString))
+			{
+				if (m_Scene) delete m_Scene;
+				SetScene(newScene);
+			}
+			else
+			{
+				delete newScene;
+			}
 		}
 	}
 }

@@ -43,6 +43,9 @@ namespace Proto
 		void EndImGuiFrame() const;
 		void HandleObjectPicking(const glm::vec2* viewportBounds, const glm::vec2& viewportSize);
 
+		void OnScenePlay();
+		void OnSceneStop();
+
 		Application(const Application&) = delete;
 		Application& operator=(const Application&) = delete;
 
@@ -70,6 +73,7 @@ namespace Proto
 		};
 
 		SceneState m_SceneState = SceneState::Edit;
+		std::string m_SceneBackupString;
 
 		std::function<void(float)> m_UpdateCallback;
 	};

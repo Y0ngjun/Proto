@@ -17,6 +17,13 @@ namespace Proto {
 
 	void SceneSerializer::Serialize(const std::string& filepath)
 	{
+		std::string yamlString = SerializeToString();
+		std::ofstream fout(filepath);
+		fout << yamlString;
+	}
+
+	std::string SceneSerializer::SerializeToString()
+	{
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
@@ -41,8 +48,7 @@ namespace Proto {
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
 
-		std::ofstream fout(filepath);
-		fout << out.c_str();
+		return std::string(out.c_str());
 	}
 
 	bool SceneSerializer::Deserialize(const std::string& filepath)
@@ -58,6 +64,27 @@ namespace Proto {
 			return false;
 		}
 
+		return DeserializeNode(data);
+	}
+
+	bool SceneSerializer::DeserializeFromString(const std::string& yamlString)
+	{
+		YAML::Node data;
+		try
+		{
+			data = YAML::Load(yamlString);
+		}
+		catch (YAML::ParserException e)
+		{
+			std::cerr << "Failed to load scene from string: " << e.what() << "\n";
+			return false;
+		}
+
+		return DeserializeNode(data);
+	}
+
+	bool SceneSerializer::DeserializeNode(const YAML::Node& data)
+	{
 		if (!data["Scene"])
 			return false;
 
