@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <filesystem>
 #include "Window.h"
 #include "../Renderer/Framebuffer.h"
 #include "../Renderer/EditorCamera.h"
@@ -11,6 +12,8 @@ namespace Proto
 {
 	class SceneHierarchyPanel;
 	class InspectorPanel;
+	class ConsolePanel;
+	class ContentBrowserPanel;
 
 	class Application
 	{
@@ -23,14 +26,17 @@ namespace Proto
 		void SetScene(class Scene* scene);
 		void SetUpdateCallback(const std::function<void(float)>& callback) { m_UpdateCallback = callback; }
 
-		void SaveScene(const std::string& filepath);
-		void LoadScene(const std::string& filepath);
+		void SaveScene(const std::filesystem::path& path);
+		void OpenScene(const std::filesystem::path& path);
 
 		int GetGizmoType() const { return m_GizmoType; }
 		void SetGizmoType(int type) { m_GizmoType = type; }
 
 		bool IsGameViewFocused() const { return m_IsGameViewFocused; }
 		bool IsGameViewHovered() const { return m_IsGameViewHovered; }
+
+		void OpenProject(const std::filesystem::path& path);
+		void SaveProject();
 
 	private:
 		Application();
@@ -56,6 +62,7 @@ namespace Proto
 		float m_DeltaTime;
 		float m_LastFrameTime;
 		bool m_IsInitialized;
+		std::filesystem::path m_ActiveScenePath;
 
 		std::unique_ptr<Framebuffer> m_EditorFramebuffer;
 		std::unique_ptr<Framebuffer> m_GameFramebuffer;
@@ -69,6 +76,8 @@ namespace Proto
 		class Scene* m_Scene = nullptr;
 		std::unique_ptr<SceneHierarchyPanel> m_SceneHierarchyPanel;
 		std::unique_ptr<InspectorPanel> m_InspectorPanel;
+		std::unique_ptr<ConsolePanel> m_ConsolePanel;
+		std::unique_ptr<ContentBrowserPanel> m_ContentBrowserPanel;
 
 		int m_GizmoType = 7; // ImGuizmo::OPERATION::TRANSLATE (기본값 이동)
 

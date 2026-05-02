@@ -29,6 +29,11 @@ namespace Proto
 		float GetPitch() const { return m_Pitch; }
 		float GetYaw() const { return m_Yaw; }
 
+		void SetDistance(float distance) { m_Distance = distance; UpdateView(); }
+		void SetPitch(float pitch) { m_Pitch = pitch; UpdateView(); }
+		void SetYaw(float yaw) { m_Yaw = yaw; UpdateView(); }
+		void SetFocalPoint(const glm::vec3& focalPoint) { m_FocalPoint = focalPoint; UpdateView(); }
+
 	private:
 		void UpdateProjection();
 		void UpdateView();

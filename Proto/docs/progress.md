@@ -25,13 +25,16 @@ Milestone 3 (Physics System) 완료. Milestone 4 (Scripting & UI) 진행 예정.
 | Renderer | ✅ | Shader, VertexArray, Framebuffer, EditorCamera |
 | Editor | ✅ | Hierarchy, Inspector, Viewport, Object Picking, Gizmo |
 
-### Milestone 1: 직렬화 및 에셋 참조 기초 ✅
+### Milestone 1: 프로젝트 관리 및 직렬화 고도화 ✅
 **선행**: Milestone 0 완료
-**목표**: 씬 저장/로드 및 UUID 기반 에셋/오브젝트 참조 시스템
+**목표**: 씬 저장/로드 및 프로젝트 단위 관리 시스템 구축
 - [x] UUID 시스템 (GameObject 및 에셋 고유 식별)
 - [x] Asset Registry 기초 (UUID ↔ 파일 경로 매핑)
 - [x] Component Serialize/Deserialize 인터페이스
 - [x] SaveScene/LoadScene 완전 구현
+- [x] **Project Management System** (프로젝트 독립성 확보, .proto 설정 기반)
+- [x] **Default Project Auto-Generation** (엔진 시작 시 기본 프로젝트/씬 자동 생성)
+- [x] **Project-centric Workflow** (프로젝트 로드 시 시작 씬 자동 로드 및 폴백 시스템)
 
 ### Milestone 2: Play Mode & Runtime ✅
 **선행**: Milestone 1 완료
@@ -40,7 +43,7 @@ Milestone 3 (Physics System) 완료. Milestone 4 (Scripting & UI) 진행 예정.
 - [x] Runtime 카메라 (SceneCamera) 제어
 - [x] OnRuntimeStart/Stop 콜백
 - [x] 델타 타임 기반 로직 업데이트
-- [x] NativeScriptComponent (OnStart/OnUpdate/OnDestroy)
+- [x] NativeScriptComponent (OnStart/OnUpdate/OnDestroy, Refactored with ScriptRegistry)
 - [x] CameraController 스크립트 (WASDQE 키 이동)
 
 ### Milestone 3: Physics System ✅
@@ -57,12 +60,13 @@ Milestone 3 (Physics System) 완료. Milestone 4 (Scripting & UI) 진행 예정.
 **목표**: 게임 로직 심화 및 UI 시스템
 - [ ] EventBus (게임 이벤트 시스템)
 - [ ] UI System (Canvas, Text, Image)
+- [x] ScriptRegistry 도입 (이름 기반 자동 스크립트 바인딩)
 - [ ] 플레이어 입력 → 스크립트 연동 강화
 
 ### Milestone 5: Optimization & Refinement (다음)
 **선행**: Milestone 4 완료
 **목표**: 대규모 오브젝트 처리 성능 최적화 및 물리/에디터 시스템 고도화
-- [ ] 물리 시스템 고도화 (임펄스 기반 충돌 해소, 침투 보정, 탄성/마찰력 도입)
+- [ ] Jolt Physics / PhysX 등 외부 물리 엔진 라이브러리 연동
 - [x] 입력 시스템 분리 설계 (Raw Input vs Filtered Game Input)
 - [ ] Standalone 빌드 시 GameView 포커스 체크 우회 로직 구현
 - [ ] Visual Scripting (Node-based) 시스템 프로토타입 개발
@@ -71,7 +75,7 @@ Milestone 3 (Physics System) 완료. Milestone 4 (Scripting & UI) 진행 예정.
 - [ ] Asset Manager 고도화 (Asset Registry 기반 메모리 리소스 캐싱)
 - [ ] GetComponent 최적화 (O(1) 접근, 정적 타입 ID 방식 등 고려)
 - [ ] Game State Manager (MainMenu/Playing/GameOver)
-- [ ] 에디터 추가 기능 (콘솔, 파일 탐색기)
+- [x] 에디터 추가 기능 (콘솔 ✅, 파일 탐색기 ✅)
 
 ### Milestone 6: MVP Prototype (마지막)
 **선행**: Milestone 5 완료
@@ -87,8 +91,6 @@ Milestone 3 (Physics System) 완료. Milestone 4 (Scripting & UI) 진행 예정.
 
 1. **Windows 전용** - FileDialog는 Windows API 사용
 2. **컴포넌트 직렬화 타입 감지** - 문자열 기반 팩토리 패턴 사용 (현재 RTTI 없이 컴포넌트 이름으로 분기)
-4. Editor 콘솔 패널 미구현
-5. Editor 파일 탐색기 패널 미구현
 
 ---
 
@@ -96,4 +98,4 @@ Milestone 3 (Physics System) 완료. Milestone 4 (Scripting & UI) 진행 예정.
 
 - **프로젝트**: Proto.slnx (Visual Studio 2022, C++17, Debug|x64)
 - **빌드**: `build.ps1` → `x64\Debug\Proto.exe`
-- **상태**: ✅ 빌드 성공 (2026-05-02 기준, Physics System 포함)
+- **상태**: ✅ 빌드 및 실행 성공 (2026-05-02 기준, 프로젝트 관리 시스템 및 에디터 고도화 완료)

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+#include <functional>
 #include <typeinfo>
 #include "../Component.h"
 #include "../GameObject.h"
@@ -7,6 +9,15 @@
 
 namespace Proto
 {
+	class ScriptableEntity;
+	class NativeScriptComponent;
+
+	// 스크립트 생성을 위한 함수 타입 (ScriptRegistry와 동일하게 맞춤)
+	using ScriptCreatorFunc = std::function<ScriptableEntity*()>;
+
+	/**
+	 * @brief 사용자가 상속받아 로직을 작성하는 베이스 클래스
+	 */
 	class ScriptableEntity
 	{
 	public:
@@ -17,6 +28,8 @@ namespace Proto
 		{
 			return m_GameObject->GetComponent<T>();
 		}
+
+		GameObject* GetGameObject() { return m_GameObject; }
 
 	protected:
 		virtual void OnStart() {}
@@ -30,15 +43,22 @@ namespace Proto
 		friend class NativeScriptComponent;
 	};
 
+	/**
+	 * @brief 게임 오브젝트에 C++ 스크립트를 부착할 수 있게 해주는 컴포넌트
+	 */
 	class NativeScriptComponent : public Component
 	{
 	public:
 		std::string ScriptName;
 		ScriptableEntity* Instance = nullptr;
 
-		ScriptableEntity* (*InstantiateScript)();
-		void (*DestroyScript)(NativeScriptComponent*);
+		// 스크립트 인스턴스 생성 및 파괴를 위한 함수
+		ScriptCreatorFunc InstantiateScript;
+		std::function<void(NativeScriptComponent*)> DestroyScript;
 
+		/**
+		 * @brief 컴파일 타임에 스크립트 타입을 직접 바인딩
+		 */
 		template<typename T>
 		void Bind()
 		{
@@ -53,11 +73,14 @@ namespace Proto
 
 		void OnStart() override
 		{
-			if (InstantiateScript)
+			if (InstantiateScript && !Instance)
 			{
 				Instance = InstantiateScript();
-				Instance->m_GameObject = m_GameObject;
-				Instance->OnStart();
+				if (Instance)
+				{
+					Instance->m_GameObject = m_GameObject;
+					Instance->OnStart();
+				}
 			}
 		}
 
@@ -72,27 +95,16 @@ namespace Proto
 			if (Instance)
 			{
 				Instance->OnDestroy();
-				DestroyScript(this);
+				if (DestroyScript)
+					DestroyScript(this);
 			}
 		}
 
-		// 異⑸룎 ?대깽?몃? ?ㅽ겕由쏀듃濡??꾨떖
+		// 충돌 이벤트를 스크립트 인스턴스로 전달
 		void DispatchCollisionEnter(GameObject* other) { if (Instance) Instance->OnCollisionEnter(other); }
 
-		virtual void Serialize(YAML::Emitter& out) const override
-		{
-			out << YAML::BeginMap;
-			out << YAML::Key << "Component" << YAML::Value << "NativeScriptComponent";
-			out << YAML::Key << "ScriptName" << YAML::Value << ScriptName;
-			out << YAML::Key << "Bound" << YAML::Value << (InstantiateScript != nullptr);
-			out << YAML::EndMap;
-		}
-
-		virtual void Deserialize(const YAML::Node& node) override
-		{
-			// 由ы뵆?됱뀡 ?놁씠 ?ㅽ겕由쏀듃 ???蹂듭썝 遺덇?
-			// 肄붾뱶 ?덈꺼(SetupCubeTest ???먯꽌 Bind ?댁빞 ?⑸땲??
-		}
+		virtual void Serialize(YAML::Emitter& out) const override;
+		virtual void Deserialize(const YAML::Node& node) override;
 
 		virtual const char* GetComponentTypeName() const override { return "NativeScriptComponent"; }
 	};

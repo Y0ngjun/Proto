@@ -14,6 +14,7 @@
 #include "../Scene/Components/LightComponent.h"
 #include "../Asset/AssetManager.h"
 #include "../Scene/Components/NativeScriptComponent.h"
+#include "../Scene/ScriptRegistry.h"
 #include "../Scene/Components/Rigidbody.h"
 #include "../Scene/Components/BoxCollider.h"
 #include "../Scene/Components/SphereCollider.h"
@@ -65,6 +66,10 @@ namespace Proto
 
 		inline void SetupCubeTest(Application& app)
 		{
+			// 스크립트 레지스트리에 등록 (유니티 스타일 자동 바인딩을 위해 필수)
+			ScriptRegistry::Register<CameraController>("CameraController");
+			ScriptRegistry::Register<CubeScript>("CubeScript");
+
 			Scene* scene = new Scene();
 			app.SetScene(scene);
 
@@ -96,6 +101,7 @@ namespace Proto
 			auto* planeMeshRenderer = planeGo->AddComponent<MeshRenderer>();
 			planeMeshRenderer->SetMesh(planeMesh);
 			planeMeshRenderer->SetShader(standardShader);
+			planeMeshRenderer->SetMeshTypeName("Plane");
 			planeGo->GetComponent<Transform>()->Translation.y = 0.1f;
 			auto planeCollider = planeGo->AddComponent<BoxCollider>();
 			planeCollider->Size = { 1.0f, 0.1f, 1.0f };
@@ -104,6 +110,7 @@ namespace Proto
 			auto* cubeMeshRenderer = cubeGo->AddComponent<MeshRenderer>();
 			cubeMeshRenderer->SetMesh(cubeMesh);
 			cubeMeshRenderer->SetShader(standardShader);
+			cubeMeshRenderer->SetMeshTypeName("Cube");
 			cubeGo->GetComponent<Transform>()->Translation.y = 3.0f;
 
 			auto cubeRb = cubeGo->AddComponent<Rigidbody>();

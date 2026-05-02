@@ -67,6 +67,8 @@ namespace Proto
 		if (RawInput::GetMouseButton(GLFW_MOUSE_BUTTON_RIGHT))
 		{
 			MouseRotate(delta);
+			// Update focal point to keep position fixed (Free Look style rotation)
+			m_FocalPoint = m_Position + GetForwardDirection() * m_Distance;
 
 			float speed = 5.0f * deltaTime;
 			if (RawInput::GetKey(GLFW_KEY_W))

@@ -1,6 +1,7 @@
 #include "AssetManager.h"
 #include "../Renderer/MeshLoader.h"
 #include "../Renderer/Shader.h"
+#include "../Core/Project.h"
 
 namespace Proto {
 
@@ -29,7 +30,11 @@ namespace Proto {
 		AddAsset(cylinder);
 
 		// 100: Default Shader
-		auto defaultShader = Shader::LoadFromFile("assets/shaders/default.vert", "assets/shaders/default.frag");
+		auto resourceDir = Project::GetEngineResourceDirectory();
+		auto defaultShader = Shader::LoadFromFile(
+			(resourceDir / "shaders/default.vert").string(),
+			(resourceDir / "shaders/default.frag").string()
+		);
 		defaultShader->Handle = UUID(100);
 		AddAsset(defaultShader);
 

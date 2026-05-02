@@ -190,9 +190,53 @@ namespace Proto
 						glm::vec3 minB = posB - boxB->Size * 0.5f;
 						glm::vec3 maxB = posB + boxB->Size * 0.5f;
 
-						isColliding = (minA.x <= maxB.x && maxA.x >= minB.x) &&
-									  (minA.y <= maxB.y && maxA.y >= minB.y) &&
-									  (minA.z <= maxB.z && maxA.z >= minB.z);
+						isColliding = (minA.x < maxB.x && maxA.x > minB.x) &&
+									  (minA.y < maxB.y && maxA.y > minB.y) &&
+									  (minA.z < maxB.z && maxA.z > minB.z);
+
+						if (isColliding)
+						{
+							float overlapX = std::min(maxA.x, maxB.x) - std::max(minA.x, minB.x);
+							float overlapY = std::min(maxA.y, maxB.y) - std::max(minA.y, minB.y);
+							float overlapZ = std::min(maxA.z, maxB.z) - std::max(minA.z, minB.z);
+
+							float minOverlap = std::min({overlapX, overlapY, overlapZ});
+							glm::vec3 normal(0.0f);
+
+							if (minOverlap == overlapX)
+								normal = glm::vec3(posA.x < posB.x ? -1.0f : 1.0f, 0.0f, 0.0f);
+							else if (minOverlap == overlapY)
+								normal = glm::vec3(0.0f, posA.y < posB.y ? -1.0f : 1.0f, 0.0f);
+							else
+								normal = glm::vec3(0.0f, 0.0f, posA.z < posB.z ? -1.0f : 1.0f);
+
+							glm::vec3 separation = normal * minOverlap;
+
+							auto rbA = goA->GetComponent<Rigidbody>();
+							auto rbB = goB->GetComponent<Rigidbody>();
+
+							if (rbA && !rbB)
+							{
+								transformA->Translation += separation;
+								if (glm::dot(rbA->Velocity, normal) < 0.0f)
+									rbA->Velocity -= normal * glm::dot(rbA->Velocity, normal);
+							}
+							else if (!rbA && rbB)
+							{
+								transformB->Translation -= separation;
+								if (glm::dot(rbB->Velocity, -normal) < 0.0f)
+									rbB->Velocity -= -normal * glm::dot(rbB->Velocity, -normal);
+							}
+							else if (rbA && rbB)
+							{
+								transformA->Translation += separation * 0.5f;
+								transformB->Translation -= separation * 0.5f;
+								if (glm::dot(rbA->Velocity, normal) < 0.0f)
+									rbA->Velocity -= normal * glm::dot(rbA->Velocity, normal);
+								if (glm::dot(rbB->Velocity, -normal) < 0.0f)
+									rbB->Velocity -= -normal * glm::dot(rbB->Velocity, -normal);
+							}
+						}
 					}
 					// Sphere vs Sphere
 					else if (sphereA && sphereB)
@@ -201,7 +245,41 @@ namespace Proto
 						glm::vec3 posB = transformB->Translation + sphereB->Offset;
 						float distSq = glm::dot(posA - posB, posA - posB);
 						float radSum = sphereA->Radius + sphereB->Radius;
-						isColliding = distSq <= (radSum * radSum);
+						
+						isColliding = distSq < (radSum * radSum) && distSq > 0.0001f;
+
+						if (isColliding)
+						{
+							float dist = std::sqrt(distSq);
+							float overlap = radSum - dist;
+							glm::vec3 normal = (posA - posB) / dist;
+							glm::vec3 separation = normal * overlap;
+
+							auto rbA = goA->GetComponent<Rigidbody>();
+							auto rbB = goB->GetComponent<Rigidbody>();
+
+							if (rbA && !rbB)
+							{
+								transformA->Translation += separation;
+								if (glm::dot(rbA->Velocity, normal) < 0.0f)
+									rbA->Velocity -= normal * glm::dot(rbA->Velocity, normal);
+							}
+							else if (!rbA && rbB)
+							{
+								transformB->Translation -= separation;
+								if (glm::dot(rbB->Velocity, -normal) < 0.0f)
+									rbB->Velocity -= -normal * glm::dot(rbB->Velocity, -normal);
+							}
+							else if (rbA && rbB)
+							{
+								transformA->Translation += separation * 0.5f;
+								transformB->Translation -= separation * 0.5f;
+								if (glm::dot(rbA->Velocity, normal) < 0.0f)
+									rbA->Velocity -= normal * glm::dot(rbA->Velocity, normal);
+								if (glm::dot(rbB->Velocity, -normal) < 0.0f)
+									rbB->Velocity -= -normal * glm::dot(rbB->Velocity, -normal);
+							}
+						}
 					}
 					// Box vs Sphere
 					else
@@ -218,7 +296,9 @@ namespace Proto
 						glm::vec3 spherePos = transSphere->Translation + sphere->Offset;
 						glm::vec3 closest = glm::clamp(spherePos, minBox, maxBox);
 						float distSq = glm::dot(closest - spherePos, closest - spherePos);
-						isColliding = distSq <= (sphere->Radius * sphere->Radius);
+						isColliding = distSq < (sphere->Radius * sphere->Radius);
+
+						// [임시] Box vs Sphere 충돌 해결은 계산이 복잡하여 MVP에서는 감지만 수행합니다.
 					}
 
 					// 충돌 시 스크립트에만 콜백 전달

@@ -1,4 +1,3 @@
-
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
@@ -7,6 +6,7 @@
 #include <sstream>
 
 #include "Shader.h"
+#include "../Core/Log.h"
 
 namespace Proto
 {
@@ -38,7 +38,7 @@ namespace Proto
 			glDeleteShader(vertexShader);
 			glDeleteShader(fragmentShader);
 
-			std::cerr << "[Shader Link Error] " << infoLog.data() << std::endl;
+			PROTO_LOG_ERROR("[Shader Link Error] " + std::string(infoLog.data()));
 			return;
 		}
 
@@ -71,7 +71,7 @@ namespace Proto
 
 			glDeleteShader(shader);
 
-			std::cerr << "[Shader Compile Error] " << infoLog.data() << std::endl;
+			PROTO_LOG_ERROR("[Shader Compile Error] " + std::string(infoLog.data()));
 		}
 	}
 

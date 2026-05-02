@@ -15,6 +15,10 @@
 #include "../Scene/Components/Transform.h"
 #include "FileDialog.h"
 #include "../Scene/SceneSerializer.h"
+#include "Log.h"
+#include "Project.h"
+#include "../Editor/ConsolePanel.h"
+#include "../Editor/ContentBrowserPanel.h"
 
 namespace Proto
 {
@@ -55,6 +59,70 @@ namespace Proto
 		if (m_Scene && m_EditorFramebuffer)
 		{
 			m_Scene->OnViewportResize(m_EditorFramebuffer->GetSpecification().Width, m_EditorFramebuffer->GetSpecification().Height);
+		}
+	}
+
+	void Application::OpenScene(const std::filesystem::path& path)
+	{
+		Scene* newScene = new Scene();
+		SceneSerializer serializer(newScene);
+		if (serializer.Deserialize(path.string()))
+		{
+			if (m_Scene) delete m_Scene;
+			
+			SetScene(newScene);
+			m_ActiveScenePath = path;
+			PROTO_LOG_INFO("Loaded scene: " + path.string());
+		}
+		else
+		{
+			delete newScene;
+			PROTO_LOG_ERROR("Failed to load scene: " + path.string());
+		}
+	}
+
+	void Application::SaveScene(const std::filesystem::path& path)
+	{
+		if (m_Scene)
+		{
+			SceneSerializer serializer(m_Scene);
+			serializer.Serialize(path.string());
+			m_ActiveScenePath = path;
+			PROTO_LOG_INFO("Scene saved: " + path.string());
+		}
+	}
+
+	void Application::OpenProject(const std::filesystem::path& path)
+	{
+		if (Project::Load(path))
+		{
+			auto& config = Project::GetActive()->GetConfig();
+			std::filesystem::path scenePath = config.ProjectDirectory / config.StartScene;
+			OpenScene(scenePath);
+		}
+	}
+
+	void Application::SaveProject()
+	{
+		auto activeProject = Project::GetActive();
+		if (activeProject)
+		{
+			if (!m_ActiveScenePath.empty())
+			{
+				// 현재 씬이 프로젝트 폴더 내부에 있는지 확인
+				auto& projectDir = activeProject->GetConfig().ProjectDirectory;
+				std::string activePathStr = m_ActiveScenePath.string();
+				std::string projectDirStr = projectDir.string();
+
+				if (activePathStr.find(projectDirStr) != std::string::npos)
+				{
+					activeProject->GetConfig().StartScene = std::filesystem::relative(m_ActiveScenePath, projectDir);
+				}
+			}
+
+			std::filesystem::path projectFilePath = activeProject->GetConfig().ProjectDirectory / activeProject->GetConfig().ProjectFileName;
+			Project::SaveActive(projectFilePath);
+			PROTO_LOG_INFO("Project saved successfully.");
 		}
 	}
 
@@ -108,6 +176,10 @@ namespace Proto
 
 		m_SceneHierarchyPanel = std::make_unique<SceneHierarchyPanel>();
 		m_InspectorPanel = std::make_unique<InspectorPanel>();
+		m_ConsolePanel = std::make_unique<ConsolePanel>();
+		m_ContentBrowserPanel = std::make_unique<ContentBrowserPanel>();
+
+		PROTO_LOG_INFO("Engine Initialized Successfully.");
 
 		FramebufferSpecification fbSpec;
 		fbSpec.Width = m_Window.GetWidth();
@@ -116,9 +188,22 @@ namespace Proto
 		m_GameFramebuffer = std::make_unique<Framebuffer>(fbSpec);
 
 		m_EditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
+		m_EditorCamera.SetDistance(10.0f);
+		m_EditorCamera.SetPitch(0.6f);
 
 		m_LastFrameTime = static_cast<float>(glfwGetTime());
 		m_IsInitialized = true;
+
+		// 프로젝트의 시작 씬 로드
+		auto activeProject = Project::GetActive();
+		if (activeProject)
+		{
+			std::filesystem::path startScenePath = activeProject->GetConfig().ProjectDirectory / activeProject->GetConfig().StartScene;
+			if (std::filesystem::exists(startScenePath))
+			{
+				OpenScene(startScenePath);
+			}
+		}
 	}
 
 	void Application::Shutdown()
@@ -306,14 +391,16 @@ namespace Proto
 
 				auto dock_id_main = dockspace_id;
 
-				auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Right, 0.5f, nullptr, &dock_id_main);
-				auto dock_id_right_left = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Left, 0.5f, nullptr, &dock_id_right);
-				auto dock_id_bottom = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Down, 0.5f, nullptr, &dock_id_main);
+				auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Right, 0.3f, nullptr, &dock_id_main);
+				auto dock_id_bottom = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Down, 0.3f, nullptr, &dock_id_main);
+				auto dock_id_bottom_left = ImGui::DockBuilderSplitNode(dock_id_bottom, ImGuiDir_Left, 0.5f, nullptr, &dock_id_bottom);
 
-				ImGui::DockBuilderDockWindow("Scene Hierarchy", dock_id_right_left);
+				ImGui::DockBuilderDockWindow("Scene Hierarchy", dock_id_right);
 				ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
 				ImGui::DockBuilderDockWindow("Scene View", dock_id_main);
-				ImGui::DockBuilderDockWindow("Game View", dock_id_bottom);
+				ImGui::DockBuilderDockWindow("Game View", dock_id_main);
+				ImGui::DockBuilderDockWindow("Content Browser", dock_id_bottom_left);
+				ImGui::DockBuilderDockWindow("Console", dock_id_bottom);
 
 				ImGui::DockBuilderFinish(dockspace_id);
 			}
@@ -327,6 +414,17 @@ namespace Proto
 		{
 			if (ImGui::BeginMenu("File"))
 			{
+				if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
+				{
+					auto path = FileDialog::OpenFile("Proto Project (*.proto)\0*.proto\0");
+					if (path)
+						OpenProject(*path);
+				}
+				if (ImGui::MenuItem("Save Project", "Ctrl+S"))
+				{
+					SaveProject();
+				}
+				ImGui::Separator();
 				if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
 				{
 					if (m_Scene)
@@ -335,12 +433,6 @@ namespace Proto
 						if (path)
 							SaveScene(*path);
 					}
-				}
-				if (ImGui::MenuItem("Load Scene", "Ctrl+O"))
-				{
-					auto path = FileDialog::OpenFile("Scene Files (*.scene)\0*.scene\0All Files (*.*)\0*.*\0");
-					if (path)
-						LoadScene(*path);
 				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Exit", "Alt+F4"))
@@ -354,9 +446,60 @@ namespace Proto
 
 		// --- Scene View Panel ---
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 		ImGui::Begin("Scene View");
 		m_IsViewportFocused = ImGui::IsWindowFocused();
-		m_IsViewportHovered = ImGui::IsWindowHovered();
+
+		// --- Gizmo Bar (Inside Scene View) ---
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
+		float barHeight = ImGui::GetFrameHeight() + 8.0f;
+		ImGui::BeginChild("GizmoBar", ImVec2(0, barHeight), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+		ImGui::SetCursorPos(ImVec2(8.0f, 4.0f));
+
+		float gizmoButtonWidth = 120.0f;
+		float gizmoSpacing = 4.0f;
+
+		ImVec4 buttonColor(0.2f, 0.2f, 0.2f, 0.8f);
+		ImVec4 buttonHoveredColor(0.3f, 0.3f, 0.3f, 0.9f);
+		ImVec4 buttonActiveColor(0.15f, 0.15f, 0.15f, 0.9f);
+
+		ImVec4 selectedButtonColor(0.4f, 0.4f, 0.4f, 0.9f);
+		ImVec4 selectedButtonHoveredColor(0.5f, 0.5f, 0.5f, 1.0f);
+		ImVec4 selectedButtonActiveColor(0.35f, 0.35f, 0.35f, 1.0f);
+
+		auto pushButtonColors = [&](bool isSelected) {
+			if (isSelected) {
+				ImGui::PushStyleColor(ImGuiCol_Button, selectedButtonColor);
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, selectedButtonHoveredColor);
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, selectedButtonActiveColor);
+			} else {
+				ImGui::PushStyleColor(ImGuiCol_Button, buttonColor);
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, buttonHoveredColor);
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, buttonActiveColor);
+			}
+		};
+
+		pushButtonColors(m_GizmoType == -1);
+		if (ImGui::Button("None(Q)", ImVec2(gizmoButtonWidth, 0))) m_GizmoType = -1;
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine(0, gizmoSpacing);
+		pushButtonColors(m_GizmoType == ImGuizmo::OPERATION::TRANSLATE);
+		if (ImGui::Button("Move(W)", ImVec2(gizmoButtonWidth, 0))) m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine(0, gizmoSpacing);
+		pushButtonColors(m_GizmoType == ImGuizmo::OPERATION::ROTATE);
+		if (ImGui::Button("Rot(E)", ImVec2(gizmoButtonWidth, 0))) m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine(0, gizmoSpacing);
+		pushButtonColors(m_GizmoType == ImGuizmo::OPERATION::SCALE);
+		if (ImGui::Button("Scale(R)", ImVec2(gizmoButtonWidth, 0))) m_GizmoType = ImGuizmo::OPERATION::SCALE;
+		ImGui::PopStyleColor(3);
+
+		ImGui::EndChild();
+		ImGui::PopStyleColor();
 
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 		if (m_EditorFramebuffer->GetSpecification().Width != viewportPanelSize.x || m_EditorFramebuffer->GetSpecification().Height != viewportPanelSize.y)
@@ -365,22 +508,19 @@ namespace Proto
 			m_EditorCamera.SetViewportSize(viewportPanelSize.x, viewportPanelSize.y);
 		}
 
-		auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-		auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-		auto viewportOffset = ImGui::GetWindowPos();
-		ImVec2 viewportBounds[2] = {
-			{ viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y },
-			{ viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y }
-		};
-
 		uint32_t textureID = m_EditorFramebuffer->GetColorAttachmentRendererID();
 		ImGui::Image(reinterpret_cast<void*>((uintptr_t)textureID), ImVec2{ viewportPanelSize.x, viewportPanelSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
+		m_IsViewportHovered = ImGui::IsItemHovered();
+
+		ImVec2 imageMin = ImGui::GetItemRectMin();
+		ImVec2 imageMax = ImGui::GetItemRectMax();
+
 		glm::vec2 viewportBoundsArray[2] = {
-			{ viewportBounds[0].x, viewportBounds[0].y },
-			{ viewportBounds[1].x, viewportBounds[1].y }
+			{ imageMin.x, imageMin.y },
+			{ imageMax.x, imageMax.y }
 		};
-		glm::vec2 viewportSize = { viewportBounds[1].x - viewportBounds[0].x, viewportBounds[1].y - viewportBounds[0].y };
+		glm::vec2 viewportSize = { imageMax.x - imageMin.x, imageMax.y - imageMin.y };
 		HandleObjectPicking(viewportBoundsArray, viewportSize);
 
 		// ImGuizmo
@@ -426,7 +566,7 @@ namespace Proto
 		}
 
 		ImGui::End();
-		ImGui::PopStyleVar();
+		ImGui::PopStyleVar(2);
 
 		// --- Game View Panel ---
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
@@ -458,6 +598,16 @@ namespace Proto
 		if (m_InspectorPanel && m_SceneHierarchyPanel)
 		{
 			m_InspectorPanel->OnImGuiRender(m_SceneHierarchyPanel->GetSelectedGameObject());
+		}
+
+		if (m_ConsolePanel)
+		{
+			m_ConsolePanel->OnImGuiRender();
+		}
+
+		if (m_ContentBrowserPanel)
+		{
+			m_ContentBrowserPanel->OnImGuiRender();
 		}
 
 		EndImGuiFrame();
@@ -535,33 +685,6 @@ namespace Proto
 			{
 				if (m_SceneHierarchyPanel) m_SceneHierarchyPanel->SetSelectedGameObject(nullptr);
 			}
-		}
-	}
-
-	void Application::SaveScene(const std::string& filepath)
-	{
-		if (m_Scene)
-		{
-			SceneSerializer serializer(m_Scene);
-			serializer.Serialize(filepath);
-		}
-	}
-
-	void Application::LoadScene(const std::string& filepath)
-	{
-		Scene* newScene = new Scene();
-		SceneSerializer serializer(newScene);
-		if (serializer.Deserialize(filepath))
-		{
-			// 현재 씬 메모리 해제
-			if (m_Scene)
-				delete m_Scene;
-				
-			SetScene(newScene);
-		}
-		else
-		{
-			delete newScene;
 		}
 	}
 

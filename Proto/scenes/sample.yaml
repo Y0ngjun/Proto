@@ -1,0 +1,82 @@
+Scene: Untitled
+Entities:
+  - Entity: 16722158825353511762
+    Name: MainCamera
+    Components:
+      - Component: Transform
+        Translation: [0, 3, 5]
+        Rotation: [-0.5235988, 0, 0]
+        Scale: [1, 1, 1]
+      - Component: CameraComponent
+        Primary: true
+        FixedAspectRatio: false
+        FOV: 0.7853982
+      - Component: NativeScriptComponent
+        ScriptName: class Proto::Test::CameraController
+        Bound: true
+  - Entity: 12675160893540705203
+    Name: DirectionalLight
+    Components:
+      - Component: Transform
+        Translation: [0, 0, 0]
+        Rotation: [0.7853982, 0.5235988, 0]
+        Scale: [1, 1, 1]
+      - Component: LightComponent
+        Color: [1, 1, 1]
+        Intensity: 1
+  - Entity: 11369469166583878054
+    Name: FloorPlane
+    Components:
+      - Component: Transform
+        Translation: [0, 0.1, 0]
+        Rotation: [0, 0, 0]
+        Scale: [1, 1, 1]
+      - Component: MeshRenderer
+        MeshUUID: 2
+        ShaderUUID: 100
+      - Component: BoxCollider
+        Offset: [0, 0, 0]
+        Size: [1, 0.1, 1]
+        IsTrigger: true
+  - Entity: 418996753829033904
+    Name: Cube
+    Components:
+      - Component: Transform
+        Translation: [0, 3, 0]
+        Rotation: [0, 0, 0]
+        Scale: [1, 1, 1]
+      - Component: MeshRenderer
+        MeshUUID: 1
+        ShaderUUID: 100
+      - Component: Rigidbody
+        Velocity: [0, 0, 0]
+        Mass: 1
+        UseGravity: true
+        Drag: 0
+      - Component: BoxCollider
+        Offset: [0, 0, 0]
+        Size: [1, 1, 1]
+        IsTrigger: true
+      - Component: NativeScriptComponent
+        ScriptName: class Proto::Test::CubeScript
+        Bound: true
+  - Entity: 7232559431658364120
+    Name: Cylinder
+    Components:
+      - Component: Transform
+        Translation: [2.5631793, 1.7838445, 0]
+        Rotation: [0, -0, 0]
+        Scale: [1, 1, 1]
+      - Component: MeshRenderer
+        MeshUUID: 4
+        ShaderUUID: 100
+  - Entity: 10151141671582265587
+    Name: Sphere
+    Components:
+      - Component: Transform
+        Translation: [-1.2859502, 1.2051048, 0]
+        Rotation: [0, -0, 0]
+        Scale: [1, 1, 1]
+      - Component: MeshRenderer
+        MeshUUID: 3
+        ShaderUUID: 100

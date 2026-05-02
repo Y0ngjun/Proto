@@ -156,8 +156,12 @@
     <ClCompile Include="src\Core\RawInput.cpp" />
     <ClCompile Include="src\Core\Input.cpp" />
     <ClCompile Include="src\Core\Window.cpp" />
+    <ClCompile Include="src\Core\Log.cpp" />
+    <ClCompile Include="src\Core\Project.cpp" />
     <ClCompile Include="src\Editor\InspectorPanel.cpp" />
     <ClCompile Include="src\Editor\SceneHierarchyPanel.cpp" />
+    <ClCompile Include="src\Editor\ConsolePanel.cpp" />
+    <ClCompile Include="src\Editor\ContentBrowserPanel.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Renderer\EditorCamera.cpp" />
@@ -174,6 +178,8 @@
     <ClCompile Include="src\Scene\GameObject.cpp" />
     <ClCompile Include="src\Scene\Scene.cpp" />
     <ClCompile Include="src\Scene\SceneSerializer.cpp" />
+    <ClCompile Include="src\Scene\ScriptRegistry.cpp" />
+    <ClCompile Include="src\Scene\Components\NativeScriptComponent.cpp" />
     <ClCompile Include="src\Scene\Components\BoxCollider.cpp" />
     <ClCompile Include="src\Scene\Components\Rigidbody.cpp" />
     <ClCompile Include="src\Scene\Components\SphereCollider.cpp" />
@@ -490,6 +496,8 @@
     <ClInclude Include="src\Core\RawInput.h" />
     <ClInclude Include="src\Core\YAMLHelpers.h" />
     <ClInclude Include="src\Core\Window.h" />
+    <ClInclude Include="src\Core\Log.h" />
+    <ClInclude Include="src\Core\Project.h" />
     <ClInclude Include="src\Core\UUID.h" />
     <ClInclude Include="src\Core\FileDialog.h" />
     <ClInclude Include="src\Renderer\Buffer.h" />
@@ -504,6 +512,8 @@
     <ClInclude Include="src\Scene\Components\LightComponent.h" />
     <ClInclude Include="src\Scene\Components\MeshRenderer.h" />
     <ClInclude Include="src\Scene\Components\Transform.h" />
+    <ClInclude Include="src\Editor\ConsolePanel.h" />
+    <ClInclude Include="src\Editor\ContentBrowserPanel.h" />
     <ClInclude Include="src\Scene\Components\NativeScriptComponent.h" />
     <ClInclude Include="src\Scene\GameObject.h" />
     <ClInclude Include="src\Scene\Scene.h" />
@@ -516,8 +526,8 @@
     <ClInclude Include="src\Core\Base.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\shaders\default.vert" />
-    <None Include="assets\shaders\default.frag" />
+    <None Include="Resources\shaders\default.vert" />
+    <None Include="Resources\shaders\default.frag" />
     <None Include="docs\progress.md" />
     <None Include="docs\TODO.md" />
     <None Include="docs\workflow.md" />

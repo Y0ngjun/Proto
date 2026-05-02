@@ -9,6 +9,7 @@ namespace Proto
         out << YAML::Key << "Component" << YAML::Value << "MeshRenderer";
         out << YAML::Key << "MeshUUID" << YAML::Value << (m_VertexArray ? (uint64_t)m_VertexArray->Handle : 0);
         out << YAML::Key << "ShaderUUID" << YAML::Value << (m_Shader ? (uint64_t)m_Shader->Handle : 0);
+        out << YAML::Key << "MeshTypeName" << YAML::Value << m_MeshTypeName;
         out << YAML::EndMap;
     }
 
@@ -23,6 +24,10 @@ namespace Proto
         {
             uint64_t shaderUUID = node["ShaderUUID"].as<uint64_t>();
             m_Shader = AssetManager::GetAssetAs<Shader>(UUID(shaderUUID));
+        }
+        if (node["MeshTypeName"])
+        {
+            m_MeshTypeName = node["MeshTypeName"].as<std::string>();
         }
     }
 }
