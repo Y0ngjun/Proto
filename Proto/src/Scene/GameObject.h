@@ -32,7 +32,6 @@ namespace Proto
 			T* component = new T(std::forward<Args>(args)...);
 			component->m_GameObject = this;
 			m_Components.push_back(std::unique_ptr<Component>(component));
-			component->OnStart();
 			return component;
 		}
 

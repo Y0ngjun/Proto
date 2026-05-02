@@ -101,6 +101,13 @@ namespace Proto
 
 	void Scene::OnRuntimeStart()
 	{
+		for (auto& go : m_GameObjects)
+		{
+			for (auto& comp : go->GetComponents())
+			{
+				comp->OnStart();
+			}
+		}
 	}
 
 	void Scene::OnRuntimeStop()
@@ -109,9 +116,13 @@ namespace Proto
 
 	void Scene::OnUpdateRuntime(float deltaTime)
 	{
-		for (auto& go : m_GameObjects)
+		// 로직 업데이트는 플레이 상태(deltaTime > 0)일 때만 실행
+		if (deltaTime > 0.0f)
 		{
-			go->Update(deltaTime);
+			for (auto& go : m_GameObjects)
+			{
+				go->Update(deltaTime);
+			}
 		}
 
 		Camera* mainCamera = nullptr;

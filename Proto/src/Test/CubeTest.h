@@ -13,11 +13,37 @@
 #include "../Renderer/Shader.h"
 #include "../Scene/Components/LightComponent.h"
 #include "../Asset/AssetManager.h"
-
+#include "../Scene/Components/NativeScriptComponent.h"
+#include "../Core/Input.h"
+#include <GLFW/glfw3.h>
 namespace Proto
 {
 	namespace Test
 	{
+		class CameraController : public ScriptableEntity
+		{
+		public:
+			void OnUpdate(float ts) override
+			{
+				auto transform = GetComponent<Transform>();
+				if (!transform) return;
+
+				float speed = 5.0f;
+				if (Input::GetKey(GLFW_KEY_A))
+					transform->Translation.x -= speed * ts;
+				if (Input::GetKey(GLFW_KEY_D))
+					transform->Translation.x += speed * ts;
+				if (Input::GetKey(GLFW_KEY_W))
+					transform->Translation.y += speed * ts;
+				if (Input::GetKey(GLFW_KEY_S))
+					transform->Translation.y -= speed * ts;
+				if (Input::GetKey(GLFW_KEY_E))
+					transform->Translation.z -= speed * ts;
+				if (Input::GetKey(GLFW_KEY_Q))
+					transform->Translation.z += speed * ts;
+			}
+		};
+
 		inline void SetupCubeTest(Application& app)
 		{
 			Scene* scene = new Scene();
@@ -30,6 +56,7 @@ namespace Proto
 			transform.Rotation = { glm::radians(-30.0f), 0.0f, 0.0f};
 			auto& cameraComponent = *cameraGo->AddComponent<CameraComponent>();
 			cameraComponent.Camera.SetViewportSize(1920, 1080);
+			cameraGo->AddComponent<NativeScriptComponent>()->Bind<CameraController>();
 
 			// 메시 로드
 			auto cubeMesh = AssetManager::GetAssetAs<VertexArray>(UUID(1));
