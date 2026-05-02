@@ -5,7 +5,7 @@ namespace Proto
 	static uint32_t s_EntityIDCounter = 1; // 0은 '아무것도 없음'을 의미하도록 1부터 시작
 
 	GameObject::GameObject(const std::string& name)
-		: m_ID(s_EntityIDCounter++), m_Name(name) {}
+		: m_UUID(), m_RuntimeID(s_EntityIDCounter++), m_Name(name) {}
 
 	GameObject::~GameObject()
 	{

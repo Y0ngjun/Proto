@@ -8,8 +8,6 @@
     *   `docs/spec/design.md`: 프로젝트 타겟, 요구사항, 주요 특징
 *   **진행 상태 및 작업 목표 (Status & Tasks)**
     *   `docs/progress.md`: 전체 로드맵 및 현재 구현 상태
-    *   `docs/TODO.md`: 단기적 기능 추가 목표
-    *   `docs/handoff.md`: 진행 중인 문제와 다음 작업 계획
 *   **개발 규칙 (Rules & Guidelines)**
     *   `docs/workflow.md`: 작업 시작 전 계획 수립(Phase A/B) 및 완료 기준 (현재 문서)
     *   `docs/style-guide.md`: C++ 네이밍 컨벤션, 포맷팅, 주석 가이드
@@ -46,5 +44,5 @@
 
 ## 완료 기준
 - 빌드 성공 및 테스트 통과
-- 진행 상황에 따라 `docs/progress.md` 또는 `docs/handoff.md` 갱신
+- 진행 상황에 따라 `docs/progress.md` 갱신
 - 결과 요약 제공

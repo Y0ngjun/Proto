@@ -27,7 +27,8 @@ namespace Proto
 		void OnRuntimeStop();
 
 		std::vector<std::unique_ptr<GameObject>>& GetGameObjects() { return m_GameObjects; }
-		GameObject* GetGameObjectByID(uint32_t id);
+		GameObject* GetGameObjectByRuntimeID(uint32_t id);
+		GameObject* GetGameObjectByUUID(UUID uuid);
 
 	private:
 

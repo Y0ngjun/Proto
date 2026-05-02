@@ -234,7 +234,7 @@ namespace Proto
 					shader->Bind();
 					shader->UploadUniformMat4("u_ViewProjection", viewProjection);
 					shader->UploadUniformMat4("u_Transform", transform->GetTransform());
-					shader->UploadUniformInt("u_EntityID", (int)go->GetID());
+					shader->UploadUniformInt("u_EntityID", (int)go->GetRuntimeID());
 
 					shader->UploadUniformFloat3("u_ViewPos", viewPos);
 					shader->UploadUniformFloat3("u_LightDir", lightDir);
@@ -277,11 +277,21 @@ namespace Proto
 		}
 	}
 
-	GameObject* Scene::GetGameObjectByID(uint32_t id)
+	GameObject* Scene::GetGameObjectByRuntimeID(uint32_t id)
 	{
 		for (auto& go : m_GameObjects)
 		{
-			if (go->GetID() == id)
+			if (go->GetRuntimeID() == id)
+				return go.get();
+		}
+		return nullptr;
+	}
+
+	GameObject* Scene::GetGameObjectByUUID(UUID uuid)
+	{
+		for (auto& go : m_GameObjects)
+		{
+			if (go->GetUUID() == uuid)
 				return go.get();
 		}
 		return nullptr;

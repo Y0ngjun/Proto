@@ -6,6 +6,7 @@
 #include <typeinfo>
 
 #include "Component.h"
+#include "../Core/UUID.h"
 
 namespace Proto
 {
@@ -16,8 +17,10 @@ namespace Proto
 		~GameObject();
 
 		const std::string& GetName() const { return m_Name; }
-		uint32_t GetID() const { return m_ID; }
-		void SetID(uint32_t id) { m_ID = id; }
+		UUID GetUUID() const { return m_UUID; }
+		void SetUUID(UUID uuid) { m_UUID = uuid; }
+		uint32_t GetRuntimeID() const { return m_RuntimeID; }
+		void SetRuntimeID(uint32_t id) { m_RuntimeID = id; }
 		void Update(float deltaTime);
 
 		static void ResetIDCounter();
@@ -50,7 +53,8 @@ namespace Proto
 		const std::vector<std::unique_ptr<Component>>& GetComponents() const { return m_Components; }
 
 	private:
-		uint32_t m_ID;
+		UUID m_UUID;
+		uint32_t m_RuntimeID;
 		std::string m_Name;
 		std::vector<std::unique_ptr<Component>> m_Components;
 	};

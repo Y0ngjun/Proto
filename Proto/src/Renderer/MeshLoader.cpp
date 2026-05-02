@@ -1,5 +1,6 @@
 #include "MeshLoader.h"
 #include "Buffer.h"
+#include <glm/gtc/constants.hpp>
 
 namespace Proto
 {
@@ -93,6 +94,164 @@ namespace Proto
         planeVAO->Unbind();
 
         return planeVAO;
+    }
+
+    std::shared_ptr<VertexArray> MeshLoader::CreateSphere(float radius, uint32_t sectorCount, uint32_t stackCount)
+    {
+        std::vector<float> vertices;
+        std::vector<uint32_t> indices;
+
+        float lengthInv = 1.0f / radius;
+        float sectorStep = 2 * glm::pi<float>() / sectorCount;
+        float stackStep = glm::pi<float>() / stackCount;
+        float sectorAngle, stackAngle;
+
+        for (uint32_t i = 0; i <= stackCount; ++i)
+        {
+            stackAngle = glm::pi<float>() / 2 - i * stackStep;
+            float xy = radius * cosf(stackAngle);
+            float z = radius * sinf(stackAngle);
+
+            for (uint32_t j = 0; j <= sectorCount; ++j)
+            {
+                sectorAngle = j * sectorStep;
+
+                float x = xy * cosf(sectorAngle);
+                float y = xy * sinf(sectorAngle);
+
+                // Position
+                vertices.push_back(x);
+                vertices.push_back(y);
+                vertices.push_back(z);
+
+                // Normal
+                vertices.push_back(x * lengthInv);
+                vertices.push_back(y * lengthInv);
+                vertices.push_back(z * lengthInv);
+            }
+        }
+
+        for (uint32_t i = 0; i < stackCount; ++i)
+        {
+            uint32_t k1 = i * (sectorCount + 1);
+            uint32_t k2 = k1 + sectorCount + 1;
+
+            for (uint32_t j = 0; j < sectorCount; ++j, ++k1, ++k2)
+            {
+                if (i != 0)
+                {
+                    indices.push_back(k1);
+                    indices.push_back(k2);
+                    indices.push_back(k1 + 1);
+                }
+                if (i != (stackCount - 1))
+                {
+                    indices.push_back(k1 + 1);
+                    indices.push_back(k2);
+                    indices.push_back(k2 + 1);
+                }
+            }
+        }
+
+        auto vbo = std::make_shared<VertexBuffer>(vertices.data(), (uint32_t)(vertices.size() * sizeof(float)));
+        auto ebo = std::make_shared<IndexBuffer>(indices.data(), (uint32_t)indices.size());
+        auto vao = std::make_shared<VertexArray>();
+        vao->AddVertexBuffer(vbo);
+        vao->SetIndexBuffer(ebo);
+        vao->Unbind();
+
+        return vao;
+    }
+
+    std::shared_ptr<VertexArray> MeshLoader::CreateCylinder(float radius, float height, uint32_t sectorCount)
+    {
+        std::vector<float> vertices;
+        std::vector<uint32_t> indices;
+
+        float sectorStep = 2 * glm::pi<float>() / sectorCount;
+        float halfHeight = height / 2.0f;
+
+        // 1. 측면 (Side)
+        for (uint32_t i = 0; i <= sectorCount; ++i)
+        {
+            float sectorAngle = i * sectorStep;
+            float x = radius * cosf(sectorAngle);
+            float z = radius * sinf(sectorAngle);
+            float nx = cosf(sectorAngle);
+            float nz = sinf(sectorAngle);
+
+            // Top
+            vertices.push_back(x); vertices.push_back(halfHeight); vertices.push_back(z);
+            vertices.push_back(nx); vertices.push_back(0.0f); vertices.push_back(nz);
+
+            // Bottom
+            vertices.push_back(x); vertices.push_back(-halfHeight); vertices.push_back(z);
+            vertices.push_back(nx); vertices.push_back(0.0f); vertices.push_back(nz);
+        }
+
+        for (uint32_t i = 0; i < sectorCount; ++i)
+        {
+            uint32_t k1 = i * 2;
+            uint32_t k2 = k1 + 1;
+            uint32_t k3 = (i + 1) * 2;
+            uint32_t k4 = k3 + 1;
+
+            indices.push_back(k1); indices.push_back(k2); indices.push_back(k3);
+            indices.push_back(k3); indices.push_back(k2); indices.push_back(k4);
+        }
+
+        // 2. 윗면 (Top Cap)
+        uint32_t topCenterIndex = (uint32_t)(vertices.size() / 6);
+        vertices.push_back(0.0f); vertices.push_back(halfHeight); vertices.push_back(0.0f);
+        vertices.push_back(0.0f); vertices.push_back(1.0f); vertices.push_back(0.0f);
+
+        uint32_t topEdgeOffset = (uint32_t)(vertices.size() / 6);
+        for (uint32_t i = 0; i <= sectorCount; ++i)
+        {
+            float sectorAngle = i * sectorStep;
+            float x = radius * cosf(sectorAngle);
+            float z = radius * sinf(sectorAngle);
+            vertices.push_back(x); vertices.push_back(halfHeight); vertices.push_back(z);
+            vertices.push_back(0.0f); vertices.push_back(1.0f); vertices.push_back(0.0f);
+        }
+
+        for (uint32_t i = 0; i < sectorCount; ++i)
+        {
+            indices.push_back(topCenterIndex);
+            indices.push_back(topEdgeOffset + i);
+            indices.push_back(topEdgeOffset + i + 1);
+        }
+
+        // 3. 아랫면 (Bottom Cap)
+        uint32_t bottomCenterIndex = (uint32_t)(vertices.size() / 6);
+        vertices.push_back(0.0f); vertices.push_back(-halfHeight); vertices.push_back(0.0f);
+        vertices.push_back(0.0f); vertices.push_back(-1.0f); vertices.push_back(0.0f);
+
+        uint32_t bottomEdgeOffset = (uint32_t)(vertices.size() / 6);
+        for (uint32_t i = 0; i <= sectorCount; ++i)
+        {
+            float sectorAngle = i * sectorStep;
+            float x = radius * cosf(sectorAngle);
+            float z = radius * sinf(sectorAngle);
+            vertices.push_back(x); vertices.push_back(-halfHeight); vertices.push_back(z);
+            vertices.push_back(0.0f); vertices.push_back(-1.0f); vertices.push_back(0.0f);
+        }
+
+        for (uint32_t i = 0; i < sectorCount; ++i)
+        {
+            indices.push_back(bottomCenterIndex);
+            indices.push_back(bottomEdgeOffset + i + 1);
+            indices.push_back(bottomEdgeOffset + i);
+        }
+
+        auto vbo = std::make_shared<VertexBuffer>(vertices.data(), (uint32_t)(vertices.size() * sizeof(float)));
+        auto ebo = std::make_shared<IndexBuffer>(indices.data(), (uint32_t)indices.size());
+        auto vao = std::make_shared<VertexArray>();
+        vao->AddVertexBuffer(vbo);
+        vao->SetIndexBuffer(ebo);
+        vao->Unbind();
+
+        return vao;
     }
 
     MeshData MeshLoader::ParseOBJ(const std::string& filePath)

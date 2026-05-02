@@ -151,8 +151,23 @@
     <ClCompile Include="Dependencies\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="Dependencies\include\glad\glad.c" />
     <ClCompile Include="Dependencies\include\glm\detail\glm.cpp" />
-    <ClCompile Include="Dependencies\include\glm\glm.cppm" />
+
+    <ClCompile Include="src\Asset\AssetManager.cpp" />
     <ClCompile Include="src\Core\Application.cpp" />
+    <ClCompile Include="src\Core\UUID.cpp" />
+    <ClCompile Include="src\Core\FileDialog.cpp" />
+    <ClCompile Include="src\Core\Input.cpp" />
+    <ClCompile Include="src\Core\Window.cpp" />
+    <ClCompile Include="src\Editor\InspectorPanel.cpp" />
+    <ClCompile Include="src\Editor\SceneHierarchyPanel.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Renderer\Buffer.cpp" />
+    <ClCompile Include="src\Renderer\EditorCamera.cpp" />
+    <ClCompile Include="src\Renderer\Framebuffer.cpp" />
+    <ClCompile Include="src\Renderer\MeshLoader.cpp" />
+    <ClCompile Include="src\Renderer\Renderer.cpp" />
+    <ClCompile Include="src\Renderer\SceneCamera.cpp" />
+    <ClCompile Include="src\Core\UUID.cpp" />
     <ClCompile Include="src\Core\FileDialog.cpp" />
     <ClCompile Include="src\Core\Input.cpp" />
     <ClCompile Include="src\Core\Window.cpp" />
@@ -173,6 +188,7 @@
     <ClCompile Include="src\Scene\Components\Transform.cpp" />
     <ClCompile Include="src\Scene\GameObject.cpp" />
     <ClCompile Include="src\Scene\Scene.cpp" />
+    <ClCompile Include="src\Scene\SceneSerializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dependencies\ImGuizmo\ImGuizmo.h" />
@@ -479,34 +495,10 @@
     <ClInclude Include="Dependencies\include\glm\vec4.hpp" />
     <ClInclude Include="Dependencies\include\glm\vector_relational.hpp" />
     <ClInclude Include="Dependencies\include\KHR\khrplatform.h" />
+    <ClInclude Include="src\Asset\Asset.h" />
+    <ClInclude Include="src\Asset\AssetManager.h" />
     <ClInclude Include="src\Core\Application.h" />
-    <ClInclude Include="src\Core\FileDialog.h" />
-    <ClInclude Include="src\Core\Input.h" />
-    <ClInclude Include="src\Core\Window.h" />
-    <ClInclude Include="src\Editor\InspectorPanel.h" />
-    <ClInclude Include="src\Editor\SceneHierarchyPanel.h" />
-    <ClInclude Include="src\Renderer\Buffer.h" />
-    <ClInclude Include="src\Renderer\Camera.h" />
-    <ClInclude Include="src\Renderer\EditorCamera.h" />
-    <ClInclude Include="src\Renderer\Framebuffer.h" />
-    <ClInclude Include="src\Renderer\MeshLoader.h" />
-    <ClInclude Include="src\Renderer\Renderer.h" />
-    <ClInclude Include="src\Renderer\SceneCamera.h" />
-    <ClInclude Include="src\Renderer\Shader.h" />
-    <ClInclude Include="src\Renderer\VertexArray.h" />
-    <ClInclude Include="src\Scene\Component.h" />
-    <ClInclude Include="src\Scene\Components\CameraComponent.h" />
-    <ClInclude Include="src\Scene\Components\LightComponent.h" />
-    <ClInclude Include="src\Scene\Components\MeshRenderer.h" />
-    <ClInclude Include="src\Scene\Components\Transform.h" />
-    <ClInclude Include="src\Scene\GameObject.h" />
-    <ClInclude Include="src\Scene\Scene.h" />
-    <ClInclude Include="src\Test\CubeTest.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include=".github\copilot-instructions.md" />
-    <None Include="assets\shaders\plane.frag" />
-    <None Include="assets\shaders\standard.frag" />
+    <ClInclude Include="src\Core\YAMLHelpers.h" />
     <None Include="assets\shaders\standard.vert" />
     <None Include="Dependencies\include\glm\detail\func_common.inl" />
     <None Include="Dependencies\include\glm\detail\func_common_simd.inl" />

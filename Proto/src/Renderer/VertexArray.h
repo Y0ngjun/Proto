@@ -4,12 +4,15 @@
 #include <vector>
 
 #include "Buffer.h"
+#include "../Asset/Asset.h"
 
 namespace Proto
 {
-	class VertexArray
+	class VertexArray : public Asset
 	{
 	public:
+		virtual AssetType GetType() const override { return AssetType::Mesh; }
+
 		VertexArray();
 		~VertexArray();
 

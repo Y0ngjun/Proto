@@ -1,5 +1,5 @@
 #include "MeshRenderer.h"
-#include "../../Renderer/MeshLoader.h"
+#include "../../Asset/AssetManager.h"
 
 namespace Proto
 {
@@ -7,27 +7,22 @@ namespace Proto
     {
         out << YAML::BeginMap;
         out << YAML::Key << "Component" << YAML::Value << "MeshRenderer";
-        out << YAML::Key << "MeshType" << YAML::Value << m_MeshTypeName;
+        out << YAML::Key << "MeshUUID" << YAML::Value << (m_VertexArray ? (uint64_t)m_VertexArray->Handle : 0);
+        out << YAML::Key << "ShaderUUID" << YAML::Value << (m_Shader ? (uint64_t)m_Shader->Handle : 0);
         out << YAML::EndMap;
     }
 
     void MeshRenderer::Deserialize(const YAML::Node& node)
     {
-        if (node["MeshType"])
+        if (node["MeshUUID"])
         {
-            m_MeshTypeName = node["MeshType"].as<std::string>();
-
-            // MeshType에 따라 메시와 셰이더 로드
-            if (m_MeshTypeName == "Cube")
-            {
-                m_VertexArray = MeshLoader::CreateCube();
-                m_Shader = Shader::LoadFromFile("assets/shaders/standard.vert", "assets/shaders/standard.frag");
-            }
-            else if (m_MeshTypeName == "Plane")
-            {
-                m_VertexArray = MeshLoader::CreatePlane();
-                m_Shader = Shader::LoadFromFile("assets/shaders/standard.vert", "assets/shaders/plane.frag");
-            }
+            uint64_t meshUUID = node["MeshUUID"].as<uint64_t>();
+            m_VertexArray = AssetManager::GetAssetAs<VertexArray>(UUID(meshUUID));
+        }
+        if (node["ShaderUUID"])
+        {
+            uint64_t shaderUUID = node["ShaderUUID"].as<uint64_t>();
+            m_Shader = AssetManager::GetAssetAs<Shader>(UUID(shaderUUID));
         }
     }
 }

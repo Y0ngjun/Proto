@@ -4,6 +4,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include "../../Dependencies/ImGuizmo/ImGuizmo.h"
+#include "../Asset/AssetManager.h"
 #include <glm/gtc/type_ptr.hpp>
 #include "Application.h"
 #include "Input.h"
@@ -11,6 +12,8 @@
 #include "../Editor/SceneHierarchyPanel.h"
 #include "../Editor/InspectorPanel.h"
 #include "../Scene/Components/Transform.h"
+#include "FileDialog.h"
+#include "../Scene/SceneSerializer.h"
 
 namespace Proto
 {
@@ -75,6 +78,8 @@ namespace Proto
 		}
 
 		Input::Initialize(m_Window.GetNativeWindow());
+
+		AssetManager::Init();
 
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -211,23 +216,21 @@ namespace Proto
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				// [TODO] 직렬화 기능 구현 예정
-				// if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
-				// {
-				// 	if (m_Scene)
-				// 	{
-				// 		std::string defaultPath = "scenes/scene.yaml";
-				// 		SaveScene(defaultPath);
-				// 	}
-				// }
-				// if (ImGui::MenuItem("Load Scene", "Ctrl+L"))
-				// {
-				// 	if (m_Scene)
-				// 	{
-				// 		std::string defaultPath = "scenes/scene.yaml";
-				// 		LoadScene(defaultPath);
-				// 	}
-				// }
+				if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
+				{
+					if (m_Scene)
+					{
+						auto path = FileDialog::SaveFile("Scene Files (*.scene)\0*.scene\0All Files (*.*)\0*.*\0");
+						if (path)
+							SaveScene(*path);
+					}
+				}
+				if (ImGui::MenuItem("Load Scene", "Ctrl+O"))
+				{
+					auto path = FileDialog::OpenFile("Scene Files (*.scene)\0*.scene\0All Files (*.*)\0*.*\0");
+					if (path)
+						LoadScene(*path);
+				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Exit", "Alt+F4"))
 				{
@@ -473,13 +476,40 @@ namespace Proto
 
 			if (pixelData != -1 && m_Scene)
 			{
-				GameObject* pickedEntity = m_Scene->GetGameObjectByID((uint32_t)pixelData);
+				GameObject* pickedEntity = m_Scene->GetGameObjectByRuntimeID((uint32_t)pixelData);
 				if (m_SceneHierarchyPanel) m_SceneHierarchyPanel->SetSelectedGameObject(pickedEntity);
 			}
 			else
 			{
 				if (m_SceneHierarchyPanel) m_SceneHierarchyPanel->SetSelectedGameObject(nullptr);
 			}
+		}
+	}
+
+	void Application::SaveScene(const std::string& filepath)
+	{
+		if (m_Scene)
+		{
+			SceneSerializer serializer(m_Scene);
+			serializer.Serialize(filepath);
+		}
+	}
+
+	void Application::LoadScene(const std::string& filepath)
+	{
+		Scene* newScene = new Scene();
+		SceneSerializer serializer(newScene);
+		if (serializer.Deserialize(filepath))
+		{
+			// 현재 씬 메모리 해제
+			if (m_Scene)
+				delete m_Scene;
+				
+			SetScene(newScene);
+		}
+		else
+		{
+			delete newScene;
 		}
 	}
 }

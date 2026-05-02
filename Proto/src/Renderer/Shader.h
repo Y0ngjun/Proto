@@ -3,12 +3,15 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <cstdint>
+#include "../Asset/Asset.h"
 
 namespace Proto
 {
-	class Shader
+	class Shader : public Asset
 	{
 	public:
+		virtual AssetType GetType() const override { return AssetType::Shader; }
+
 		Shader(const std::string& vertexSrc, const std::string& fragmentSrc);
 		~Shader();
 

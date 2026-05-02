@@ -12,6 +12,7 @@
 #include "../Renderer/MeshLoader.h"
 #include "../Renderer/Shader.h"
 #include "../Scene/Components/LightComponent.h"
+#include "../Asset/AssetManager.h"
 
 namespace Proto
 {
@@ -31,12 +32,12 @@ namespace Proto
 			cameraComponent.Camera.SetViewportSize(1920, 1080);
 
 			// 메시 로드
-			auto cubeMesh = MeshLoader::CreateCube();
-			auto planeMesh = MeshLoader::CreatePlane();
+			auto cubeMesh = AssetManager::GetAssetAs<VertexArray>(UUID(1));
+			auto planeMesh = AssetManager::GetAssetAs<VertexArray>(UUID(2));
 
 			// 셰이더 로드
-			auto standardShader = Shader::LoadFromFile("assets/shaders/standard.vert", "assets/shaders/standard.frag");
-			auto planeShader = Shader::LoadFromFile("assets/shaders/standard.vert", "assets/shaders/plane.frag");
+			auto standardShader = AssetManager::GetAssetAs<Shader>(UUID(100));
+			auto planeShader = AssetManager::GetAssetAs<Shader>(UUID(101));
 
 			// 빛 객체 생성
 			auto lightGo = scene->CreateGameObject("DirectionalLight");
@@ -47,13 +48,15 @@ namespace Proto
 
 			// Floor Object
 			auto planeGo = scene->CreateGameObject("FloorPlane");
-			auto* planeMeshRenderer = planeGo->AddComponent<MeshRenderer>(planeMesh, planeShader);
-			planeMeshRenderer->SetMeshTypeName("Plane");
+			auto* planeMeshRenderer = planeGo->AddComponent<MeshRenderer>();
+			planeMeshRenderer->SetMesh(planeMesh);
+			planeMeshRenderer->SetShader(planeShader);
 			planeGo->GetComponent<Transform>()->Translation.y = 0.1f;
 
 			auto cubeGo = scene->CreateGameObject("Cube");
-			auto* cubeMeshRenderer = cubeGo->AddComponent<MeshRenderer>(cubeMesh, standardShader);
-			cubeMeshRenderer->SetMeshTypeName("Cube");
+			auto* cubeMeshRenderer = cubeGo->AddComponent<MeshRenderer>();
+			cubeMeshRenderer->SetMesh(cubeMesh);
+			cubeMeshRenderer->SetShader(standardShader);
 			cubeGo->GetComponent<Transform>()->Translation.y += 1;
 
 			// 큐브 테스트

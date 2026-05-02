@@ -27,6 +27,8 @@ namespace Proto
         // Primitive 메시 생성 (코드)
         static std::shared_ptr<VertexArray> CreateCube();
         static std::shared_ptr<VertexArray> CreatePlane();
+        static std::shared_ptr<VertexArray> CreateSphere(float radius = 0.5f, uint32_t sectorCount = 36, uint32_t stackCount = 18);
+        static std::shared_ptr<VertexArray> CreateCylinder(float radius = 0.5f, float height = 1.0f, uint32_t sectorCount = 36);
 
     private:
         MeshLoader() = default;
