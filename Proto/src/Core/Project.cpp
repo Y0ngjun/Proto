@@ -32,36 +32,15 @@ namespace Proto
 		std::filesystem::create_directories(projectDir / "assets");
 		std::filesystem::create_directories(projectDir / "scenes");
 
-		// --- 기본 씬 파일 직접 생성 ---
+		// --- 기본 씬 파일 생성 (Scene 객체 및 직렬화 사용) ---
 		std::string sceneFileName = s_ActiveProject->m_Config.StartScene.string();
 		std::filesystem::path fullScenePath = projectDir / sceneFileName;
 
-		std::ofstream sceneFout(fullScenePath.string());
-		if (sceneFout.is_open())
 		{
-			sceneFout << "Scene: Untitled\n";
-			sceneFout << "Entities:\n";
-			sceneFout << "  - Entity: 1234567890\n";
-			sceneFout << "    Name: Main Camera\n";
-			sceneFout << "    Components:\n";
-			sceneFout << "      - Component: Transform\n";
-			sceneFout << "        Translation: [0, 0, 5]\n";
-			sceneFout << "        Rotation: [0, 0, 0]\n";
-			sceneFout << "        Scale: [1, 1, 1]\n";
-			sceneFout << "      - Component: CameraComponent\n";
-			sceneFout << "        Primary: true\n";
-			sceneFout << "        FixedAspectRatio: false\n";
-			sceneFout << "  - Entity: 9876543210\n";
-			sceneFout << "    Name: Directional Light\n";
-			sceneFout << "    Components:\n";
-			sceneFout << "      - Component: Transform\n";
-			sceneFout << "        Translation: [0, 0, 0]\n";
-			sceneFout << "        Rotation: [0, 0, 0]\n";
-			sceneFout << "        Scale: [1, 1, 1]\n";
-			sceneFout << "      - Component: LightComponent\n";
-			sceneFout << "        Color: [1, 1, 1]\n";
-			sceneFout << "        Intensity: 1\n";
-			sceneFout.close();
+			Scene defaultScene;
+			defaultScene.CreateDefault();
+			SceneSerializer serializer(&defaultScene);
+			serializer.Serialize(fullScenePath.string());
 		}
 
 		std::string projectFileName = projectName + ".proto";

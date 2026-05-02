@@ -15,6 +15,9 @@
 #include "../Scene/Components/Transform.h"
 #include "FileDialog.h"
 #include "../Scene/SceneSerializer.h"
+#include "../Scene/Components/CameraComponent.h"
+#include "../Scene/Components/LightComponent.h"
+#include "../Scene/GameObject.h"
 #include "Log.h"
 #include "Project.h"
 #include "../Editor/ConsolePanel.h"
@@ -62,6 +65,19 @@ namespace Proto
 		}
 	}
 
+	void Application::NewScene()
+	{
+		if (m_Scene) delete m_Scene;
+
+		Scene* newScene = new Scene();
+		newScene->CreateDefault(); // 공용 메서드 호출
+		
+		SetScene(newScene);
+
+		m_ActiveScenePath = "";
+		PROTO_LOG_INFO("Created new scene.");
+	}
+
 	void Application::OpenScene(const std::filesystem::path& path)
 	{
 		Scene* newScene = new Scene();
@@ -78,6 +94,20 @@ namespace Proto
 		{
 			delete newScene;
 			PROTO_LOG_ERROR("Failed to load scene: " + path.string());
+		}
+	}
+
+	void Application::SaveScene()
+	{
+		if (m_ActiveScenePath.empty())
+		{
+			auto path = FileDialog::SaveFile("Scene Files (*.scene)\0*.scene\0");
+			if (path)
+				SaveScene(*path);
+		}
+		else
+		{
+			SaveScene(m_ActiveScenePath);
 		}
 	}
 
@@ -104,6 +134,9 @@ namespace Proto
 
 	void Application::SaveProject()
 	{
+		// 프로젝트 저장 시 현재 씬도 자동으로 함께 저장
+		SaveScene();
+
 		auto activeProject = Project::GetActive();
 		if (activeProject)
 		{
@@ -228,6 +261,7 @@ namespace Proto
 
 	void Application::Update()
 	{
+		RawInput::Update();
 		UpdateFrameTiming();
 		ProcessInput();
 
@@ -395,10 +429,10 @@ namespace Proto
 				auto dock_id_bottom = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Down, 0.3f, nullptr, &dock_id_main);
 				auto dock_id_bottom_left = ImGui::DockBuilderSplitNode(dock_id_bottom, ImGuiDir_Left, 0.5f, nullptr, &dock_id_bottom);
 
-				ImGui::DockBuilderDockWindow("Scene Hierarchy", dock_id_right);
+				ImGui::DockBuilderDockWindow("Hierarchy", dock_id_right);
 				ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
-				ImGui::DockBuilderDockWindow("Scene View", dock_id_main);
-				ImGui::DockBuilderDockWindow("Game View", dock_id_main);
+				ImGui::DockBuilderDockWindow("Scene", dock_id_main);
+				ImGui::DockBuilderDockWindow("Game", dock_id_main);
 				ImGui::DockBuilderDockWindow("Content Browser", dock_id_bottom_left);
 				ImGui::DockBuilderDockWindow("Console", dock_id_bottom);
 
@@ -414,40 +448,38 @@ namespace Proto
 		{
 			if (ImGui::BeginMenu("File"))
 			{
+				if (ImGui::MenuItem("New Scene", "Ctrl+N")) NewScene();
 				if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
 				{
 					auto path = FileDialog::OpenFile("Proto Project (*.proto)\0*.proto\0");
-					if (path)
-						OpenProject(*path);
+					if (path) OpenProject(*path);
 				}
-				if (ImGui::MenuItem("Save Project", "Ctrl+S"))
-				{
-					SaveProject();
-				}
+				
 				ImGui::Separator();
+				
+				if (ImGui::MenuItem("Save Scene", "Ctrl+S")) SaveScene();
 				if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
 				{
-					if (m_Scene)
-					{
-						auto path = FileDialog::SaveFile("Scene Files (*.scene)\0*.scene\0All Files (*.*)\0*.*\0");
-						if (path)
-							SaveScene(*path);
-					}
+					auto path = FileDialog::SaveFile("Scene Files (*.scene)\0*.scene\0");
+					if (path) SaveScene(*path);
 				}
+				
 				ImGui::Separator();
-				if (ImGui::MenuItem("Exit", "Alt+F4"))
-				{
-					m_Window.SetShouldClose(true);
-				}
+				
+				if (ImGui::MenuItem("Save Project")) SaveProject();
+				
+				ImGui::Separator();
+				
+				if (ImGui::MenuItem("Exit", "Alt+F4")) m_Window.SetShouldClose(true);
 				ImGui::EndMenu();
 			}
 			ImGui::EndMainMenuBar();
 		}
 
-		// --- Scene View Panel ---
+		// --- Scene Panel ---
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-		ImGui::Begin("Scene View");
+		ImGui::Begin("Scene");
 		m_IsViewportFocused = ImGui::IsWindowFocused();
 
 		// --- Gizmo Bar (Inside Scene View) ---
@@ -568,9 +600,9 @@ namespace Proto
 		ImGui::End();
 		ImGui::PopStyleVar(2);
 
-		// --- Game View Panel ---
+		// --- Game Panel ---
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
-		ImGui::Begin("Game View");
+		ImGui::Begin("Game");
 		m_IsGameViewFocused = ImGui::IsWindowFocused();
 		m_IsGameViewHovered = ImGui::IsWindowHovered();
 
@@ -622,6 +654,29 @@ namespace Proto
 
 	void Application::ProcessInput()
 	{
+		bool control = RawInput::GetKey(GLFW_KEY_LEFT_CONTROL) || RawInput::GetKey(GLFW_KEY_RIGHT_CONTROL);
+		bool shift = RawInput::GetKey(GLFW_KEY_LEFT_SHIFT) || RawInput::GetKey(GLFW_KEY_RIGHT_SHIFT);
+
+		if (control && RawInput::GetKeyDown(GLFW_KEY_S))
+		{
+			if (shift)
+			{
+				auto path = FileDialog::SaveFile("Scene Files (*.scene)\0*.scene\0");
+				if (path) SaveScene(*path);
+			}
+			else
+			{
+				SaveScene();
+			}
+		}
+
+		if (control && RawInput::GetKeyDown(GLFW_KEY_N)) NewScene();
+		if (control && RawInput::GetKeyDown(GLFW_KEY_O))
+		{
+			auto path = FileDialog::OpenFile("Proto Project (*.proto)\0*.proto\0");
+			if (path) OpenProject(*path);
+		}
+
 		if (RawInput::GetKey(GLFW_KEY_ESCAPE))
 		{
 			m_Window.SetShouldClose(true);

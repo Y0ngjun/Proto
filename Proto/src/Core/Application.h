@@ -26,7 +26,9 @@ namespace Proto
 		void SetScene(class Scene* scene);
 		void SetUpdateCallback(const std::function<void(float)>& callback) { m_UpdateCallback = callback; }
 
+		void SaveScene();
 		void SaveScene(const std::filesystem::path& path);
+		void NewScene();
 		void OpenScene(const std::filesystem::path& path);
 
 		int GetGizmoType() const { return m_GizmoType; }

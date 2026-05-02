@@ -23,7 +23,7 @@ namespace Proto
 
 	void SceneHierarchyPanel::OnImGuiRender()
 	{
-		ImGui::Begin("Scene Hierarchy");
+		ImGui::Begin("Hierarchy");
 		if (m_Context)
 		{
 			for (auto& go : m_Context->GetGameObjects())

@@ -13,6 +13,7 @@
 #include "Components/BoxCollider.h"
 #include "Components/SphereCollider.h"
 #include "Components/NativeScriptComponent.h"
+#include "../Renderer/Buffer.h"
 
 #include "../Renderer/Renderer.h"
 #include "../Renderer/EditorCamera.h"
@@ -21,87 +22,30 @@ namespace Proto
 {
 	Scene::Scene()
 	{
-		// 1. Grid Vertex Array & Shader Initialization
-		m_GridVAO = std::make_shared<VertexArray>();
-
-		float gridVertices[] = {
-			// Position            // Normal
-			-100.0f, 0.0f, -100.0f, 0.0f, 1.0f, 0.0f,
-			 100.0f, 0.0f, -100.0f, 0.0f, 1.0f, 0.0f,
-			 100.0f, 0.0f,  100.0f, 0.0f, 1.0f, 0.0f,
-			-100.0f, 0.0f,  100.0f, 0.0f, 1.0f, 0.0f
-		};
-
-		std::shared_ptr<VertexBuffer> gridVB = std::make_shared<VertexBuffer>(gridVertices, sizeof(gridVertices));
-		m_GridVAO->AddVertexBuffer(gridVB);
-
-		uint32_t gridIndices[] = { 0, 1, 2, 2, 3, 0 };
-		std::shared_ptr<IndexBuffer> gridIB = std::make_shared<IndexBuffer>(gridIndices, 6);
-		m_GridVAO->SetIndexBuffer(gridIB);
-
-		std::string gridVertexSrc = R"(
-			#version 330 core
-			layout(location = 0) in vec3 a_Position;
-			
-			out vec3 v_FragPos;
-
-			uniform mat4 u_ViewProjection;
-
-			void main()
-			{
-				v_FragPos = a_Position;
-				gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
-			}
-		)";
-
-		std::string gridFragmentSrc = R"(
-			#version 330 core
-			in vec3 v_FragPos;
-			out vec4 o_Color;
-
-			uniform vec3 u_CameraPos;
-
-			void main()
-			{
-				float gridSize = 1.0;
-				float thickness = 0.03; // Line thickness
-
-				vec2 coord = v_FragPos.xz / gridSize;
-				vec2 grid = abs(fract(coord - 0.5) - 0.5) / fwidth(coord);
-				float line = min(grid.x, grid.y);
-
-				float alpha = 1.0 - min(line, 1.0);
-				
-				// Base grid color
-				vec4 gridColor = vec4(0.1, 0.1, 0.1, alpha * 0.6);
-
-				// Highlight Axis
-				if (abs(v_FragPos.z) < thickness) gridColor = vec4(1.0, 0.3, 0.3, 0.8); // X Axis (Red)
-				if (abs(v_FragPos.x) < thickness) gridColor = vec4(0.3, 0.3, 1.0, 0.8); // Z Axis (Blue)
-
-				// Fade out with distance
-				float dist = distance(v_FragPos, vec3(u_CameraPos.x, 0.0, u_CameraPos.z));
-				float fading = max(0.0, 1.0 - dist / 50.0);
-				gridColor.a *= fading;
-
-				if(gridColor.a < 0.01) discard;
-
-				o_Color = gridColor;
-			}
-		)";
-
-		m_GridShader = std::make_shared<Shader>(gridVertexSrc, gridFragmentSrc);
 	}
 
 	GameObject* Scene::CreateGameObject(const std::string& name)
 	{
 		auto gameObject = std::make_unique<GameObject>(name);
-
 		gameObject->AddComponent<Transform>();
 
 		GameObject* ptr = gameObject.get();
 		m_GameObjects.push_back(std::move(gameObject));
 		return ptr;
+	}
+
+	void Scene::CreateDefault()
+	{
+		// 1. Main Camera (Transform은 CreateGameObject에서 자동 추가됨)
+		auto* camera = CreateGameObject("Main Camera");
+		camera->AddComponent<CameraComponent>();
+		camera->GetComponent<Transform>()->Translation = { 0.0f, 0.0f, 5.0f };
+
+		// 2. Directional Light
+		auto* light = CreateGameObject("Directional Light");
+		light->AddComponent<LightComponent>();
+		// 각도 135, 0, 45 도 -> 라디안 변환값
+		light->GetComponent<Transform>()->Rotation = { 2.35619f, 0.0f, 0.785398f };
 	}
 
 	void Scene::OnRuntimeStart()
@@ -404,6 +348,64 @@ namespace Proto
 
 	void Scene::OnUpdateEditor(float deltaTime, EditorCamera& camera)
 	{
+		// 지연 초기화: OpenGL 컨텍스트가 확보된 후 첫 렌더링 시점에 Grid 생성
+		if (!m_GridVAO)
+		{
+			m_GridVAO = std::make_shared<VertexArray>();
+
+			float gridVertices[] = {
+				-100.0f, 0.0f, -100.0f, 0.0f, 1.0f, 0.0f,
+				 100.0f, 0.0f, -100.0f, 0.0f, 1.0f, 0.0f,
+				 100.0f, 0.0f,  100.0f, 0.0f, 1.0f, 0.0f,
+				-100.0f, 0.0f,  100.0f, 0.0f, 1.0f, 0.0f
+			};
+
+			uint32_t gridIndices[] = { 0, 1, 2, 2, 3, 0 };
+
+			m_GridVAO->Bind();
+			auto vbo = std::make_shared<VertexBuffer>(gridVertices, sizeof(gridVertices));
+			m_GridVAO->AddVertexBuffer(vbo);
+
+			auto ibo = std::make_shared<IndexBuffer>(gridIndices, 6);
+			m_GridVAO->SetIndexBuffer(ibo);
+
+			std::string gridVertexSrc = R"(
+				#version 330 core
+				layout(location = 0) in vec3 a_Position;
+				out vec3 v_FragPos;
+				uniform mat4 u_ViewProjection;
+				void main() {
+					v_FragPos = a_Position;
+					gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+				}
+			)";
+
+			std::string gridFragmentSrc = R"(
+				#version 330 core
+				in vec3 v_FragPos;
+				out vec4 o_Color;
+				uniform vec3 u_CameraPos;
+				void main() {
+					float gridSize = 1.0;
+					float thickness = 0.03;
+					vec2 coord = v_FragPos.xz / gridSize;
+					vec2 grid = abs(fract(coord - 0.5) - 0.5) / fwidth(coord);
+					float line = min(grid.x, grid.y);
+					float alpha = 1.0 - min(line, 1.0);
+					vec4 gridColor = vec4(0.1, 0.1, 0.1, alpha * 0.6);
+					if (abs(v_FragPos.z) < thickness) gridColor = vec4(1.0, 0.3, 0.3, 0.8);
+					if (abs(v_FragPos.x) < thickness) gridColor = vec4(0.3, 0.3, 1.0, 0.8);
+					float dist = distance(v_FragPos, vec3(u_CameraPos.x, 0.0, u_CameraPos.z));
+					float fading = max(0.0, 1.0 - dist / 50.0);
+					gridColor.a *= fading;
+					if(gridColor.a < 0.01) discard;
+					o_Color = gridColor;
+				}
+			)";
+
+			m_GridShader = std::make_shared<Shader>(gridVertexSrc, gridFragmentSrc);
+		}
+
 		glm::mat4 viewProjection = camera.GetViewProjection();
 		glm::vec3 viewPos = camera.GetPosition();
 

@@ -11,8 +11,10 @@ namespace Proto
 	{
 	public:
 		static void Initialize(GLFWwindow* window);
+		static void Update();
 
 		static bool GetKey(KeyCode key);
+		static bool GetKeyDown(KeyCode key);
 		static bool GetMouseButton(MouseCode button);
 		static void GetMousePosition(double& x, double& y);
 

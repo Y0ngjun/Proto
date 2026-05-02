@@ -17,6 +17,7 @@ namespace Proto
 		~Scene() = default;
 
 		GameObject* CreateGameObject(const std::string& name = "GameObject");
+		void CreateDefault();
 
 		void OnUpdateRuntime(float deltaTime, bool isFocused = true);
 		void OnUpdateEditor(float deltaTime, EditorCamera& camera);
