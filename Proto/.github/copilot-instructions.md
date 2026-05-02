@@ -1,75 +1,27 @@
 # copilot-instructions.md
 
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
+## 0. 필수 기본 수칙 (Ground Rules)
+- **🔥 workflow.md 필수 참조**: 모든 작업(계획 수립, 코드 수정 등) 시작 전 반드시 `docs/workflow.md`를 읽고 해당 워크플로우 절차를 엄격하게 따르세요.
+- **🗣️ 한국어 사용**: 모든 코드 주석과 문서는 한국어로 작성합니다.
 
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+## 1. 코딩 전 생각하기 (Think Before Coding)
+- 가정을 명시적으로 밝히세요. 확실하지 않다면 질문하세요.
+- 여러 가지 해석이 가능하다면, 조용히 하나를 선택하지 말고 옵션들을 제시하세요.
+- 더 간단한 접근 방식이 있다면 말하세요. 타당하다면 요구사항에 대해 이의를 제기하세요.
+- 불분명한 것이 있다면 멈추세요. 헷갈리는 부분이 무엇인지 명시하고 질문하세요.
 
-## 1. Think Before Coding
+## 2. 단순함 우선 (Simplicity First)
+- 문제를 해결하는 최소한의 코드만 작성하세요. 추측성 코드는 작성하지 마세요.
+- 요청받지 않은 기능은 추가하지 마세요.
+- 요청받지 않은 "유연성"이나 "구성 가능성"을 추가하지 마세요.
+- 50줄로 작성할 수 있는 코드를 200줄로 작성했다면 다시 작성하세요.
 
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
+## 3. 국소적 변경 (Surgical Changes)
+- 꼭 필요한 부분만 건드리세요. 자신이 어지른 것만 치우세요.
+- 인접한 코드, 주석 또는 포맷팅을 "개선"하지 마세요.
+- 본인의 방식과 다르더라도 기존 스타일을 맞추세요.
+- 본인의 변경으로 인해 사용되지 않게 된 import/변수/함수를 제거하세요.
 
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-
-## 2. Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-## 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-## 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
-## 5. Project Context & Documentation
-
-**Always reference project structure before implementing.**
-
-→ **`docs/workflow.md` 참조** (4단계 절차)
-
-- **한국어**: 코드 주석, 모든 문서는 한국어로 작성
-- **디렉토리 md**: `src/Core.md`, `src/Scene.md`, `src/Renderer.md`, `src/Editor.md`
-- **프로젝트 문서**: `docs/spec/design.md`, `docs/spec/architecture.md`, `docs/progress.md`
-
----
-
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+## 4. 목표 주도적 실행 (Goal-Driven Execution)
+- 성공 기준을 정의하세요. 검증될 때까지 반복하세요.
+- 다단계 작업의 경우, 간략한 계획을 명시하고 각 단계를 검증하세요.

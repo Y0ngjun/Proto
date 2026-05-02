@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "../Component.h"
 #include "../../Renderer/VertexArray.h"
@@ -21,6 +22,9 @@ namespace Proto
 		const std::shared_ptr<VertexArray>& GetMesh() const { return m_VertexArray; }
 		const std::shared_ptr<Shader>& GetShader() const { return m_Shader; }
 
+		void SetMeshTypeName(const std::string& name) { m_MeshTypeName = name; }
+		const std::string& GetMeshTypeName() const { return m_MeshTypeName; }
+
 		// 직렬화
 		void Serialize(YAML::Emitter& out) const override;
 		void Deserialize(const YAML::Node& node) override;
@@ -29,5 +33,6 @@ namespace Proto
 	private:
 		std::shared_ptr<VertexArray> m_VertexArray;
 		std::shared_ptr<Shader> m_Shader;
+		std::string m_MeshTypeName; // 메시 타입 식별자 (예: "Cube", "Sphere")
 	};
 }

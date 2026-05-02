@@ -2,8 +2,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
-#include <yaml-cpp/yaml.h>
-#include <fstream>
 
 #include "Scene.h"
 #include "Components/Transform.h"
@@ -124,14 +122,26 @@ namespace Proto
 			auto cameraComponent = go->GetComponent<CameraComponent>();
 			if (cameraComponent && cameraComponent->Primary)
 			{
-				mainCamera = &cameraComponent->Camera;
-				cameraTransform = go->GetComponent<Transform>()->GetTransform();
-				break;
+				auto transform = go->GetComponent<Transform>();
+				if (transform)
+				{
+					mainCamera = &cameraComponent->Camera;
+					cameraTransform = transform->GetTransform();
+					break;
+				}
 			}
 		}
 
 		if (mainCamera)
 		{
+			// 카메라의 뷰포트가 설정되지 않았으면 기본값 설정
+			glm::mat4 projMat = mainCamera->GetProjection();
+			if (projMat == glm::mat4(1.0f))
+			{
+				// 기본 화면 크기로 설정 (이것은 임시 설정이며, OnViewportResize에서 올바른 크기로 업데이트됨)
+				static_cast<SceneCamera*>(mainCamera)->SetViewportSize(1280, 720);
+			}
+
 			glm::mat4 viewProjection = mainCamera->GetProjection() * glm::affineInverse(cameraTransform);
 			glm::vec3 viewPos = glm::vec3(cameraTransform[3]); // 카메라는 Transform의 4번째 열(마지막 열) 벡터의 x,y,z 위치를 가짐
 
@@ -275,93 +285,6 @@ namespace Proto
 				return go.get();
 		}
 		return nullptr;
-	}
-
-	void Scene::SaveScene(const std::string& filepath)
-	{
-		YAML::Emitter out;
-		out << YAML::BeginMap;
-		out << YAML::Key << "Scene" << YAML::Value << "Proto Scene";
-		out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
-
-		for (auto& go : m_GameObjects)
-		{
-			out << YAML::BeginMap;
-			out << YAML::Key << "GameObject" << YAML::Value << go->GetName();
-			out << YAML::Key << "ID" << YAML::Value << go->GetID();
-			out << YAML::Key << "Components" << YAML::Value << YAML::BeginSeq;
-
-			for (const auto& comp : go->GetComponents())
-			{
-				comp->Serialize(out);
-			}
-
-			out << YAML::EndSeq;
-			out << YAML::EndMap;
-		}
-
-		out << YAML::EndSeq;
-		out << YAML::EndMap;
-
-		std::ofstream file(filepath);
-		file << out.c_str();
-		file.close();
-	}
-
-	void Scene::LoadScene(const std::string& filepath)
-	{
-		std::ifstream file(filepath);
-		if (!file.is_open())
-		{
-			return;
-		}
-
-		YAML::Node root = YAML::LoadFile(filepath);
-
-		if (!root["GameObjects"])
-		{
-			return;
-		}
-
-		for (const auto& goNode : root["GameObjects"])
-		{
-			std::string name = goNode["GameObject"].as<std::string>();
-			uint32_t id = goNode["ID"].as<uint32_t>();
-
-			GameObject* go = CreateGameObject(name);
-
-			if (goNode["Components"])
-			{
-				for (const auto& compNode : goNode["Components"])
-				{
-					std::string componentType = compNode["Component"].as<std::string>();
-
-					if (componentType == "Transform")
-					{
-						auto* transform = go->GetComponent<Transform>();
-						if (transform)
-						{
-							transform->Deserialize(compNode);
-						}
-					}
-					else if (componentType == "CameraComponent")
-					{
-						auto* camera = go->AddComponent<CameraComponent>();
-						camera->Deserialize(compNode);
-					}
-					else if (componentType == "LightComponent")
-					{
-						auto* light = go->AddComponent<LightComponent>();
-						light->Deserialize(compNode);
-					}
-					else if (componentType == "MeshRenderer")
-					{
-						auto* meshRenderer = go->AddComponent<MeshRenderer>();
-						meshRenderer->Deserialize(compNode);
-					}
-				}
-			}
-		}
 	}
 
 }

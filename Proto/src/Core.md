@@ -1,95 +1,26 @@
 # Core 계층
 
-게임 엔진의 생명주기, 윈도우 관리, 입력 처리를 담당합니다.
+엔진의 초기화, 생명주기 관리, 윈도우 추상화 및 시스템 입력을 관장합니다.
 
-## 파일 구조
+## 핵심 클래스 및 역할
 
-```
-src/Core/
-├── Application.h/cpp     (싱글톤 게임 루프 관리)
-├── Window.h/cpp          (GLFW 윈도우 관리)
-└── Input.h/cpp           (키보드, 마우스 입력)
-```
+1. **Application (Singleton)**
+   - 게임의 메인 루프(Init → Update/Render → Shutdown) 관리.
+   - Editor와 Runtime(Play) 모드의 상태(SceneState) 제어.
+   - `Run()` 내부에서 델타 타임(Delta Time)을 계산해 하위 시스템에 전달.
+   - `SetUpdateCallback()`을 통해 커스텀 게임 로직 주입 가능.
 
-## 주요 클래스
+2. **Window**
+   - GLFW 기반의 네이티브 윈도우 생성 및 OpenGL 컨텍스트 초기화.
+   - VSync(수직 동기화) 설정 및 이벤트 폴링(PollEvents) 수행.
 
-### Application (Singleton)
+3. **Input**
+   - 키보드 및 마우스 입력을 정적/싱글톤 방식으로 처리.
+   - 키 눌림 상태와 마우스 좌표계를 하위 로직(카메라 제어, Picking 등)에 제공.
 
-**책임**: 전체 게임 루프 관리
+4. **FileDialog**
+   - Windows API 기반의 파일 열기/저장 다이얼로그(씬 저장/로드 시 사용).
 
-| 메서드 | 설명 |
-|--------|------|
-| `Get()` | 싱글톤 인스턴스 반환 |
-| `Run()` | 게임 루프 시작 (Init → Loop → Shutdown) |
-| `GetDeltaTime()` | 이전 프레임의 경과 시간 반환 |
-| `SetScene(Scene*)` | 활성 씬 설정 |
-| `SetUpdateCallback()` | 커스텀 업데이트 콜백 설정 |
-
-**내부 구조**:
-- `m_Window` - GLFW 윈도우
-- `m_EditorFramebuffer / m_GameFramebuffer` - 렌더링 타겟
-- `m_EditorCamera` - 에디터 카메라
-- `m_SceneState` - Edit 또는 Play 모드
-- `m_Scene` - 현재 활성 씬
-
-### Window
-
-**책임**: GLFW 윈도우 및 OpenGL 컨텍스트 관리
-
-| 메서드 | 설명 |
-|--------|------|
-| `PollEvents()` | GLFW 이벤트 폴링 |
-| `SwapBuffers()` | 더블 버퍼 스왑 |
-| `ShouldClose()` | 윈도우 종료 요청 확인 |
-| `SetVSync(bool)` | 수직 동기화 설정 |
-| `GetWidth() / GetHeight()` | 윈도우 크기 반환 |
-| `GetNativeWindow()` | 네이티브 GLFWwindow 포인터 |
-
-### Input
-
-**책임**: 키보드, 마우스 입력 처리
-
-| 메서드 | 설명 |
-|--------|------|
-| `Initialize(GLFWwindow*)` | GLFW 윈도우로 초기화 |
-| `GetKey(key)` | 특정 키 눌림 상태 확인 |
-| `GetMouseButton(button)` | 마우스 버튼 눌림 상태 확인 |
-| `GetMousePosition(x, y)` | 마우스 좌표 반환 |
-
-## 게임 루프 흐름
-
-```
-Application::Run()
-├── Init()
-│   ├── Window 생성 (GLFW)
-│   ├── OpenGL 컨텍스트 초기화
-│   ├── ImGui 초기화
-│   └── Scene 로드
-│
-├── Loop()
-│   ├── PollEvents() (입력 수집)
-│   ├── Update()
-│   │   ├── Scene::OnUpdateEditor / OnUpdateRuntime
-│   │   └── 모든 GameObject::Update()
-│   ├── Render()
-│   │   ├── Scene 렌더링
-│   │   └── ImGui 렌더링
-│   └── SwapBuffers()
-│
-└── Shutdown()
-    ├── 리소스 정리
-    └── 윈도우 종료
-```
-
-## 설계 특징
-
-1. **Singleton Pattern** - 전역 Application 인스턴스 하나
-2. **RAII** - Window, Framebuffer 등 리소스 자동 관리
-3. **에디터/런타임 분리** - SceneState로 두 모드 구분
-4. **콜백 지원** - 커스텀 로직 주입 가능
-
-## 확장 포인트
-
-- `SetUpdateCallback()` - 커스텀 게임 로직 추가
-- `ProcessInput()` - 입력 처리 커스터마이징
-- SceneState 확장 - 추가 상태 정의 가능
+## 주요 설계 특징
+- **RAII 패턴**: Window 및 리소스 관리를 스마트 포인터와 소멸자에 위임.
+- **중앙 제어**: 프레임버퍼 바인딩 및 씬(Scene) 업데이트의 기준점이 됨.

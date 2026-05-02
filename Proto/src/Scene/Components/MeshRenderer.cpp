@@ -1,4 +1,5 @@
 #include "MeshRenderer.h"
+#include "../../Renderer/MeshLoader.h"
 
 namespace Proto
 {
@@ -6,13 +7,29 @@ namespace Proto
     {
         out << YAML::BeginMap;
         out << YAML::Key << "Component" << YAML::Value << "MeshRenderer";
-        // 메시와 셰이더는 런타임 리소스이므로 직렬화하지 않음
-        // 향후 AssetManager 구현 시 ID로 참조 가능하도록 변경
+        out << YAML::Key << "MeshType" << YAML::Value << m_MeshTypeName;
         out << YAML::EndMap;
     }
 
     void MeshRenderer::Deserialize(const YAML::Node& node)
     {
-        // 메시와 셰이더는 런타임에 별도로 설정
+        if (node["MeshType"])
+        {
+            m_MeshTypeName = node["MeshType"].as<std::string>();
+
+            // MeshType에 따라 메시와 셰이더 로드
+            if (m_MeshTypeName == "Cube")
+            {
+                m_VertexArray = MeshLoader::CreateCube();
+                m_Shader = Shader::LoadFromFile("assets/shaders/standard.vert", "assets/shaders/standard.frag");
+            }
+            else if (m_MeshTypeName == "Plane")
+            {
+                m_VertexArray = MeshLoader::CreatePlane();
+                m_Shader = Shader::LoadFromFile("assets/shaders/standard.vert", "assets/shaders/plane.frag");
+            }
+        }
     }
 }
+
+

@@ -23,4 +23,14 @@ namespace Proto
 		}
 	}
 
+	void GameObject::ResetIDCounter()
+	{
+		s_EntityIDCounter = 1;
+	}
+
+	void GameObject::SetMaxIDCounter(uint32_t maxID)
+	{
+		s_EntityIDCounter = maxID + 1;
+	}
+
 }

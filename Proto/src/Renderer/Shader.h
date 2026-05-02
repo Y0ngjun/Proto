@@ -20,9 +20,13 @@ namespace Proto
 		void UploadUniformFloat(const std::string& name, float value);
 		void UploadUniformInt(const std::string& name, int value);
 
+		// 파일에서 로드
+		static std::shared_ptr<Shader> LoadFromFile(const std::string& vertexPath, const std::string& fragmentPath);
+
 	private:
 		uint32_t m_RendererID;
 
 		void CompileShader(uint32_t shader, const std::string& source);
+		static std::string ReadFile(const std::string& filePath);
 	};
 }

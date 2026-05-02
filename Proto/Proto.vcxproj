@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -153,6 +153,7 @@
     <ClCompile Include="Dependencies\include\glm\detail\glm.cpp" />
     <ClCompile Include="Dependencies\include\glm\glm.cppm" />
     <ClCompile Include="src\Core\Application.cpp" />
+    <ClCompile Include="src\Core\FileDialog.cpp" />
     <ClCompile Include="src\Core\Input.cpp" />
     <ClCompile Include="src\Core\Window.cpp" />
     <ClCompile Include="src\Editor\InspectorPanel.cpp" />
@@ -161,6 +162,7 @@
     <ClCompile Include="src\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Renderer\EditorCamera.cpp" />
     <ClCompile Include="src\Renderer\Framebuffer.cpp" />
+    <ClCompile Include="src\Renderer\MeshLoader.cpp" />
     <ClCompile Include="src\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Renderer\SceneCamera.cpp" />
     <ClCompile Include="src\Renderer\Shader.cpp" />
@@ -478,6 +480,7 @@
     <ClInclude Include="Dependencies\include\glm\vector_relational.hpp" />
     <ClInclude Include="Dependencies\include\KHR\khrplatform.h" />
     <ClInclude Include="src\Core\Application.h" />
+    <ClInclude Include="src\Core\FileDialog.h" />
     <ClInclude Include="src\Core\Input.h" />
     <ClInclude Include="src\Core\Window.h" />
     <ClInclude Include="src\Editor\InspectorPanel.h" />
@@ -486,6 +489,7 @@
     <ClInclude Include="src\Renderer\Camera.h" />
     <ClInclude Include="src\Renderer\EditorCamera.h" />
     <ClInclude Include="src\Renderer\Framebuffer.h" />
+    <ClInclude Include="src\Renderer\MeshLoader.h" />
     <ClInclude Include="src\Renderer\Renderer.h" />
     <ClInclude Include="src\Renderer\SceneCamera.h" />
     <ClInclude Include="src\Renderer\Shader.h" />
@@ -501,6 +505,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".github\copilot-instructions.md" />
+    <None Include="assets\shaders\plane.frag" />
+    <None Include="assets\shaders\standard.frag" />
+    <None Include="assets\shaders\standard.vert" />
     <None Include="Dependencies\include\glm\detail\func_common.inl" />
     <None Include="Dependencies\include\glm\detail\func_common_simd.inl" />
     <None Include="Dependencies\include\glm\detail\func_exponential.inl" />
@@ -641,18 +648,21 @@
     <None Include="Dependencies\include\glm\gtx\vector_angle.inl" />
     <None Include="Dependencies\include\glm\gtx\vector_query.inl" />
     <None Include="Dependencies\include\glm\gtx\wrap.inl" />
+    <None Include="docs\handoff.md" />
     <None Include="docs\progress.md" />
     <None Include="docs\spec\architecture.md" />
     <None Include="docs\spec\design.md">
       <SubType>
       </SubType>
     </None>
+    <None Include="docs\TODO.md">
+      <SubType>
+      </SubType>
+    </None>
     <None Include="docs\style-guide.md" />
     <None Include="docs\testing.md" />
     <None Include="docs\workflow.md" />
-    <None Include="fix_vcxproj.ps1" />
     <None Include="imgui.ini" />
-    <None Include="modify_vcxproj.ps1" />
     <None Include="Proto.slnx" />
     <None Include="src\Core.md" />
     <None Include="src\Editor.md" />

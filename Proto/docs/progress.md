@@ -2,169 +2,91 @@
 
 ## 개요
 
-현재 Proto는 **기본 게임 엔진 핵심**이 완성되었으며, **물리 시스템 및 고급 기능**을 진행 중입니다.
+Proto는 4계층 아키텍처(Core/Scene/Renderer/Editor) 기반의 3D 게임 엔진입니다.
+렌더링/에디터 기초 완료. Play Mode 및 데이터 직렬화 진행 중.
 
 ---
 
-## 로드맵
+## 🎯 MVP 목표
 
-### Phase 1: 기본 렌더링 및 에디터 기초 (✅ 완료)
+**3D 탄막 게임**: 플레이어 조작 → 탄막 회피 → 적 처치 → 게임 오버
 
-- ✅ GLFW 윈도우 생성 및 입력 처리
-- ✅ OpenGL 3.3 렌더링 파이프라인
-- ✅ Shader & Buffer 관리 시스템
-- ✅ GameObject-Component 구조
-- ✅ Scene 관리
-- ✅ ImGui 통합 및 기본 패널 (Hierarchy, Inspector)
-- ✅ 에디터 카메라 및 Viewport
-
-**성과**: 큐브 렌더링 테스트 완성, 기본 에디터 환경 구성
+필수 엔진 기능: 렌더링 ✅ → Play Mode → Physics → Scripting → UI → 최적화
 
 ---
 
-### Phase 2: 에디터 고도화 및 기본 물리 (🔄 진행 중)
+## 📋 Milestone별 로드맵 (의존성 순)
 
-#### 에디터 기능
-- ✅ Transform 컴포넌트 실시간 편집 (Gizmo 연동)
-- ✅ Gizmo 모드 선택 UI (Inspector 패널)
-- ✅ 게임 오브젝트 트리 선택/관리
-- ✅ 오브젝트 피킹 (마우스 클릭 선택)
-- ✅ Play/Stop 버튼 (런타임 모드)
-- ⏳ 씬 그리드 표시
+### Milestone 0: 렌더링 & 에디터 기초 ✅
+| 계층 | 상태 | 내용 |
+|------|------|------|
+| Core | ✅ | Application, Window, Input |
+| Scene | ✅ | GameObject, Component (Transform, MeshRenderer, Light, Camera) |
+| Renderer | ✅ | Shader, VertexArray, Framebuffer, EditorCamera |
+| Editor | ✅ | Hierarchy, Inspector, Viewport, Object Picking, Gizmo |
 
-#### 물리 시스템
-- ⏳ Rigidbody 컴포넌트 (질량, 속도, 가속도)
-- ⏳ Collider 컴포넌트 (AABB 충돌 형태)
-- ⏳ 충돌 감지 시스템
-- ⏳ 물리 계산 (중력, 힘, 토크)
+### Milestone 1: 직렬화 및 에셋 참조 기초 (🔄 현재)
+**선행**: Milestone 0 완료
+**목표**: 씬 저장/로드 및 UUID 기반 에셋/오브젝트 참조 시스템
+- [ ] UUID 시스템 (GameObject 및 에셋 고유 식별)
+- [ ] Asset Registry 기초 (UUID ↔ 파일 경로 매핑)
+- [ ] Component Serialize/Deserialize 인터페이스
+- [ ] SaveScene/LoadScene 완전 구현
 
-#### 렌더링 개선
-- ⏳ 라이팅 시스템 (기본 Phong)
-- ⏳ 법선 맵핑
+### Milestone 2: Play Mode & Runtime (다음)
+**선행**: Milestone 1 완료
+**목표**: 게임 실행 모드 시작
+- [ ] Scene::OnUpdateRuntime() 활성화
+- [ ] Runtime 카메라 (SceneCamera) 제어
+- [ ] OnRuntimeStart/Stop 콜백
+- [ ] 델타 타임 기반 로직 업데이트
 
----
+### Milestone 3: Physics System (다음)
+**선행**: Milestone 2 완료
+**목표**: 충돌 및 물리 시뮬레이션
+- [ ] Rigidbody Component (속도, 가속도, 중력)
+- [ ] Collider Component (AABB, Sphere)
+- [ ] 충돌 감지 (Collision Detection)
+- [ ] 충돌 콜백 (OnCollisionEnter/Stay/Exit)
 
-### Phase 3: 데이터 직렬화 및 에셋 관리
+### Milestone 4: Scripting & UI (다음)
+**선행**: Milestone 3 완료
+**목표**: 게임 로직 및 UI 시스템
+- [ ] ScriptComponent (OnStart/OnUpdate/OnDestroy)
+- [ ] EventBus (게임 이벤트 시스템)
+- [ ] UI System (Canvas, Text, Image)
+- [ ] Input 통합 (플레이어 제어)
 
-- ⏳ 씬 저장/로드 (YAML 포맷)
-- ⏳ GameObject 프리팹 (재사용 가능한 템플릿)
-- ⏳ Asset Manager (메시, 텍스처, 셰이더 관리)
-- ⏳ UUID 시스템 (안정적인 오브젝트 참조)
+### Milestone 5: Optimization (다음)
+**선행**: Milestone 4 완료
+**목표**: 대규모 오브젝트 처리 성능 최적화 및 에디터 고도화
+- [ ] Object Pool (탄막 게임을 위한 GameObject/컴포넌트 재사용)
+- [ ] Asset Manager 고도화 (Asset Registry 기반 메모리 리소스 캐싱)
+- [ ] GetComponent 최적화 (O(1) 접근, 정적 타입 ID 방식 등 고려)
+- [ ] Game State Manager (MainMenu/Playing/GameOver)
+- [ ] 에디터 추가 기능 (콘솔, 파일 탐색기)
 
----
-
-### Phase 4: 스크립트 시스템
-
-- ⏳ C++ 기반 ScriptComponent
-- ⏳ 스크립트 라이프사이클 (OnStart, OnUpdate, OnDestroy)
-- ⏳ 스크립트 ↔ 게임 엔진 인터페이스
-
----
-
-### Phase 5: MVP 완성 (3D 탄막 게임 프로토타입)
-
-- ⏳ 플레이어 제어 (이동, 회전)
-- ⏳ 탄막 생성 및 발사
-- ⏳ 적 AI 기본 구현
-- ⏳ 충돌 기반 게임 로직 (HIT, 사망 등)
-- ⏳ 게임 상태 관리 (Start, Playing, GameOver)
-
----
-
-## 현재 구현 상태
-
-### 완료된 기능
-
-#### Core 계층
-```
-src/Core/
-├── ✅ Application (싱글톤, 게임 루프)
-├── ✅ Window (GLFW 윈도우 관리)
-└── ✅ Input (키보드, 마우스 입력)
-```
-
-#### Scene 계층
-```
-src/Scene/
-├── ✅ Scene (GameObject 관리)
-├── ✅ GameObject (ID, 이름, Component 컨테이너)
-├── ✅ Component (기본 클래스)
-└── Components/
-    ├── ✅ Transform (위치, 회전, 스케일)
-    ├── ✅ MeshRenderer (3D 메시 렌더링)
-    ├── ✅ CameraComponent (뷰 설정)
-    └── ✅ LightComponent (조명 정보)
-```
-
-#### Renderer 계층
-```
-src/Renderer/
-├── ✅ Renderer (정적 렌더링 인터페이스)
-├── ✅ Shader (GLSL 컴파일 및 유니폼)
-├── ✅ VertexArray (VAO 관리)
-├── ✅ Buffer (VBO, IBO)
-├── ✅ Framebuffer (오프스크린 렌더링)
-├── ✅ EditorCamera (에디터 카메라)
-└── ✅ SceneCamera (게임 카메라)
-```
-
-#### Editor 계층
-```
-src/Editor/
-├── ✅ SceneHierarchyPanel (GameObject 트리)
-├── ✅ InspectorPanel (속성 편집)
-└── ✅ Viewport (렌더링 결과 표시)
-```
+### Milestone 6: MVP Prototype (마지막)
+**선행**: Milestone 5 완료
+**목표**: 완성된 탄막 게임
+- [ ] 플레이어 (모델, 제어, 충돌)
+- [ ] 탄막 생성 및 패턴
+- [ ] 적 AI 및 공격
+- [ ] 게임 로직 (점수, 체력, GameOver)
 
 ---
 
-### 진행 중인 기능
+## 🔴 알려진 제한사항 & TODO
 
-- ✅ Transform Gizmo 통합 (ImGuizmo) - **완성**
-- ✅ Object Picking 완성 - **완성**
-- 🔄 런타임 모드 (Play/Stop) - 다음 작업
-- ⏳ 씬 그리드 표시
-
----
-
-### 미구현 기능
-
-#### Phase 2 (예정)
-- ⏳ Rigidbody 컴포넌트
-- ⏳ Collider 컴포넌트
-- ⏳ 충돌 감지 및 물리 계산
-- ⏳ 라이팅 시스템
-
-#### Phase 3+
-- ⏳ 씬 저장/로드
-- ⏳ Asset Manager
-- ⏳ UUID 시스템
-- ⏳ ScriptComponent
-- ⏳ 탄막 게임 로직
+1. **Windows 전용** - FileDialog는 Windows API 사용
+2. **컴포넌트 직렬화 타입 감지** - 문자열 기반 팩토리 패턴 필요 (현재 런타임은 dynamic_cast RTTI 사용 중)
+3. **직렬화 미완료** - Milestone 1에서 구현 필요
+4. Editor 콘솔 패널 미구현
+5. Editor 파일 탐색기 패널 미구현
 
 ---
 
-## 빌드 상태
+## ✅ 빌드 상태
 
-- **프로젝트**: Proto.sln (Visual Studio 2022)
-- **C++ 표준**: C++17
-- **테스트**: CubeTest (기본 큐브 렌더링 테스트)
-- **빌드 상태**: ✅ 성공
-
----
-
-## 다음 우선순위
-
-1. **Transform Gizmo** - 에디터에서 직관적 오브젝트 조작
-2. **Runtime Mode** - Play/Stop으로 게임 테스트
-3. **Physics Basics** - Rigidbody, Collider 구현
-4. **Scene Save/Load** - 만든 씬 저장 가능하게
-
----
-
-## 주요 개발 노트
-
-- GameObject-Component 패턴으로 확장성 확보
-- unique_ptr 사용으로 메모리 관리 자동화
-- 에디터/런타임 분리로 두 모드 지원
-- ImGui Docking으로 유연한 UI 구성
+- **프로젝트**: Proto.sln (Visual Studio 2022, C++17)
+- **상태**: ✅ 빌드 성공 (직렬화 코드 제거)

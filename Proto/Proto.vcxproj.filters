@@ -105,6 +105,12 @@
     <ClCompile Include="src\Scene\Components\LightComponent.cpp">
       <Filter>�ҽ� ����</Filter>
     </ClCompile>
+    <ClCompile Include="src\Core\FileDialog.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\MeshLoader.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\Window.h">
@@ -1082,6 +1088,12 @@
     <ClInclude Include="src\Scene\Components\LightComponent.h">
       <Filter>��� ����</Filter>
     </ClInclude>
+    <ClInclude Include="src\Core\FileDialog.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\MeshLoader.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".github\copilot-instructions.md" />
@@ -1517,5 +1529,10 @@
     <None Include="docs\workflow.md" />
     <None Include="docs\style-guide.md" />
     <None Include="docs\testing.md" />
+    <None Include="assets\shaders\plane.frag" />
+    <None Include="assets\shaders\standard.frag" />
+    <None Include="assets\shaders\standard.vert" />
+    <None Include="docs\TODO.md" />
+    <None Include="docs\handoff.md" />
   </ItemGroup>
 </Project>

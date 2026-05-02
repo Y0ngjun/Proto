@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <memory>
+#include <string>
 #include "Window.h"
 #include "../Renderer/Framebuffer.h"
 #include "../Renderer/EditorCamera.h"
@@ -24,10 +25,6 @@ namespace Proto
 
 		int GetGizmoType() const { return m_GizmoType; }
 		void SetGizmoType(int type) { m_GizmoType = type; }
-
-		// Scene Save/Load
-		void SaveScene(const std::string& filePath);
-		void LoadScene(const std::string& filePath);
 
 	private:
 		Application();

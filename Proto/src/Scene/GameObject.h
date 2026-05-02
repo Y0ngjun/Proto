@@ -17,7 +17,11 @@ namespace Proto
 
 		const std::string& GetName() const { return m_Name; }
 		uint32_t GetID() const { return m_ID; }
+		void SetID(uint32_t id) { m_ID = id; }
 		void Update(float deltaTime);
+
+		static void ResetIDCounter();
+		static void SetMaxIDCounter(uint32_t maxID);
 
 		template<typename T, typename... Args>
 		T* AddComponent(Args... args)

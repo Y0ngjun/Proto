@@ -3,6 +3,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 #include "Shader.h"
 
@@ -105,5 +107,33 @@ namespace Proto
 	{
 		int location = glGetUniformLocation(m_RendererID, name.c_str());
 		glUniform1i(location, value);
+	}
+
+	std::string Shader::ReadFile(const std::string& filePath)
+	{
+		std::ifstream file(filePath);
+		if (!file.is_open())
+		{
+			std::cerr << "[Shader File Error] Failed to open file: " << filePath << std::endl;
+			return "";
+		}
+
+		std::stringstream buffer;
+		buffer << file.rdbuf();
+		return buffer.str();
+	}
+
+	std::shared_ptr<Shader> Shader::LoadFromFile(const std::string& vertexPath, const std::string& fragmentPath)
+	{
+		std::string vertexSrc = ReadFile(vertexPath);
+		std::string fragmentSrc = ReadFile(fragmentPath);
+
+		if (vertexSrc.empty() || fragmentSrc.empty())
+		{
+			std::cerr << "[Shader Load Error] Failed to load shaders from files" << std::endl;
+			return nullptr;
+		}
+
+		return std::make_shared<Shader>(vertexSrc, fragmentSrc);
 	}
 }

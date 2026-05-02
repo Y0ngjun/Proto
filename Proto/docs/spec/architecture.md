@@ -1,106 +1,27 @@
 # 아키텍처 명세 (Architecture Specification)
 
-## 개요
+Proto는 **4계층 아키텍처**를 기반으로 하며, **GameObject-Component 패턴**으로 구성됩니다.
+상세한 계층별 기능 및 데이터 흐름은 각 `src/*.md` 파일을 참조하세요.
 
-Proto는 **4계층 아키텍처**를 기반으로 합니다.  
-각 계층은 명확한 책임을 가지며, **GameObject-Component 패턴**으로 게임 오브젝트를 관리합니다.
-
----
-
-## 아키텍처 계층도
-
-```
+## 1. 아키텍처 계층도
+```text
 Application (Singleton)
-├── Core
-├── Scene
-├── Renderer
-└── Editor
-(GameObject-Component System)  
+├── Core      : 생명주기, 윈도우(GLFW), 입력 제어 (참조: src/Core.md)
+├── Scene     : GameObject 관리, Component 로직 업데이트 (참조: src/Scene.md)
+├── Renderer  : OpenGL 추상화, 드로우 콜 처리 (참조: src/Renderer.md)
+└── Editor    : ImGui 패널, Gizmo 상호작용 (참조: src/Editor.md)
 ```
 
----
+## 2. 핵심 패턴
+- **GameObject-Component**: 모든 게임 객체는 ID와 Component(Transform, MeshRenderer 등)의 집합으로 이루어져 있어 유연한 기능 확장이 가능.
+- **Singleton**: `Application` 클래스가 전역 상태와 메인 게임 루프 관리.
 
-## 계층 구조
+## 3. 메인 게임 루프 흐름
+1. **Init**: 윈도우 생성, OpenGL/ImGui 초기화, 씬 로드.
+2. **Loop (Update)**: 입력 수집 → Scene(런타임/에디터) 업데이트 → GameObject내 Component 로직 처리.
+3. **Loop (Render)**: Framebuffer 바인딩 → 각 객체의 Renderer Submission → ImGui 렌더링 → 윈도우 버퍼 스왑.
+4. **Shutdown**: 사용된 리소스 반환 및 종료.
 
-| 계층 | 디렉토리 | 책임 |
-|------|---------|------|
-| **Core** | `src/Core/` | 애플리케이션 생명주기, 윈도우, 입력 관리 |
-| **Scene** | `src/Scene/` | 게임 객체 및 컴포넌트 관리 |
-| **Renderer** | `src/Renderer/` | OpenGL 렌더링 추상화 |
-| **Editor** | `src/Editor/` | ImGui 기반 개발 도구 |
-
----
-
-## 핵심 개념
-
-### GameObject-Component 패턴
-
-```
-GameObject = 컨테이너 (ID, Name, Components[])
-  ├─ Transform (위치, 회전, 스케일)
-  ├─ MeshRenderer (3D 렌더링)
-  ├─ CameraComponent
-  └─ [Custom Components...]
-```
-
-- **GameObject**: 게임 세계의 객체
-- **Component**: 기능을 제공하는 모듈
-- **확장**: 새로운 Component 상속으로 기능 추가
-
----
-
-## 게임 루프
-
-```
-Application::Run()
-  ├─ Init()          (GLFW, OpenGL, ImGui 초기화)
-  ├─ Loop()
-  │  ├─ Update()     (입력, Scene 업데이트, 물리)
-  │  ├─ Render()     (Framebuffer, 렌더링, ImGui)
-  │  └─ DeltaTime 계산
-  └─ Shutdown()      (리소스 정리)
-```
-
----
-
-## 데이터 흐름
-
-```
-Scene::OnUpdateEditor()
-  ├─ 각 GameObject 순회
-  │  └─ GameObject::Update()
-  │     └─ 각 Component::OnUpdate()
-  │
-  └─ Rendering
-     ├─ Framebuffer Bind
-     ├─ 각 GameObject 렌더링
-     │  └─ Renderer::Submit(Mesh, Shader)
-     └─ ImGui Viewport 표시
-```
-
----
-
-## 설계 원칙
-
-1. **GameObject-Component**: 기능 확장이 용이
-2. **Singleton (Application)**: 전역 상태 관리
-3. **메모리 (unique_ptr)**: 자동 생명주기 관리
-4. **에디터/런타임 분리**: 두 가지 Update 메서드
-5. **책임 분리**: 각 계층은 자신의 영역만 담당
-
----
-
-## 디렉토리별 상세 정보
-
-- **`src/Core.md`** - Application, Window, Input
-- **`src/Scene.md`** - GameObject, Component, 핵심 컴포넌트
-- **`src/Renderer.md`** - Shader, Buffer, Framebuffer, Camera
-- **`src/Editor.md`** - ImGui 패널, UI 구성
-
----
-
-## 다음 확장 계획
-
-- 물리 시스템 (Rigidbody, Collider)
-- 스크립트 시스템 (C++ Component)
-- 씬 저장/로드 (YAML)
+## 4. 모드 분리
+- **Editor Mode**: 편집용 카메라 사용, Gizmo 및 Inspector를 통한 씬 구성.
+- **Runtime (Play) Mode**: 물리 시뮬레이션 및 게임 스크립트가 활성화되며 게임 카메라 기준 렌더링.

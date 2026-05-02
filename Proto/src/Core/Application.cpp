@@ -211,23 +211,23 @@ namespace Proto
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
-				{
-					if (m_Scene)
-					{
-						// 기본 경로: scenes/untitled.yaml
-						std::string defaultPath = "scenes/scene.yaml";
-						SaveScene(defaultPath);
-					}
-				}
-				if (ImGui::MenuItem("Load Scene", "Ctrl+L"))
-				{
-					if (m_Scene)
-					{
-						std::string defaultPath = "scenes/scene.yaml";
-						LoadScene(defaultPath);
-					}
-				}
+				// [TODO] 직렬화 기능 구현 예정
+				// if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
+				// {
+				// 	if (m_Scene)
+				// 	{
+				// 		std::string defaultPath = "scenes/scene.yaml";
+				// 		SaveScene(defaultPath);
+				// 	}
+				// }
+				// if (ImGui::MenuItem("Load Scene", "Ctrl+L"))
+				// {
+				// 	if (m_Scene)
+				// 	{
+				// 		std::string defaultPath = "scenes/scene.yaml";
+				// 		LoadScene(defaultPath);
+				// 	}
+				// }
 				ImGui::Separator();
 				if (ImGui::MenuItem("Exit", "Alt+F4"))
 				{
