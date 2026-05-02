@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "EditorCamera.h"
-#include "../Core/Input.h"
+#include "../Core/RawInput.h"
 
 namespace Proto
 {
@@ -59,30 +59,30 @@ namespace Proto
 	void EditorCamera::OnUpdate(float deltaTime)
 	{
 		double xpos, ypos;
-		Input::GetMousePosition(xpos, ypos);
+		RawInput::GetMousePosition(xpos, ypos);
 		glm::vec2 mouse{ (float)xpos, (float)ypos };
 		glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
 		m_InitialMousePosition = mouse;
 
-		if (Input::GetMouseButton(GLFW_MOUSE_BUTTON_RIGHT))
+		if (RawInput::GetMouseButton(GLFW_MOUSE_BUTTON_RIGHT))
 		{
 			MouseRotate(delta);
 
 			float speed = 5.0f * deltaTime;
-			if (Input::GetKey(GLFW_KEY_W))
+			if (RawInput::GetKey(GLFW_KEY_W))
 				m_FocalPoint += GetForwardDirection() * speed;
-			if (Input::GetKey(GLFW_KEY_S))
+			if (RawInput::GetKey(GLFW_KEY_S))
 				m_FocalPoint -= GetForwardDirection() * speed;
-			if (Input::GetKey(GLFW_KEY_A))
+			if (RawInput::GetKey(GLFW_KEY_A))
 				m_FocalPoint -= GetRightDirection() * speed;
-			if (Input::GetKey(GLFW_KEY_D))
+			if (RawInput::GetKey(GLFW_KEY_D))
 				m_FocalPoint += GetRightDirection() * speed;
-			if (Input::GetKey(GLFW_KEY_E))
+			if (RawInput::GetKey(GLFW_KEY_E))
 				m_FocalPoint += GetUpDirection() * speed;
-			if (Input::GetKey(GLFW_KEY_Q))
+			if (RawInput::GetKey(GLFW_KEY_Q))
 				m_FocalPoint -= GetUpDirection() * speed;
 		}
-		else if (Input::GetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE))
+		else if (RawInput::GetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE))
 		{
 			MousePan(delta);
 		}

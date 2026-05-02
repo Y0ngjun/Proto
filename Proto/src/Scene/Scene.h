@@ -18,7 +18,7 @@ namespace Proto
 
 		GameObject* CreateGameObject(const std::string& name = "GameObject");
 
-		void OnUpdateRuntime(float deltaTime);
+		void OnUpdateRuntime(float deltaTime, bool isFocused = true);
 		void OnUpdateEditor(float deltaTime, EditorCamera& camera);
 
 		void OnViewportResize(uint32_t width, uint32_t height);

@@ -14,8 +14,10 @@
 #include "../Scene/Components/LightComponent.h"
 #include "../Asset/AssetManager.h"
 #include "../Scene/Components/NativeScriptComponent.h"
+#include "../Scene/Components/Rigidbody.h"
+#include "../Scene/Components/BoxCollider.h"
+#include "../Scene/Components/SphereCollider.h"
 #include "../Core/Input.h"
-#include <GLFW/glfw3.h>
 namespace Proto
 {
 	namespace Test
@@ -29,18 +31,35 @@ namespace Proto
 				if (!transform) return;
 
 				float speed = 5.0f;
-				if (Input::GetKey(GLFW_KEY_A))
+				if (Input::GetKey(Key::A))
 					transform->Translation.x -= speed * ts;
-				if (Input::GetKey(GLFW_KEY_D))
+				if (Input::GetKey(Key::D))
 					transform->Translation.x += speed * ts;
-				if (Input::GetKey(GLFW_KEY_W))
+				if (Input::GetKey(Key::E))
 					transform->Translation.y += speed * ts;
-				if (Input::GetKey(GLFW_KEY_S))
+				if (Input::GetKey(Key::Q))
 					transform->Translation.y -= speed * ts;
-				if (Input::GetKey(GLFW_KEY_E))
+				if (Input::GetKey(Key::W))
 					transform->Translation.z -= speed * ts;
-				if (Input::GetKey(GLFW_KEY_Q))
+				if (Input::GetKey(Key::S))
 					transform->Translation.z += speed * ts;
+			}
+		};
+
+		class CubeScript : public ScriptableEntity
+		{
+		public:
+			void OnCollisionEnter(GameObject* other) override
+			{
+				if (other->GetName() == "FloorPlane")
+				{
+					auto rb = GetComponent<Rigidbody>();
+					if (rb)
+					{
+						// 바닥과 부딪히면 위로 튕기기 (Bounce)
+						// rb->Velocity.y = 5.0f;
+					}
+				}
 			}
 		};
 
@@ -64,7 +83,6 @@ namespace Proto
 
 			// 셰이더 로드
 			auto standardShader = AssetManager::GetAssetAs<Shader>(UUID(100));
-			auto planeShader = AssetManager::GetAssetAs<Shader>(UUID(101));
 
 			// 빛 객체 생성
 			auto lightGo = scene->CreateGameObject("DirectionalLight");
@@ -77,29 +95,24 @@ namespace Proto
 			auto planeGo = scene->CreateGameObject("FloorPlane");
 			auto* planeMeshRenderer = planeGo->AddComponent<MeshRenderer>();
 			planeMeshRenderer->SetMesh(planeMesh);
-			planeMeshRenderer->SetShader(planeShader);
+			planeMeshRenderer->SetShader(standardShader);
 			planeGo->GetComponent<Transform>()->Translation.y = 0.1f;
+			auto planeCollider = planeGo->AddComponent<BoxCollider>();
+			planeCollider->Size = { 1.0f, 0.1f, 1.0f };
 
 			auto cubeGo = scene->CreateGameObject("Cube");
 			auto* cubeMeshRenderer = cubeGo->AddComponent<MeshRenderer>();
 			cubeMeshRenderer->SetMesh(cubeMesh);
 			cubeMeshRenderer->SetShader(standardShader);
-			cubeGo->GetComponent<Transform>()->Translation.y += 1;
+			cubeGo->GetComponent<Transform>()->Translation.y = 3.0f;
 
-			// 큐브 테스트
-			app.SetUpdateCallback([cubeGo, time = 0.0f](float deltaTime) mutable
-				{
-					auto transform = cubeGo->GetComponent<Transform>();
-					if (transform)
-					{
-						transform->Rotation.x += deltaTime * 0.5f;
-						transform->Rotation.y += deltaTime * 1.0f;
+			auto cubeRb = cubeGo->AddComponent<Rigidbody>();
+			cubeRb->UseGravity = true;
 
-						time += deltaTime;
-						float scale = 1.0f + 0.5f * std::sin(time * 2.0f);
-						transform->Scale = { scale, scale, scale };
-					}
-				});
+			auto cubeCollider = cubeGo->AddComponent<BoxCollider>();
+			cubeCollider->Size = { 1.0f, 1.0f, 1.0f };
+
+			cubeGo->AddComponent<NativeScriptComponent>()->Bind<CubeScript>();
 		}
 
 	}

@@ -1529,9 +1529,8 @@
     <None Include="docs\workflow.md" />
     <None Include="docs\style-guide.md" />
     <None Include="docs\testing.md" />
-    <None Include="assets\shaders\plane.frag" />
-    <None Include="assets\shaders\standard.frag" />
-    <None Include="assets\shaders\standard.vert" />
+    <None Include="assets\shaders\default.frag" />
+    <None Include="assets\shaders\default.vert" />
     <None Include="docs\TODO.md" />
     <None Include="docs\handoff.md" />
   </ItemGroup>

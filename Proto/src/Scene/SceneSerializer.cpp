@@ -4,6 +4,11 @@
 #include "Components/MeshRenderer.h"
 #include "Components/CameraComponent.h"
 #include "Components/LightComponent.h"
+#include "Components/Rigidbody.h"
+#include "Components/BoxCollider.h"
+#include "Components/SphereCollider.h"
+#include "Components/NativeScriptComponent.h"
+#include "../Test/CubeTest.h" // For re-binding known scripts
 
 #include <fstream>
 #include <iostream>
@@ -121,6 +126,28 @@ namespace Proto {
 						else if (compName == "LightComponent") {
 							auto* c = go->AddComponent<LightComponent>();
 							c->Deserialize(comp);
+						}
+						else if (compName == "Rigidbody") {
+							auto* c = go->AddComponent<Rigidbody>();
+							c->Deserialize(comp);
+						}
+						else if (compName == "BoxCollider") {
+							auto* c = go->AddComponent<BoxCollider>();
+							c->Deserialize(comp);
+						}
+						else if (compName == "SphereCollider") {
+							auto* c = go->AddComponent<SphereCollider>();
+							c->Deserialize(comp);
+						}
+						else if (compName == "NativeScriptComponent") {
+							auto* c = go->AddComponent<NativeScriptComponent>();
+							std::string scriptName = comp["ScriptName"].as<std::string>();
+							
+							// Simple Script Registry (Hardcoded for prototype)
+							if (scriptName.find("CameraController") != std::string::npos)
+								c->Bind<Test::CameraController>();
+							else if (scriptName.find("CubeScript") != std::string::npos)
+								c->Bind<Test::CubeScript>();
 						}
 					}
 				}

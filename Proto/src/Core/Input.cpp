@@ -1,45 +1,28 @@
-#include <stdexcept>
-
-#include <GLFW/glfw3.h>
-
 #include "Input.h"
+#include "RawInput.h"
+#include "Application.h"
 
 namespace Proto
 {
-	GLFWwindow* Input::s_Window = nullptr;
-
-	void Input::Initialize(GLFWwindow* window)
+	bool Input::GetKey(KeyCode key)
 	{
-		s_Window = window;
+		// 시스템 레벨에서 게임 뷰 포커스 여부 확인
+		if (!Application::Get().IsGameViewFocused())
+			return false;
+
+		return RawInput::GetKey(key);
 	}
 
-	bool Input::GetKey(int key)
+	bool Input::GetMouseButton(MouseCode button)
 	{
-		if (!s_Window)
-		{
-			throw std::runtime_error("Input system is not initialized.");
-		}
+		if (!Application::Get().IsGameViewFocused())
+			return false;
 
-		return glfwGetKey(s_Window, key) == GLFW_PRESS;
-	}
-
-	bool Input::GetMouseButton(int button)
-	{
-		if (!s_Window)
-		{
-			throw std::runtime_error("Input system is not initialized.");
-		}
-
-		return glfwGetMouseButton(s_Window, button) == GLFW_PRESS;
+		return RawInput::GetMouseButton(button);
 	}
 
 	void Input::GetMousePosition(double& x, double& y)
 	{
-		if (!s_Window)
-		{
-			throw std::runtime_error("Input system is not initialized.");
-		}
-
-		glfwGetCursorPos(s_Window, &x, &y);
+		RawInput::GetMousePosition(x, y);
 	}
 }

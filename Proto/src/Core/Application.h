@@ -29,6 +29,9 @@ namespace Proto
 		int GetGizmoType() const { return m_GizmoType; }
 		void SetGizmoType(int type) { m_GizmoType = type; }
 
+		bool IsGameViewFocused() const { return m_IsGameViewFocused; }
+		bool IsGameViewHovered() const { return m_IsGameViewHovered; }
+
 	private:
 		Application();
 		~Application();
@@ -60,6 +63,8 @@ namespace Proto
 
 		bool m_IsViewportFocused = false;
 		bool m_IsViewportHovered = false;
+		bool m_IsGameViewFocused = false;
+		bool m_IsGameViewHovered = false;
 
 		class Scene* m_Scene = nullptr;
 		std::unique_ptr<SceneHierarchyPanel> m_SceneHierarchyPanel;

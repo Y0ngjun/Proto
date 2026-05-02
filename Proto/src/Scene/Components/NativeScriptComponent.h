@@ -1,7 +1,9 @@
 #pragma once
 
+#include <typeinfo>
 #include "../Component.h"
 #include "../GameObject.h"
+#include "../../Core/Input.h"
 
 namespace Proto
 {
@@ -20,6 +22,7 @@ namespace Proto
 		virtual void OnStart() {}
 		virtual void OnUpdate(float deltaTime) {}
 		virtual void OnDestroy() {}
+		virtual void OnCollisionEnter(GameObject* other) {}
 
 	private:
 		GameObject* m_GameObject = nullptr;
@@ -30,6 +33,7 @@ namespace Proto
 	class NativeScriptComponent : public Component
 	{
 	public:
+		std::string ScriptName;
 		ScriptableEntity* Instance = nullptr;
 
 		ScriptableEntity* (*InstantiateScript)();
@@ -38,8 +42,13 @@ namespace Proto
 		template<typename T>
 		void Bind()
 		{
+			ScriptName = typeid(T).name();
 			InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
-			DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
+			DestroyScript = [](NativeScriptComponent* nsc)
+			{
+				delete nsc->Instance;
+				nsc->Instance = nullptr;
+			};
 		}
 
 		void OnStart() override
@@ -55,9 +64,7 @@ namespace Proto
 		void OnUpdate(float deltaTime) override
 		{
 			if (Instance)
-			{
 				Instance->OnUpdate(deltaTime);
-			}
 		}
 
 		void OnDestroy() override
@@ -69,18 +76,22 @@ namespace Proto
 			}
 		}
 
+		// 異⑸룎 ?대깽?몃? ?ㅽ겕由쏀듃濡??꾨떖
+		void DispatchCollisionEnter(GameObject* other) { if (Instance) Instance->OnCollisionEnter(other); }
+
 		virtual void Serialize(YAML::Emitter& out) const override
 		{
 			out << YAML::BeginMap;
 			out << YAML::Key << "Component" << YAML::Value << "NativeScriptComponent";
+			out << YAML::Key << "ScriptName" << YAML::Value << ScriptName;
 			out << YAML::Key << "Bound" << YAML::Value << (InstantiateScript != nullptr);
 			out << YAML::EndMap;
 		}
 
 		virtual void Deserialize(const YAML::Node& node) override
 		{
-			// 현재는 리플렉션이 없어 직렬화된 이름으로 클래스를 동적 생성하기 어려우므로, 
-			// 스크립트는 코드 레벨(SetupCubeTest 등)에서 Bind 해야 합니다.
+			// 由ы뵆?됱뀡 ?놁씠 ?ㅽ겕由쏀듃 ???蹂듭썝 遺덇?
+			// 肄붾뱶 ?덈꺼(SetupCubeTest ???먯꽌 Bind ?댁빞 ?⑸땲??
 		}
 
 		virtual const char* GetComponentTypeName() const override { return "NativeScriptComponent"; }

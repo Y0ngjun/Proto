@@ -11,8 +11,8 @@ uniform vec3 u_LightDir;
 uniform vec3 u_LightColor;
 
 void main() {
-    // 기본 큐브 색상 지정
-    vec3 objectColor = vec3(1.0, 0.5, 0.31); 
+    // 기본 오브젝트 색상 (밝은 회색)
+    vec3 objectColor = vec3(0.8, 0.8, 0.8); 
 
     // 1. Ambient (주변광)
     float ambientStrength = 0.2;

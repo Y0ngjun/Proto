@@ -8,7 +8,7 @@
 #include "../Asset/AssetManager.h"
 #include <glm/gtc/type_ptr.hpp>
 #include "Application.h"
-#include "Input.h"
+#include "RawInput.h"
 #include "../Scene/Scene.h"
 #include "../Editor/SceneHierarchyPanel.h"
 #include "../Editor/InspectorPanel.h"
@@ -79,7 +79,8 @@ namespace Proto
 			return;
 		}
 
-		Input::Initialize(m_Window.GetNativeWindow());
+		// 입력 시스템 초기화 (RawInput)
+		RawInput::Initialize(m_Window.GetNativeWindow());
 
 		AssetManager::Init();
 
@@ -183,9 +184,9 @@ namespace Proto
 		if (m_Scene)
 		{
 			if (m_SceneState == SceneState::Play)
-				m_Scene->OnUpdateRuntime(m_DeltaTime);
+				m_Scene->OnUpdateRuntime(m_DeltaTime, m_IsGameViewFocused);
 			else
-				m_Scene->OnUpdateRuntime(0.0f); // 렌더링만 수행 (업데이트 중지)
+				m_Scene->OnUpdateRuntime(0.0f, m_IsGameViewFocused); // 렌더링만 수행
 		}
 		m_GameFramebuffer->Unbind();
 
@@ -401,7 +402,7 @@ namespace Proto
 			{
 				glm::mat4 transform = transformComponent->GetTransform();
 
-				bool snap = Input::GetKey(GLFW_KEY_LEFT_CONTROL);
+				bool snap = RawInput::GetKey(GLFW_KEY_LEFT_CONTROL);
 				float snapValue = 0.5f;
 				if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
 					snapValue = 45.0f;
@@ -430,6 +431,9 @@ namespace Proto
 		// --- Game View Panel ---
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::Begin("Game View");
+		m_IsGameViewFocused = ImGui::IsWindowFocused();
+		m_IsGameViewHovered = ImGui::IsWindowHovered();
+
 		ImVec2 gameViewportPanelSize = ImGui::GetContentRegionAvail();
 		if (m_GameFramebuffer->GetSpecification().Width != gameViewportPanelSize.x || m_GameFramebuffer->GetSpecification().Height != gameViewportPanelSize.y)
 		{
@@ -468,20 +472,20 @@ namespace Proto
 
 	void Application::ProcessInput()
 	{
-		if (Input::GetKey(GLFW_KEY_ESCAPE))
+		if (RawInput::GetKey(GLFW_KEY_ESCAPE))
 		{
 			m_Window.SetShouldClose(true);
 		}
 
-		if (!Input::GetMouseButton(GLFW_MOUSE_BUTTON_RIGHT))
+		if (!RawInput::GetMouseButton(GLFW_MOUSE_BUTTON_RIGHT))
 		{
-			if (Input::GetKey(GLFW_KEY_Q))
+			if (RawInput::GetKey(GLFW_KEY_Q))
 				m_GizmoType = -1;
-			if (Input::GetKey(GLFW_KEY_W))
+			if (RawInput::GetKey(GLFW_KEY_W))
 				m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
-			if (Input::GetKey(GLFW_KEY_E))
+			if (RawInput::GetKey(GLFW_KEY_E))
 				m_GizmoType = ImGuizmo::OPERATION::ROTATE;
-			if (Input::GetKey(GLFW_KEY_R))
+			if (RawInput::GetKey(GLFW_KEY_R))
 				m_GizmoType = ImGuizmo::OPERATION::SCALE;
 		}
 	}

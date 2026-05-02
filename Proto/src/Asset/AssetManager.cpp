@@ -29,14 +29,10 @@ namespace Proto {
 		AddAsset(cylinder);
 
 		// 100: Default Shader
-		auto defaultShader = Shader::LoadFromFile("assets/shaders/standard.vert", "assets/shaders/standard.frag");
+		auto defaultShader = Shader::LoadFromFile("assets/shaders/default.vert", "assets/shaders/default.frag");
 		defaultShader->Handle = UUID(100);
 		AddAsset(defaultShader);
 
-		// 101: Plane Shader
-		auto planeShader = Shader::LoadFromFile("assets/shaders/standard.vert", "assets/shaders/plane.frag");
-		planeShader->Handle = UUID(101);
-		AddAsset(planeShader);
 	}
 
 	void AssetManager::AddAsset(const std::shared_ptr<Asset>& asset)

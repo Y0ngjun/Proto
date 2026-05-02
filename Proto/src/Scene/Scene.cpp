@@ -8,6 +8,11 @@
 #include "Components/MeshRenderer.h"
 #include "Components/CameraComponent.h"
 #include "Components/LightComponent.h"
+#include "Components/Rigidbody.h"
+#include "Components/Collider.h"
+#include "Components/BoxCollider.h"
+#include "Components/SphereCollider.h"
+#include "Components/NativeScriptComponent.h"
 
 #include "../Renderer/Renderer.h"
 #include "../Renderer/EditorCamera.h"
@@ -112,13 +117,123 @@ namespace Proto
 
 	void Scene::OnRuntimeStop()
 	{
+		for (auto& go : m_GameObjects)
+		{
+			for (auto& comp : go->GetComponents())
+			{
+				comp->OnDestroy();
+			}
+		}
 	}
 
-	void Scene::OnUpdateRuntime(float deltaTime)
+	void Scene::OnUpdateRuntime(float deltaTime, bool isFocused)
 	{
 		// 로직 업데이트는 플레이 상태(deltaTime > 0)일 때만 실행
 		if (deltaTime > 0.0f)
 		{
+			// 1. Physics (Rigidbody) 적분
+			for (auto& go : m_GameObjects)
+			{
+				auto rb = go->GetComponent<Rigidbody>();
+				auto transform = go->GetComponent<Transform>();
+				if (rb && transform)
+				{
+					if (rb->UseGravity)
+					{
+						rb->Acceleration += glm::vec3(0.0f, -9.81f, 0.0f); // 중력 가속도
+					}
+
+					rb->Velocity += rb->Acceleration * deltaTime;
+					rb->Velocity *= glm::max(0.0f, 1.0f - rb->Drag * deltaTime); // 공기 저항
+					transform->Translation += rb->Velocity * deltaTime;
+
+					// 다음 프레임을 위해 가속도 초기화
+					rb->Acceleration = glm::vec3(0.0f);
+				}
+			}
+
+			// 2. Collision Detection (O(N^2) 단순 비교 - MVP 용)
+			for (size_t i = 0; i < m_GameObjects.size(); i++)
+			{
+				auto& goA = m_GameObjects[i];
+				auto transformA = goA->GetComponent<Transform>();
+				if (!transformA) continue;
+
+				auto colliderA = goA->GetComponent<Collider>();
+				if (!colliderA) continue;
+
+				auto* boxA = dynamic_cast<BoxCollider*>(colliderA);
+				auto* sphereA = dynamic_cast<SphereCollider*>(colliderA);
+
+				for (size_t j = i + 1; j < m_GameObjects.size(); j++)
+				{
+					auto& goB = m_GameObjects[j];
+					auto transformB = goB->GetComponent<Transform>();
+					if (!transformB) continue;
+
+					auto colliderB = goB->GetComponent<Collider>();
+					if (!colliderB) continue;
+
+					auto* boxB = dynamic_cast<BoxCollider*>(colliderB);
+					auto* sphereB = dynamic_cast<SphereCollider*>(colliderB);
+
+					bool isColliding = false;
+
+					// Box vs Box
+					if (boxA && boxB)
+					{
+						glm::vec3 posA = transformA->Translation + boxA->Offset;
+						glm::vec3 minA = posA - boxA->Size * 0.5f;
+						glm::vec3 maxA = posA + boxA->Size * 0.5f;
+
+						glm::vec3 posB = transformB->Translation + boxB->Offset;
+						glm::vec3 minB = posB - boxB->Size * 0.5f;
+						glm::vec3 maxB = posB + boxB->Size * 0.5f;
+
+						isColliding = (minA.x <= maxB.x && maxA.x >= minB.x) &&
+									  (minA.y <= maxB.y && maxA.y >= minB.y) &&
+									  (minA.z <= maxB.z && maxA.z >= minB.z);
+					}
+					// Sphere vs Sphere
+					else if (sphereA && sphereB)
+					{
+						glm::vec3 posA = transformA->Translation + sphereA->Offset;
+						glm::vec3 posB = transformB->Translation + sphereB->Offset;
+						float distSq = glm::dot(posA - posB, posA - posB);
+						float radSum = sphereA->Radius + sphereB->Radius;
+						isColliding = distSq <= (radSum * radSum);
+					}
+					// Box vs Sphere
+					else
+					{
+						auto box = boxA ? boxA : boxB;
+						auto sphere = sphereA ? sphereA : sphereB;
+						auto transBox = boxA ? transformA : transformB;
+						auto transSphere = sphereA ? transformA : transformB;
+
+						glm::vec3 boxPos = transBox->Translation + box->Offset;
+						glm::vec3 minBox = boxPos - box->Size * 0.5f;
+						glm::vec3 maxBox = boxPos + box->Size * 0.5f;
+
+						glm::vec3 spherePos = transSphere->Translation + sphere->Offset;
+						glm::vec3 closest = glm::clamp(spherePos, minBox, maxBox);
+						float distSq = glm::dot(closest - spherePos, closest - spherePos);
+						isColliding = distSq <= (sphere->Radius * sphere->Radius);
+					}
+
+					// 충돌 시 스크립트에만 콜백 전달
+					if (isColliding)
+					{
+						if (auto nscA = goA->GetComponent<NativeScriptComponent>())
+							nscA->DispatchCollisionEnter(goB.get());
+
+						if (auto nscB = goB->GetComponent<NativeScriptComponent>())
+							nscB->DispatchCollisionEnter(goA.get());
+					}
+				}
+			}
+
+			// 3. GameObject 로직 업데이트
 			for (auto& go : m_GameObjects)
 			{
 				go->Update(deltaTime);

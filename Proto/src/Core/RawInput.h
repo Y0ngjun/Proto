@@ -3,18 +3,20 @@
 #include "KeyCodes.h"
 #include "MouseCodes.h"
 
+struct GLFWwindow;
+
 namespace Proto
 {
-	class Input
+	class RawInput
 	{
 	public:
-		// 게임 뷰가 포커스된 상태에서만 키 입력을 반환합니다.
+		static void Initialize(GLFWwindow* window);
+
 		static bool GetKey(KeyCode key);
-		
-		// 게임 뷰가 포커스된 상태에서만 마우스 버튼 입력을 반환합니다.
 		static bool GetMouseButton(MouseCode button);
-		
-		// 마우스 위치를 가져옵니다.
 		static void GetMousePosition(double& x, double& y);
+
+	private:
+		static GLFWwindow* s_Window;
 	};
 }
