@@ -80,6 +80,12 @@ namespace Proto
 
 	void Application::OpenScene(const std::filesystem::path& path)
 	{
+		if (path.extension() != ".scene")
+		{
+			PROTO_LOG_ERROR("Failed to load scene: Invalid extension (expected .scene)");
+			return;
+		}
+
 		Scene* newScene = new Scene();
 		SceneSerializer serializer(newScene);
 		if (serializer.Deserialize(path.string()))
@@ -115,15 +121,27 @@ namespace Proto
 	{
 		if (m_Scene)
 		{
+			std::filesystem::path finalPath = path;
+			if (finalPath.extension() != ".scene")
+			{
+				finalPath += ".scene";
+			}
+
 			SceneSerializer serializer(m_Scene);
-			serializer.Serialize(path.string());
-			m_ActiveScenePath = path;
-			PROTO_LOG_INFO("Scene saved: " + path.string());
+			serializer.Serialize(finalPath.string());
+			m_ActiveScenePath = finalPath;
+			PROTO_LOG_INFO("Scene saved: " + finalPath.string());
 		}
 	}
 
 	void Application::OpenProject(const std::filesystem::path& path)
 	{
+		if (path.extension() != ".proto")
+		{
+			PROTO_LOG_ERROR("Failed to load project: Invalid extension (expected .proto)");
+			return;
+		}
+
 		if (Project::Load(path))
 		{
 			auto& config = Project::GetActive()->GetConfig();

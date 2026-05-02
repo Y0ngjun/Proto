@@ -1,6 +1,6 @@
 Scene: Untitled
 Entities:
-  - Entity: 18356653150139284384
+  - Entity: 4446037199926210903
     Name: Main Camera
     Components:
       - Component: Transform
@@ -11,7 +11,7 @@ Entities:
         Primary: true
         FixedAspectRatio: false
         FOV: 0.7853982
-  - Entity: 17338518217950332781
+  - Entity: 11786259940600093275
     Name: Directional Light
     Components:
       - Component: Transform

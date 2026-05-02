@@ -26,19 +26,23 @@ namespace Proto
 		void SetScene(class Scene* scene);
 		void SetUpdateCallback(const std::function<void(float)>& callback) { m_UpdateCallback = callback; }
 
+		void NewScene();
+		void OpenScene();
+		void OpenScene(const std::filesystem::path& path);
 		void SaveScene();
 		void SaveScene(const std::filesystem::path& path);
-		void NewScene();
-		void OpenScene(const std::filesystem::path& path);
+
+		void NewProject();
+		void OpenProject();
+		void OpenProject(const std::filesystem::path& path);
+		void SaveProject();
+		void SaveProjectAs();
 
 		int GetGizmoType() const { return m_GizmoType; }
 		void SetGizmoType(int type) { m_GizmoType = type; }
 
 		bool IsGameViewFocused() const { return m_IsGameViewFocused; }
 		bool IsGameViewHovered() const { return m_IsGameViewHovered; }
-
-		void OpenProject(const std::filesystem::path& path);
-		void SaveProject();
 
 	private:
 		Application();
