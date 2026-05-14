@@ -8,11 +8,21 @@ namespace Proto
 	{
 	}
 
+	static ImVec4 GetLevelColor(LogLevel level)
+	{
+		switch (level)
+		{
+		case LogLevel::Info:  return ImVec4(0.0f, 1.0f, 1.0f, 1.0f); // Cyan
+		case LogLevel::Warn:  return ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
+		case LogLevel::Error: return ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // Red
+		}
+		return ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // White
+	}
+
 	void ConsolePanel::OnImGuiRender()
 	{
 		ImGui::Begin("Console");
 
-		// 1. Toolbar 영역
 		if (ImGui::Button("Clear"))
 		{
 			Log::Clear();
@@ -24,31 +34,21 @@ namespace Proto
 
 		ImGui::Separator();
 
-		// 2. 로그 리스트 영역 (상단 70%)
-		float footerHeight = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing() * 3.0f; // 대략적인 하단 높이 예약
+		const float footerHeight = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing() * 3.0f;
 		ImGui::BeginChild("LogList", ImVec2(0, -footerHeight), false, ImGuiWindowFlags_HorizontalScrollbar);
 
 		const auto& messages = Log::GetMessages();
 		for (int i = 0; i < (int)messages.size(); i++)
 		{
 			const auto& msg = messages[i];
-			ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+			const std::string label = "[" + msg.Timestamp + "] " + msg.Message;
 			
-			if (msg.Level == LogLevel::Warn) color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
-			else if (msg.Level == LogLevel::Error) color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
-			else if (msg.Level == LogLevel::Info) color = ImVec4(0.0f, 1.0f, 1.0f, 1.0f);
-
-			std::string label = "[" + msg.Timestamp + "] " + msg.Message;
-			
+			ImGui::PushStyleColor(ImGuiCol_Text, GetLevelColor(msg.Level));
 			if (ImGui::Selectable((label + "##" + std::to_string(i)).c_str(), m_SelectedMessageIndex == i))
 			{
 				m_SelectedMessageIndex = i;
 			}
-			
-			if (m_SelectedMessageIndex == i)
-			{
-				// 선택된 항목은 색상 강조 (필요 시)
-			}
+			ImGui::PopStyleColor();
 		}
 
 		if (m_AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
@@ -58,16 +58,11 @@ namespace Proto
 
 		ImGui::Separator();
 
-		// 3. 디테일 영역 (하단 30%)
 		ImGui::BeginChild("LogDetail", ImVec2(0, 0), true);
 		if (m_SelectedMessageIndex >= 0 && m_SelectedMessageIndex < (int)messages.size())
 		{
 			const auto& selectedMsg = messages[m_SelectedMessageIndex];
-			ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-			if (selectedMsg.Level == LogLevel::Warn) color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
-			else if (selectedMsg.Level == LogLevel::Error) color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
-			
-			ImGui::PushStyleColor(ImGuiCol_Text, color);
+			ImGui::PushStyleColor(ImGuiCol_Text, GetLevelColor(selectedMsg.Level));
 			ImGui::TextWrapped("%s", selectedMsg.Message.c_str());
 			ImGui::PopStyleColor();
 		}

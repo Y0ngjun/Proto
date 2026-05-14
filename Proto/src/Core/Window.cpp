@@ -7,36 +7,40 @@
 
 namespace Proto
 {
+	static int s_GLFWWindowCount = 0;
+
 	Window::Window(int width, int height, const char* title)
 		: m_Window(nullptr),
 		m_Width(width),
 		m_Height(height)
 	{
-		if (!glfwInit())
+		if (s_GLFWWindowCount == 0)
 		{
-			throw std::runtime_error("GLFW initialization failed.");
+			if (!glfwInit())
+			{
+				throw std::runtime_error("GLFW initialization failed.");
+			}
 		}
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
-		// 주 모니터 해상도 가져오기
 		GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
 		
 		m_Width = videoMode->width;
 		m_Height = videoMode->height;
 
-		// 윈도우를 최대화(전체 화면 꽉 차게) 상태로 시작하도록 설정
-		glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-
 		m_Window = glfwCreateWindow(m_Width, m_Height, title, nullptr, nullptr);
 		if (!m_Window)
 		{
-			glfwTerminate();
+			if (s_GLFWWindowCount == 0) glfwTerminate();
 			throw std::runtime_error("Failed to create GLFW window.");
 		}
+
+		s_GLFWWindowCount++;
 
 		glfwMakeContextCurrent(m_Window);
 		glfwSwapInterval(1);
@@ -44,7 +48,7 @@ namespace Proto
 		if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
 		{
 			glfwDestroyWindow(m_Window);
-			glfwTerminate();
+			if (--s_GLFWWindowCount == 0) glfwTerminate();
 			throw std::runtime_error("GLAD initialization failed.");
 		}
 
@@ -60,7 +64,10 @@ namespace Proto
 			m_Window = nullptr;
 		}
 
-		glfwTerminate();
+		if (--s_GLFWWindowCount == 0)
+		{
+			glfwTerminate();
+		}
 	}
 
 	void Window::PollEvents() const

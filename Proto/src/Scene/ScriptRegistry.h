@@ -22,7 +22,6 @@ namespace Proto
 		static void Register(const std::string& name)
 		{
 			GetRegistry()[name] = []() { return static_cast<ScriptableEntity*>(new T()); };
-			// std::cout << "[ScriptRegistry] Registered script: " << name << std::endl;
 		}
 
 		// 이름으로 스크립트 바인딩 정보를 NativeScriptComponent에 설정

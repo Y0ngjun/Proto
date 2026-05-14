@@ -1,5 +1,4 @@
 #include <glad/glad.h>
-
 #include "VertexArray.h"
 
 namespace Proto
@@ -26,14 +25,17 @@ namespace Proto
 
 	void VertexArray::AddVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer)
 	{
+		if (!vertexBuffer)
+			return;
+
 		glBindVertexArray(m_RendererID);
 		vertexBuffer->Bind();
 
-		// Position
+		// Position (3 floats)
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
 
-		// Normal
+		// Normal (3 floats)
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 
@@ -42,6 +44,9 @@ namespace Proto
 
 	void VertexArray::SetIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer)
 	{
+		if (!indexBuffer)
+			return;
+
 		glBindVertexArray(m_RendererID);
 		indexBuffer->Bind();
 

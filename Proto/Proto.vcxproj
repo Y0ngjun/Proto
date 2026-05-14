@@ -159,6 +159,7 @@
     <ClCompile Include="Dependencies\include\glad\glad.c" />
     <ClCompile Include="Dependencies\include\glm\detail\glm.cpp" />
     <ClCompile Include="src\Asset\AssetManager.cpp" />
+    <ClCompile Include="src\Asset\BuiltinAssetLoader.cpp" />
     <ClCompile Include="src\Core\Application.cpp" />
     <ClCompile Include="src\Core\UUID.cpp" />
     <ClCompile Include="src\Core\FileDialog.cpp" />
@@ -171,6 +172,7 @@
     <ClCompile Include="src\Editor\SceneHierarchyPanel.cpp" />
     <ClCompile Include="src\Editor\ConsolePanel.cpp" />
     <ClCompile Include="src\Editor\ContentBrowserPanel.cpp" />
+    <ClCompile Include="src\Editor\EditorLayer.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Renderer\EditorCamera.cpp" />
@@ -500,6 +502,7 @@
     <ClInclude Include="Dependencies\include\KHR\khrplatform.h" />
     <ClInclude Include="src\Asset\Asset.h" />
     <ClInclude Include="src\Asset\AssetManager.h" />
+    <ClInclude Include="src\Asset\BuiltinAssetLoader.h" />
     <ClInclude Include="src\Core\Application.h" />
     <ClInclude Include="src\Core\Input.h" />
     <ClInclude Include="src\Core\RawInput.h" />
@@ -523,6 +526,7 @@
     <ClInclude Include="src\Scene\Components\Transform.h" />
     <ClInclude Include="src\Editor\ConsolePanel.h" />
     <ClInclude Include="src\Editor\ContentBrowserPanel.h" />
+    <ClInclude Include="src\Editor\EditorLayer.h" />
     <ClInclude Include="src\Scene\Components\NativeScriptComponent.h" />
     <ClInclude Include="src\Scene\GameObject.h" />
     <ClInclude Include="src\Scene\Scene.h" />

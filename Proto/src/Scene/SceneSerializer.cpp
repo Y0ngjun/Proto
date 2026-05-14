@@ -35,7 +35,7 @@ namespace Proto {
 
 		for (auto& go : m_Scene->GetGameObjects())
 		{
-			out << YAML::BeginMap; // Entity
+			out << YAML::BeginMap;
 			out << YAML::Key << "Entity" << YAML::Value << (uint64_t)go->GetUUID();
 			out << YAML::Key << "Name" << YAML::Value << go->GetName();
 
@@ -46,7 +46,7 @@ namespace Proto {
 			}
 			out << YAML::EndSeq;
 
-			out << YAML::EndMap; // Entity
+			out << YAML::EndMap;
 		}
 
 		out << YAML::EndSeq;
@@ -141,8 +141,6 @@ namespace Proto {
 						else if (compName == "NativeScriptComponent") {
 							auto* c = go->AddComponent<NativeScriptComponent>();
 							std::string scriptName = comp["ScriptName"].as<std::string>();
-							
-							// Simple Script Registry will be handled here
 						}
 					}
 				}

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <glm/gtc/matrix_transform.hpp>
-
 #include "Camera.h"
 
 namespace Proto
@@ -16,6 +15,12 @@ namespace Proto
 		void SetViewportSize(uint32_t width, uint32_t height);
 
 		float GetPerspectiveVerticalFOV() const { return m_PerspectiveFOV; }
+		float GetPerspectiveNearClip() const { return m_PerspectiveNear; }
+		float GetPerspectiveFarClip() const { return m_PerspectiveFar; }
+
+		void SetPerspectiveVerticalFOV(float fov) { m_PerspectiveFOV = fov; RecalculateProjection(); }
+		void SetPerspectiveNearClip(float nearClip) { m_PerspectiveNear = nearClip; RecalculateProjection(); }
+		void SetPerspectiveFarClip(float farClip) { m_PerspectiveFar = farClip; RecalculateProjection(); }
 
 	private:
 		void RecalculateProjection();

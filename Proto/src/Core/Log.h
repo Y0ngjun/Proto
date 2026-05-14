@@ -34,6 +34,7 @@ namespace Proto
 		static const std::vector<LogMessage>& GetMessages() { return s_Messages; }
 
 	private:
+		static void Submit(LogLevel level, const std::string& message);
 		static std::string GetCurrentTimestamp();
 
 		static std::vector<LogMessage> s_Messages;

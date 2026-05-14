@@ -16,5 +16,11 @@ namespace Proto
 		
 		// 마우스 위치를 가져옵니다.
 		static void GetMousePosition(double& x, double& y);
+
+		static void SetEnabled(bool enabled) { s_Enabled = enabled; }
+		static bool IsEnabled() { return s_Enabled; }
+
+	private:
+		static bool s_Enabled;
 	};
 }

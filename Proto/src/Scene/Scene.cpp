@@ -280,8 +280,6 @@ namespace Proto
 						glm::vec3 closest = glm::clamp(spherePos, minBox, maxBox);
 						float distSq = glm::dot(closest - spherePos, closest - spherePos);
 						isColliding = distSq < (sphere->Radius * sphere->Radius);
-
-						// [임시] Box vs Sphere 충돌 해결은 계산이 복잡하여 MVP에서는 감지만 수행합니다.
 					}
 
 					// 충돌 시 스크립트에만 콜백 전달
@@ -492,13 +490,9 @@ namespace Proto
 			}
 		}
 
-		// Draw Grid (에디터 뷰에서만 렌더링)
-		// [TODO] 현재 격자는 원점 기준(-100 ~ 100)으로 고정되어 있어 카메라가 범위를 벗어나면 보이지 않습니다.
-		// 나중에 완벽한 무한 격자를 위해 1) 도화지가 카메라 X,Z 위치를 따라다니게 하거나(Treadmill) 
-		// 2) NDC 역투영(Full-screen Quad) 방식으로 개선할 수 있습니다.
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDepthMask(GL_FALSE); // 격자를 그릴 때 깊이 버퍼에 쓰지 않도록 하여 뒤에 그려지더라도 잘리지 않게 함 (혹은 순서 제어용)
+		glDepthMask(GL_FALSE);
 
 		if (m_GridShader && m_GridVAO)
 		{

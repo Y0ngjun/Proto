@@ -4,8 +4,8 @@
 #include <glm/glm.hpp>
 #include "UUID.h"
 
-namespace YAML {
-
+namespace YAML
+{
 	template<>
 	struct convert<glm::vec3>
 	{
@@ -49,7 +49,8 @@ namespace YAML {
 	};
 }
 
-namespace Proto {
+namespace Proto
+{
 	inline YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v)
 	{
 		out << YAML::Flow;

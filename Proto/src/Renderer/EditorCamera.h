@@ -38,9 +38,11 @@ namespace Proto
 		void UpdateProjection();
 		void UpdateView();
 
+		void HandleMouseInput(const glm::vec2& delta);
+		void HandleKeyboardInput(float deltaTime);
+
 		void MousePan(const glm::vec2& delta);
 		void MouseRotate(const glm::vec2& delta);
-		void MouseZoom(float delta);
 
 		glm::vec3 CalculatePosition() const;
 

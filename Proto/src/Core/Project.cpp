@@ -18,13 +18,14 @@ namespace Proto
 	{
 		s_ActiveProject = std::make_shared<Project>();
 
-		std::filesystem::path projectDir = std::filesystem::current_path() / "DefaultProject";
-		std::string projectName = "DefaultProject";
+		const std::string projectName = "DefaultProject";
+		const std::filesystem::path projectDir = std::filesystem::current_path() / projectName;
 
-		s_ActiveProject->m_Config.Name = projectName;
-		s_ActiveProject->m_Config.AssetDirectory = "assets";
-		s_ActiveProject->m_Config.ProjectDirectory = projectDir;
-		s_ActiveProject->m_Config.StartScene = "scenes/DefaultScene.scene";
+		auto& config = s_ActiveProject->m_Config;
+		config.Name = projectName;
+		config.AssetDirectory = "assets";
+		config.ProjectDirectory = projectDir;
+		config.StartScene = "scenes/DefaultScene.scene";
 		
 		if (!std::filesystem::exists(projectDir))
 			std::filesystem::create_directories(projectDir);
@@ -32,10 +33,8 @@ namespace Proto
 		std::filesystem::create_directories(projectDir / "assets");
 		std::filesystem::create_directories(projectDir / "scenes");
 
-		// --- 기본 씬 파일 생성 (Scene 객체 및 직렬화 사용) ---
-		std::string sceneFileName = s_ActiveProject->m_Config.StartScene.string();
-		std::filesystem::path fullScenePath = projectDir / sceneFileName;
-
+		// Create default scene
+		const std::filesystem::path fullScenePath = projectDir / config.StartScene;
 		{
 			Scene defaultScene;
 			defaultScene.CreateDefault();
@@ -43,9 +42,7 @@ namespace Proto
 			serializer.Serialize(fullScenePath.string());
 		}
 
-		std::string projectFileName = projectName + ".proto";
-		std::filesystem::path fullProjectPath = projectDir / projectFileName;
-
+		const std::filesystem::path fullProjectPath = projectDir / (projectName + ".proto");
 		SaveActive(fullProjectPath);
 
 		PROTO_LOG_INFO("Created new default project at: " + projectDir.string());
@@ -54,52 +51,57 @@ namespace Proto
 
 	std::shared_ptr<Project> Project::Load(const std::filesystem::path& path)
 	{
-		if (std::filesystem::exists(path))
+		if (!std::filesystem::exists(path))
+			return nullptr;
+
+		try 
 		{
-			try {
-				YAML::Node data = YAML::LoadFile(path.string());
-				YAML::Node config = data["Project"];
-				if (config)
+			YAML::Node data = YAML::LoadFile(path.string());
+			YAML::Node configNode = data["Project"];
+			if (!configNode) return nullptr;
+
+			auto project = std::make_shared<Project>();
+			auto& config = project->m_Config;
+			
+			config.Name = configNode["Name"].as<std::string>();
+			config.AssetDirectory = configNode["AssetDirectory"].as<std::string>();
+			
+			if (configNode["StartScene"])
+				config.StartScene = configNode["StartScene"].as<std::string>();
+
+			config.ProjectDirectory = path.parent_path();
+			config.ProjectFileName = path.filename();
+
+			// Fallback for missing or invalid start scene
+			bool isSceneValid = !config.StartScene.empty() && 
+								std::filesystem::exists(config.ProjectDirectory / config.StartScene);
+
+			if (!isSceneValid)
+			{
+				std::filesystem::path scenesDir = config.ProjectDirectory / "scenes";
+				if (std::filesystem::exists(scenesDir))
 				{
-					std::shared_ptr<Project> project = std::make_shared<Project>();
-					project->m_Config.Name = config["Name"].as<std::string>();
-					project->m_Config.AssetDirectory = config["AssetDirectory"].as<std::string>();
-					
-					if (config["StartScene"])
-						project->m_Config.StartScene = config["StartScene"].as<std::string>();
-
-					project->m_Config.ProjectDirectory = path.parent_path();
-					project->m_Config.ProjectFileName = path.filename();
-
-					bool isSceneValid = !project->m_Config.StartScene.empty() && 
-										std::filesystem::exists(project->m_Config.ProjectDirectory / project->m_Config.StartScene);
-
-					if (!isSceneValid)
+					for (auto& entry : std::filesystem::directory_iterator(scenesDir))
 					{
-						std::filesystem::path scenesDir = project->m_Config.ProjectDirectory / "scenes";
-						if (std::filesystem::exists(scenesDir) && std::filesystem::is_directory(scenesDir))
+						if (entry.path().extension() == ".scene")
 						{
-							for (auto& entry : std::filesystem::directory_iterator(scenesDir))
-							{
-								if (entry.path().extension() == ".scene")
-								{
-									project->m_Config.StartScene = std::filesystem::relative(entry.path(), project->m_Config.ProjectDirectory);
-									PROTO_LOG_INFO("Fallback scene assigned: " + project->m_Config.StartScene.string());
-									break;
-								}
-							}
+							config.StartScene = std::filesystem::relative(entry.path(), config.ProjectDirectory);
+							PROTO_LOG_INFO("Fallback scene assigned: " + config.StartScene.string());
+							break;
 						}
 					}
-
-					s_ActiveProject = project;
-					PROTO_LOG_INFO("Loaded project: " + project->m_Config.Name);
-					return s_ActiveProject;
 				}
 			}
-			catch (const std::exception& e) {
-				PROTO_LOG_ERROR("Failed to load project: " + path.string() + " Error: " + std::string(e.what()));
-			}
+
+			s_ActiveProject = project;
+			PROTO_LOG_INFO("Loaded project: " + config.Name);
+			return s_ActiveProject;
 		}
+		catch (const std::exception& e) 
+		{
+			PROTO_LOG_ERROR("Failed to load project: " + path.string() + " Error: " + std::string(e.what()));
+		}
+		
 		return nullptr;
 	}
 
@@ -117,17 +119,15 @@ namespace Proto
 		out << YAML::EndMap;
 
 		std::ofstream fout(path.string());
-		if (fout.is_open())
-		{
-			fout << out.c_str();
-			fout.close();
+		if (!fout.is_open()) return false;
 
-			s_ActiveProject->m_Config.ProjectFileName = path.filename();
-			s_ActiveProject->m_Config.ProjectDirectory = path.parent_path();
+		fout << out.c_str();
+		fout.close();
 
-			PROTO_LOG_INFO("Project saved to: " + path.string());
-			return true;
-		}
-		return false;
+		s_ActiveProject->m_Config.ProjectFileName = path.filename();
+		s_ActiveProject->m_Config.ProjectDirectory = path.parent_path();
+
+		PROTO_LOG_INFO("Project saved to: " + path.string());
+		return true;
 	}
 }

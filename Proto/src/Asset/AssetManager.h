@@ -9,7 +9,6 @@ namespace Proto {
 	class AssetManager
 	{
 	public:
-		static void Init();
 		static void AddAsset(const std::shared_ptr<Asset>& asset);
 		static std::shared_ptr<Asset> GetAsset(UUID id);
 		static bool RemoveAsset(UUID id);

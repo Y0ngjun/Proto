@@ -15,11 +15,16 @@ namespace Proto
 
 	void Renderer::Submit(const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<Shader>& shader)
 	{
-		shader->Bind();
+		if (!vertexArray || !shader)
+			return;
 
+		shader->Bind();
 		vertexArray->Bind();
 
-		uint32_t indexCount = vertexArray->GetIndexBuffer()->GetCount();
-		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
+		const auto& indexBuffer = vertexArray->GetIndexBuffer();
+		if (indexBuffer)
+		{
+			glDrawElements(GL_TRIANGLES, indexBuffer->GetCount(), GL_UNSIGNED_INT, nullptr);
+		}
 	}
 }

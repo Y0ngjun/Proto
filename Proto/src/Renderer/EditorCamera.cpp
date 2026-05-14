@@ -2,13 +2,17 @@
 
 #include <glfw/glfw3.h>
 #include <glm/gtx/quaternion.hpp>
-#include <iostream>
+#include <algorithm>
 
 #include "EditorCamera.h"
 #include "../Core/RawInput.h"
 
 namespace Proto
 {
+	static constexpr float MouseSensitivity = 0.003f;
+	static constexpr float RotationSensitivity = 0.8f;
+	static constexpr float MovementSpeed = 5.0f;
+
 	EditorCamera::EditorCamera(float fov, float aspectRatio, float nearClip, float farClip)
 		: m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip)
 	{
@@ -26,7 +30,7 @@ namespace Proto
 	{
 		m_Position = CalculatePosition();
 
-		glm::quat orientation = GetOrientation();
+		const glm::quat orientation = GetOrientation();
 		m_ViewMatrix = glm::translate(glm::mat4(1.0f), m_Position) * glm::toMat4(orientation);
 		m_ViewMatrix = glm::inverse(m_ViewMatrix);
 	}
@@ -60,57 +64,59 @@ namespace Proto
 	{
 		double xpos, ypos;
 		RawInput::GetMousePosition(xpos, ypos);
-		glm::vec2 mouse{ (float)xpos, (float)ypos };
-		glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
+		const glm::vec2 mouse{ (float)xpos, (float)ypos };
+		const glm::vec2 delta = (mouse - m_InitialMousePosition) * MouseSensitivity;
 		m_InitialMousePosition = mouse;
 
+		HandleMouseInput(delta);
+		HandleKeyboardInput(deltaTime);
+
+		UpdateView();
+	}
+
+	void EditorCamera::HandleMouseInput(const glm::vec2& delta)
+	{
 		if (RawInput::GetMouseButton(GLFW_MOUSE_BUTTON_RIGHT))
 		{
 			MouseRotate(delta);
 			// Update focal point to keep position fixed (Free Look style rotation)
 			m_FocalPoint = m_Position + GetForwardDirection() * m_Distance;
-
-			float speed = 5.0f * deltaTime;
-			if (RawInput::GetKey(GLFW_KEY_W))
-				m_FocalPoint += GetForwardDirection() * speed;
-			if (RawInput::GetKey(GLFW_KEY_S))
-				m_FocalPoint -= GetForwardDirection() * speed;
-			if (RawInput::GetKey(GLFW_KEY_A))
-				m_FocalPoint -= GetRightDirection() * speed;
-			if (RawInput::GetKey(GLFW_KEY_D))
-				m_FocalPoint += GetRightDirection() * speed;
-			if (RawInput::GetKey(GLFW_KEY_E))
-				m_FocalPoint += GetUpDirection() * speed;
-			if (RawInput::GetKey(GLFW_KEY_Q))
-				m_FocalPoint -= GetUpDirection() * speed;
 		}
 		else if (RawInput::GetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE))
 		{
 			MousePan(delta);
 		}
+	}
 
-		UpdateView();
+	void EditorCamera::HandleKeyboardInput(float deltaTime)
+	{
+		if (!RawInput::GetMouseButton(GLFW_MOUSE_BUTTON_RIGHT))
+			return;
+
+		const float speed = MovementSpeed * deltaTime;
+		const glm::vec3 forward = GetForwardDirection();
+		const glm::vec3 right = GetRightDirection();
+		const glm::vec3 up = GetUpDirection();
+
+		if (RawInput::GetKey(GLFW_KEY_W)) m_FocalPoint += forward * speed;
+		if (RawInput::GetKey(GLFW_KEY_S)) m_FocalPoint -= forward * speed;
+		if (RawInput::GetKey(GLFW_KEY_A)) m_FocalPoint -= right * speed;
+		if (RawInput::GetKey(GLFW_KEY_D)) m_FocalPoint += right * speed;
+		if (RawInput::GetKey(GLFW_KEY_E)) m_FocalPoint += up * speed;
+		if (RawInput::GetKey(GLFW_KEY_Q)) m_FocalPoint -= up * speed;
 	}
 
 	void EditorCamera::MousePan(const glm::vec2& delta)
 	{
-		// Optional: basic pan logic
-		float speed = m_Distance * 0.5f;
+		const float speed = m_Distance * 0.5f;
 		m_FocalPoint += -GetRightDirection() * delta.x * speed;
 		m_FocalPoint += GetUpDirection() * delta.y * speed;
 	}
 
 	void EditorCamera::MouseRotate(const glm::vec2& delta)
 	{
-		float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
-		m_Yaw += yawSign * delta.x * 0.8f;
-		m_Pitch += delta.y * 0.8f;
-	}
-
-	void EditorCamera::MouseZoom(float delta)
-	{
-		m_Distance -= delta * 0.5f;
-		if (m_Distance < 0.1f)
-			m_Distance = 0.1f;
+		const float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
+		m_Yaw += yawSign * delta.x * RotationSensitivity;
+		m_Pitch += delta.y * RotationSensitivity;
 	}
 }

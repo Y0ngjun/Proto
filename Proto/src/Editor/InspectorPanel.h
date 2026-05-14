@@ -14,6 +14,5 @@ namespace Proto
 	private:
 		void DrawComponents(GameObject* gameObject);
 		void DrawAddComponentButton(GameObject* gameObject);
-		void DrawComponentWithRemoveButton(GameObject* gameObject);
 	};
 }

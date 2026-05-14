@@ -4,7 +4,8 @@
 
 namespace Proto
 {
-	// VertexBuffer
+	// --- VertexBuffer -------------------------------------------------------
+
 	VertexBuffer::VertexBuffer(const void* vertices, uint32_t size)
 	{
 		glGenBuffers(1, &m_RendererID);
@@ -27,7 +28,8 @@ namespace Proto
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	// IndexBuffer
+	// --- IndexBuffer --------------------------------------------------------
+
 	IndexBuffer::IndexBuffer(const uint32_t* indices, uint32_t count)
 		: m_Count(count)
 	{

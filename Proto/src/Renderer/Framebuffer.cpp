@@ -1,11 +1,13 @@
 #include <glad/glad.h>
 #include <iostream>
+#include <string>
 
 #include "Framebuffer.h"
+#include "../Core/Log.h"
 
 namespace Proto
 {
-	static const uint32_t s_MaxFramebufferSize = 8192;
+	static constexpr uint32_t s_MaxFramebufferSize = 8192;
 
 	Framebuffer::Framebuffer(const FramebufferSpecification& spec)
 		: m_Specification(spec)
@@ -34,7 +36,7 @@ namespace Proto
 		glGenFramebuffers(1, &m_RendererID);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
 
-		// Color Attachment 0
+		// Color Attachment 0 (RGBA8)
 		glGenTextures(1, &m_ColorAttachment);
 		glBindTexture(GL_TEXTURE_2D, m_ColorAttachment);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Specification.Width, m_Specification.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
@@ -42,14 +44,15 @@ namespace Proto
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachment, 0);
 
-		// Color Attachment 1 (Entity ID)
+		// Color Attachment 1 (Entity ID - R32I)
 		glGenTextures(1, &m_EntityIDAttachment);
 		glBindTexture(GL_TEXTURE_2D, m_EntityIDAttachment);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, m_Specification.Width, m_Specification.Height, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, m_Specification.Width, m_Specification.Height, 0, GL_RED_INTEGER, GL_INT, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_EntityIDAttachment, 0);
 
+		// Depth & Stencil Attachment
 		glGenRenderbuffers(1, &m_DepthAttachment);
 		glBindRenderbuffer(GL_RENDERBUFFER, m_DepthAttachment);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_Specification.Width, m_Specification.Height);
@@ -60,7 +63,7 @@ namespace Proto
 
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		{
-			std::cerr << "Framebuffer is incomplete!" << std::endl;
+			PROTO_LOG_ERROR("Framebuffer is incomplete!");
 		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -81,6 +84,7 @@ namespace Proto
 	{
 		if (width == 0 || height == 0 || width > s_MaxFramebufferSize || height > s_MaxFramebufferSize)
 		{
+			PROTO_LOG_WARN("Attempted to resize framebuffer to invalid size.");
 			return;
 		}
 

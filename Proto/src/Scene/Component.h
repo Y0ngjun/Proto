@@ -17,7 +17,7 @@ namespace Proto
 
 		GameObject* GetGameObject() const { return m_GameObject; }
 
-		// 직렬화 인터페이스
+		// Serialization interface
 		virtual void Serialize(YAML::Emitter& out) const {}
 		virtual void Deserialize(const YAML::Node& node) {}
 		virtual const char* GetComponentTypeName() const = 0;

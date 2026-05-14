@@ -17,7 +17,8 @@ namespace Proto
 
 	void SceneCamera::SetViewportSize(uint32_t width, uint32_t height)
 	{
-		if (width == 0 || height == 0) return;
+		if (width == 0 || height == 0)
+			return;
 
 		m_AspectRatio = (float)width / (float)height;
 		RecalculateProjection();
@@ -25,9 +26,9 @@ namespace Proto
 
 	void SceneCamera::RecalculateProjection()
 	{
-		if (m_AspectRatio != 0.0f)
-		{
-			m_Projection = glm::perspective(m_PerspectiveFOV, m_AspectRatio, m_PerspectiveNear, m_PerspectiveFar);
-		}
+		if (m_AspectRatio == 0.0f)
+			return;
+
+		m_Projection = glm::perspective(m_PerspectiveFOV, m_AspectRatio, m_PerspectiveNear, m_PerspectiveFar);
 	}
 }

@@ -12,20 +12,19 @@ namespace Proto
 {
 	Shader::Shader(const std::string& vertexSrc, const std::string& fragmentSrc)
 	{
-		uint32_t vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		const uint32_t vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		CompileShader(vertexShader, vertexSrc);
 
-		uint32_t fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+		const uint32_t fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		CompileShader(fragmentShader, fragmentSrc);
 
 		m_RendererID = glCreateProgram();
 		glAttachShader(m_RendererID, vertexShader);
 		glAttachShader(m_RendererID, fragmentShader);
-
 		glLinkProgram(m_RendererID);
 
 		int isLinked = 0;
-		glGetProgramiv(m_RendererID, GL_LINK_STATUS, (int*)&isLinked);
+		glGetProgramiv(m_RendererID, GL_LINK_STATUS, &isLinked);
 		if (isLinked == GL_FALSE)
 		{
 			int maxLength = 0;
@@ -87,25 +86,25 @@ namespace Proto
 
 	void Shader::UploadUniformMat4(const std::string& name, const glm::mat4& matrix)
 	{
-		int location = glGetUniformLocation(m_RendererID, name.c_str());
+		const int location = glGetUniformLocation(m_RendererID, name.c_str());
 		glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
 	}
 
 	void Shader::UploadUniformFloat3(const std::string& name, const glm::vec3& values)
 	{
-		int location = glGetUniformLocation(m_RendererID, name.c_str());
+		const int location = glGetUniformLocation(m_RendererID, name.c_str());
 		glUniform3f(location, values.x, values.y, values.z);
 	}
 
 	void Shader::UploadUniformFloat(const std::string& name, float value)
 	{
-		int location = glGetUniformLocation(m_RendererID, name.c_str());
+		const int location = glGetUniformLocation(m_RendererID, name.c_str());
 		glUniform1f(location, value);
 	}
 
 	void Shader::UploadUniformInt(const std::string& name, int value)
 	{
-		int location = glGetUniformLocation(m_RendererID, name.c_str());
+		const int location = glGetUniformLocation(m_RendererID, name.c_str());
 		glUniform1i(location, value);
 	}
 
@@ -114,7 +113,7 @@ namespace Proto
 		std::ifstream file(filePath);
 		if (!file.is_open())
 		{
-			std::cerr << "[Shader File Error] Failed to open file: " << filePath << std::endl;
+			PROTO_LOG_ERROR("[Shader File Error] Failed to open file: " + filePath);
 			return "";
 		}
 
@@ -125,12 +124,12 @@ namespace Proto
 
 	std::shared_ptr<Shader> Shader::LoadFromFile(const std::string& vertexPath, const std::string& fragmentPath)
 	{
-		std::string vertexSrc = ReadFile(vertexPath);
-		std::string fragmentSrc = ReadFile(fragmentPath);
+		const std::string vertexSrc = ReadFile(vertexPath);
+		const std::string fragmentSrc = ReadFile(fragmentPath);
 
 		if (vertexSrc.empty() || fragmentSrc.empty())
 		{
-			std::cerr << "[Shader Load Error] Failed to load shaders from files" << std::endl;
+			PROTO_LOG_ERROR("[Shader Load Error] Failed to load shaders from files");
 			return nullptr;
 		}
 

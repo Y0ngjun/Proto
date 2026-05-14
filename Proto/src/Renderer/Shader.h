@@ -23,7 +23,6 @@ namespace Proto
 		void UploadUniformFloat(const std::string& name, float value);
 		void UploadUniformInt(const std::string& name, int value);
 
-		// 파일에서 로드
 		static std::shared_ptr<Shader> LoadFromFile(const std::string& vertexPath, const std::string& fragmentPath);
 
 	private:
