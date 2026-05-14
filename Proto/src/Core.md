@@ -21,7 +21,16 @@ Core 계층은 엔진의 기반이 되는 시스템들로 구성되어 있으며
 - **게임 루프**: `Init` → `Run` (Update/Render) → `Shutdown` 흐름 관리.
 - **프레임 타임**: 델타 타임(Delta Time)을 계산하여 일관된 물리/애니메이션 속도 보장.
 - **씬 관리**: 현재 활성화된 Scene의 로드/저장 및 상태(Edit/Play) 전환 제어.
+- **프로젝트 관리**: 프로젝트 생성/열기/저장 및 경로 관리 (m_ActiveProjectPath, m_ActiveScenePath).
+- **저장 경고**: Open/New/Close 시 미저장 상태 감지 및 사용자에게 저장 여부 확인.
+- **Dirty Flag**: Scene과 Project의 수정 여부를 추적하여 저장 필요성 판단.
 - **UI 통합**: ImGui 프레임의 시작과 끝을 관리하며, Editor 패널(Inspector, Hierarchy)을 소유합니다.
+- **단축키 연동**: 
+  - Ctrl+N: NewProject
+  - Ctrl+O: OpenProject
+  - Ctrl+S: SaveScene (경로 없으면 SaveSceneAs 유도)
+  - Ctrl+Shift+S: SaveSceneAs
+  - Alt+F4: Exit (저장 경고 포함)
 
 ### 2. Window
 OS의 네이티브 윈도우를 추상화하며 그래픽 API(OpenGL)와의 연결고리 역할을 합니다.

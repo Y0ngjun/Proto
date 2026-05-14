@@ -17,11 +17,14 @@
 #include "../Scene/SceneSerializer.h"
 #include "../Scene/Components/CameraComponent.h"
 #include "../Scene/Components/LightComponent.h"
+#include "../Scene/Components/MeshRenderer.h"
 #include "../Scene/GameObject.h"
 #include "Log.h"
 #include "Project.h"
 #include "../Editor/ConsolePanel.h"
 #include "../Editor/ContentBrowserPanel.h"
+#include "../Renderer/VertexArray.h"
+#include "../Renderer/Shader.h"
 
 namespace Proto
 {
@@ -67,11 +70,21 @@ namespace Proto
 
 	void Application::NewScene()
 	{
+		// 기존 씬 확인
+		if (m_Scene && m_Scene->IsDirty())
+		{
+			if (!SaveModifiedPrompt("Current scene"))
+			{
+				return;  // 취소됨
+			}
+			SaveScene();
+		}
+
 		if (m_Scene) delete m_Scene;
 
 		Scene* newScene = new Scene();
-		newScene->CreateDefault(); // 공용 메서드 호출
-		
+		newScene->CreateDefault();
+
 		SetScene(newScene);
 
 		m_ActiveScenePath = "";
@@ -80,6 +93,16 @@ namespace Proto
 
 	void Application::OpenScene(const std::filesystem::path& path)
 	{
+		// 기존 씬 확인
+		if (m_Scene && m_Scene->IsDirty())
+		{
+			if (!SaveModifiedPrompt("Current scene"))
+			{
+				return;  // 취소됨
+			}
+			SaveScene();
+		}
+
 		if (path.extension() != ".scene")
 		{
 			PROTO_LOG_ERROR("Failed to load scene: Invalid extension (expected .scene)");
@@ -91,7 +114,7 @@ namespace Proto
 		if (serializer.Deserialize(path.string()))
 		{
 			if (m_Scene) delete m_Scene;
-			
+
 			SetScene(newScene);
 			m_ActiveScenePath = path;
 			PROTO_LOG_INFO("Loaded scene: " + path.string());
@@ -107,9 +130,8 @@ namespace Proto
 	{
 		if (m_ActiveScenePath.empty())
 		{
-			auto path = FileDialog::SaveFile("Scene Files (*.scene)\0*.scene\0");
-			if (path)
-				SaveScene(*path);
+			// 경로 없으면 SaveSceneAs로 유도
+			SaveSceneAs();
 		}
 		else
 		{
@@ -130,12 +152,31 @@ namespace Proto
 			SceneSerializer serializer(m_Scene);
 			serializer.Serialize(finalPath.string());
 			m_ActiveScenePath = finalPath;
+			m_Scene->SetDirty(false);
 			PROTO_LOG_INFO("Scene saved: " + finalPath.string());
 		}
 	}
 
 	void Application::OpenProject(const std::filesystem::path& path)
 	{
+		// 기존 프로젝트/씬 확인
+		if (Project::GetActive() && Project::GetActive()->IsDirty())
+		{
+			if (!SaveModifiedPrompt("Current project"))
+			{
+				return;  // 취소됨
+			}
+			SaveProject();
+		}
+		if (m_Scene && m_Scene->IsDirty())
+		{
+			if (!SaveModifiedPrompt("Current scene"))
+			{
+				return;  // 취소됨
+			}
+			SaveScene();
+		}
+
 		if (path.extension() != ".proto")
 		{
 			PROTO_LOG_ERROR("Failed to load project: Invalid extension (expected .proto)");
@@ -144,6 +185,7 @@ namespace Proto
 
 		if (Project::Load(path))
 		{
+			m_ActiveProjectPath = path;
 			auto& config = Project::GetActive()->GetConfig();
 			std::filesystem::path scenePath = config.ProjectDirectory / config.StartScene;
 			OpenScene(scenePath);
@@ -152,33 +194,137 @@ namespace Proto
 
 	void Application::SaveProject()
 	{
-		// 프로젝트 저장 시 현재 씬도 자동으로 함께 저장
-		SaveScene();
-
-		auto activeProject = Project::GetActive();
-		if (activeProject)
+		if (!m_ActiveProjectPath.empty())
 		{
-			if (!m_ActiveScenePath.empty())
+			// 프로젝트 저장 시 현재 씬도 자동으로 함께 저장
+			SaveScene();
+
+			auto activeProject = Project::GetActive();
+			if (activeProject)
 			{
-				// 현재 씬이 프로젝트 폴더 내부에 있는지 확인
-				auto& projectDir = activeProject->GetConfig().ProjectDirectory;
-				std::string activePathStr = m_ActiveScenePath.string();
-				std::string projectDirStr = projectDir.string();
-
-				if (activePathStr.find(projectDirStr) != std::string::npos)
+				if (!m_ActiveScenePath.empty())
 				{
-					activeProject->GetConfig().StartScene = std::filesystem::relative(m_ActiveScenePath, projectDir);
-				}
-			}
+					// 현재 씬이 프로젝트 폴더 내부에 있는지 확인
+					auto& projectDir = activeProject->GetConfig().ProjectDirectory;
+					std::string activePathStr = m_ActiveScenePath.string();
+					std::string projectDirStr = projectDir.string();
 
-			std::filesystem::path projectFilePath = activeProject->GetConfig().ProjectDirectory / activeProject->GetConfig().ProjectFileName;
-			Project::SaveActive(projectFilePath);
-			PROTO_LOG_INFO("Project saved successfully.");
+					if (activePathStr.find(projectDirStr) != std::string::npos)
+					{
+						activeProject->GetConfig().StartScene = std::filesystem::relative(m_ActiveScenePath, projectDir);
+					}
+				}
+
+				Project::SaveActive(m_ActiveProjectPath);
+				activeProject->SetDirty(false);
+				PROTO_LOG_INFO("Project saved successfully.");
+			}
 		}
 	}
 
+	void Application::SaveSceneAs()
+	{
+		auto path = FileDialog::SaveFile("Scene Files (*.scene)\0*.scene\0");
+		if (path)
+		{
+			SaveScene(*path);
+			if (m_Scene)
+			{
+				m_Scene->SetDirty(false);
+			}
+		}
+	}
+
+	void Application::NewProject()
+	{
+		// 기존 프로젝트/씬 확인
+		if (Project::GetActive() && Project::GetActive()->IsDirty())
+		{
+			if (!SaveModifiedPrompt("Current project"))
+			{
+				return;  // 취소됨
+			}
+			SaveProject();
+		}
+		if (m_Scene && m_Scene->IsDirty())
+		{
+			if (!SaveModifiedPrompt("Current scene"))
+			{
+				return;  // 취소됨
+			}
+			SaveScene();
+		}
+
+		// 새 프로젝트 생성
+		auto newProject = Project::New();
+		if (newProject)
+		{
+			m_ActiveProjectPath = newProject->GetConfig().ProjectDirectory / newProject->GetConfig().ProjectFileName;
+			NewScene();
+			PROTO_LOG_INFO("Created new project.");
+		}
+	}
+
+	void Application::OpenProject()
+	{
+		auto path = FileDialog::OpenFile("Proto Project (*.proto)\0*.proto\0");
+		if (path)
+		{
+			OpenProject(*path);
+		}
+	}
+
+	// 저장 경고 팝업
+	bool Application::SaveModifiedPrompt(const std::string& itemName)
+	{
+		bool result = true;  // 기본값: 계속 진행
+
+		static bool show_modal = false;
+		static std::string modal_item;
+
+		// 팝업이 표시되지 않으면 첫 번째 호출
+		if (!show_modal)
+		{
+			show_modal = true;
+			modal_item = itemName;
+			ImGui::OpenPopup("Save Changes?");
+		}
+
+		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+		if (ImGui::BeginPopupModal("Save Changes?", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImGui::Text("%s has been modified.\nDo you want to save changes?", modal_item.c_str());
+			ImGui::Spacing();
+
+			if (ImGui::Button("Save", ImVec2(100, 0)))
+			{
+				result = true;
+				show_modal = false;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SetItemDefaultFocus();
+			ImGui::SameLine();
+			if (ImGui::Button("Don't Save", ImVec2(100, 0)))
+			{
+				result = true;  // 계속 진행하되 저장하지 않음
+				show_modal = false;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel", ImVec2(100, 0)))
+			{
+				result = false;  // 작업 취소
+				show_modal = false;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+
+		return result;
+	}
+
 	Application::Application()
-		: m_Window(1920, 1080, "Proto Engine Test"),
+		: m_Window(1920, 1080, "Proto Engine"),
 		m_DeltaTime(0.0f),
 		m_LastFrameTime(0.0f),
 		m_IsInitialized(false)
@@ -283,6 +429,31 @@ namespace Proto
 		UpdateFrameTiming();
 		ProcessInput();
 
+		// 윈도우 타이틀 업데이트 (Dirty Flag 표시)
+		std::string title = "Proto Engine - ";
+
+		if (Project::GetActive())
+		{
+			title += Project::GetActive()->GetConfig().Name;
+			if (Project::GetActive()->IsDirty())
+				title += " *";
+		}
+		else
+		{
+			title += "No Project";
+		}
+
+		// 현재 씬 이름 추가
+		if (!m_ActiveScenePath.empty())
+		{
+			title += " - ";
+			title += m_ActiveScenePath.filename().string();
+			if (m_Scene && m_Scene->IsDirty())
+				title += " *";
+		}
+
+		m_Window.SetTitle(title.c_str());
+
 		if (m_SceneState == SceneState::Play)
 		{
 			if (m_UpdateCallback)
@@ -379,6 +550,7 @@ namespace Proto
 		if (offsetX < 0.0f) offsetX = 0.0f;
 		if (offsetY < 0.0f) offsetY = 0.0f;
 
+		// Play/Stop 버튼 위치
 		ImGui::SetCursorPosX(offsetX);
 		ImGui::SetCursorPosY(offsetY);
 
@@ -404,6 +576,50 @@ namespace Proto
 		}
 
 		ImGui::PopStyleColor(3);
+
+		// Create Primitive 드롭다운 버튼 (Edit 모드에서만 활성화)
+		if (!isPlaying)
+		{
+			ImGui::SameLine(0.0f, 20.0f);
+
+			if (ImGui::Button("Create Primitive##dropdown", ImVec2(140.0f * xscale, buttonHeight)))
+			{
+				ImGui::OpenPopup("CreatePrimitiveMenu");
+			}
+
+			if (ImGui::BeginPopup("CreatePrimitiveMenu"))
+			{
+				if (ImGui::MenuItem("Cube"))
+				{
+					if (m_Scene)
+					{
+						m_Scene->CreateMeshGameObject("Cube", UUID(DefaultAsset::Cube));
+					}
+				}
+				if (ImGui::MenuItem("Sphere"))
+				{
+					if (m_Scene)
+					{
+						m_Scene->CreateMeshGameObject("Sphere", UUID(DefaultAsset::Sphere));
+					}
+				}
+				if (ImGui::MenuItem("Plane"))
+				{
+					if (m_Scene)
+					{
+						m_Scene->CreateMeshGameObject("Plane", UUID(DefaultAsset::Plane));
+					}
+				}
+				if (ImGui::MenuItem("Cylinder"))
+				{
+					if (m_Scene)
+					{
+						m_Scene->CreateMeshGameObject("Cylinder", UUID(DefaultAsset::Cylinder));
+					}
+				}
+				ImGui::EndPopup();
+			}
+		}
 		ImGui::End();
 		ImGui::PopStyleVar(2);
 
@@ -466,28 +682,21 @@ namespace Proto
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::MenuItem("New Scene", "Ctrl+N")) NewScene();
-				if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
-				{
-					auto path = FileDialog::OpenFile("Proto Project (*.proto)\0*.proto\0");
-					if (path) OpenProject(*path);
-				}
-				
+				if (ImGui::MenuItem("New Project", "Ctrl+N")) NewProject();
+				if (ImGui::MenuItem("Open Project...", "Ctrl+O")) OpenProject();
+
 				ImGui::Separator();
-				
+
+				if (ImGui::MenuItem("New Scene")) NewScene();
 				if (ImGui::MenuItem("Save Scene", "Ctrl+S")) SaveScene();
-				if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
-				{
-					auto path = FileDialog::SaveFile("Scene Files (*.scene)\0*.scene\0");
-					if (path) SaveScene(*path);
-				}
-				
+				if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S")) SaveSceneAs();
+
 				ImGui::Separator();
-				
+
 				if (ImGui::MenuItem("Save Project")) SaveProject();
-				
+
 				ImGui::Separator();
-				
+
 				if (ImGui::MenuItem("Exit", "Alt+F4")) m_Window.SetShouldClose(true);
 				ImGui::EndMenu();
 			}
@@ -674,13 +883,26 @@ namespace Proto
 	{
 		bool control = RawInput::GetKey(GLFW_KEY_LEFT_CONTROL) || RawInput::GetKey(GLFW_KEY_RIGHT_CONTROL);
 		bool shift = RawInput::GetKey(GLFW_KEY_LEFT_SHIFT) || RawInput::GetKey(GLFW_KEY_RIGHT_SHIFT);
+		bool alt = RawInput::GetKey(GLFW_KEY_LEFT_ALT) || RawInput::GetKey(GLFW_KEY_RIGHT_ALT);
 
+		// Ctrl+N: New Project
+		if (control && RawInput::GetKeyDown(GLFW_KEY_N))
+		{
+			NewProject();
+		}
+
+		// Ctrl+O: Open Project
+		if (control && RawInput::GetKeyDown(GLFW_KEY_O))
+		{
+			OpenProject();
+		}
+
+		// Ctrl+S: Save Scene (또는 Ctrl+Shift+S: Save Scene As)
 		if (control && RawInput::GetKeyDown(GLFW_KEY_S))
 		{
 			if (shift)
 			{
-				auto path = FileDialog::SaveFile("Scene Files (*.scene)\0*.scene\0");
-				if (path) SaveScene(*path);
+				SaveSceneAs();
 			}
 			else
 			{
@@ -688,18 +910,33 @@ namespace Proto
 			}
 		}
 
-		if (control && RawInput::GetKeyDown(GLFW_KEY_N)) NewScene();
-		if (control && RawInput::GetKeyDown(GLFW_KEY_O))
+		// Alt+F4: Exit with save prompt
+		if (alt && RawInput::GetKeyDown(GLFW_KEY_F4))
 		{
-			auto path = FileDialog::OpenFile("Proto Project (*.proto)\0*.proto\0");
-			if (path) OpenProject(*path);
-		}
+			// 프로젝트/씬 저장 여부 확인
+			bool needsPrompt = (Project::GetActive() && Project::GetActive()->IsDirty()) ||
+							   (m_Scene && m_Scene->IsDirty());
 
-		if (RawInput::GetKey(GLFW_KEY_ESCAPE))
-		{
+			if (needsPrompt && m_SavePromptState == SavePromptState::None)
+			{
+				if (!SaveModifiedPrompt("Changes"))
+				{
+					return;  // 사용자가 취소함
+				}
+			}
+
+			// SaveModifiedPrompt가 Confirmed 상태라면 저장
+			if (m_SavePromptState == SavePromptState::Confirmed)
+			{
+				SaveProject();
+				SaveScene();
+			}
+
+			m_SavePromptState = SavePromptState::None;
 			m_Window.SetShouldClose(true);
 		}
 
+		// Gizmo 단축키 (마우스 우클릭 중이 아닐 때만)
 		if (!RawInput::GetMouseButton(GLFW_MOUSE_BUTTON_RIGHT))
 		{
 			if (RawInput::GetKey(GLFW_KEY_Q))

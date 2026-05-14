@@ -17,6 +17,8 @@ namespace Proto
 		~Scene() = default;
 
 		GameObject* CreateGameObject(const std::string& name = "GameObject");
+		GameObject* CreateMeshGameObject(const std::string& name, class UUID meshUUID);
+		void RemoveGameObject(GameObject* gameObject);
 		void CreateDefault();
 
 		void OnUpdateRuntime(float deltaTime, bool isFocused = true);
@@ -31,12 +33,18 @@ namespace Proto
 		GameObject* GetGameObjectByRuntimeID(uint32_t id);
 		GameObject* GetGameObjectByUUID(UUID uuid);
 
+		// Dirty Flag 관리
+		void SetDirty(bool dirty) { m_IsDirty = dirty; }
+		bool IsDirty() const { return m_IsDirty; }
+
 	private:
 
 		std::vector<std::unique_ptr<GameObject>> m_GameObjects;
 
 		std::shared_ptr<class VertexArray> m_GridVAO;
 		std::shared_ptr<class Shader> m_GridShader;
+
+		bool m_IsDirty = false;
 	};
 
 }

@@ -5,44 +5,48 @@
 #include "Core/Project.h"
 #include "Core/Log.h"
 
-int main(int argc, char** argv)
+namespace
 {
-	// 1. 로그 시스템 우선 초기화
-	Proto::Log::Init();
+	constexpr const char* DEFAULT_PROJECT_PATH = "DefaultProject/DefaultProject.proto";
 
-	try
+	void InitializeProject(int argc, char** argv)
 	{
 		if (argc > 1)
 		{
 			Proto::Project::Load(argv[1]);
+			return;
+		}
+
+		std::filesystem::path defaultProjectPath = std::filesystem::current_path() / DEFAULT_PROJECT_PATH;
+		PROTO_LOG_INFO("Checking for default project at: " + defaultProjectPath.string());
+
+		if (std::filesystem::exists(defaultProjectPath))
+		{
+			PROTO_LOG_INFO("Default project found. Loading...");
+			Proto::Project::Load(defaultProjectPath);
 		}
 		else
 		{
-			// 기본 프로젝트 경로 확인
-			std::filesystem::path defaultProjectPath = std::filesystem::current_path() / "DefaultProject/DefaultProject.proto";
-			PROTO_LOG_INFO("Checking for default project at: " + defaultProjectPath.string());
-
-			if (std::filesystem::exists(defaultProjectPath))
-			{
-				PROTO_LOG_INFO("Default project found. Loading...");
-				Proto::Project::Load(defaultProjectPath);
-			}
-			else
-			{
-				PROTO_LOG_INFO("Default project not found. Creating new one...");
-				Proto::Project::New();
-			}
+			PROTO_LOG_INFO("Default project not found. Creating new one...");
+			Proto::Project::New();
 		}
+	}
+}
+
+int main(int argc, char** argv)
+{
+	Proto::Log::Init();
+
+	try
+	{
+		InitializeProject(argc, argv);
 
 		auto& app = Proto::Application::Get();
-
-		// Proto::Test::SetupCubeTest(app); // 큐브 테스트 제거
-
 		app.Run();
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		std::cerr << "Fatal Error: " << e.what() << std::endl;
 		return -1;
 	}
 

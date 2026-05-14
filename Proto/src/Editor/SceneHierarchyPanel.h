@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "../Scene/Scene.h"
 
@@ -24,5 +25,10 @@ namespace Proto
 
 		Scene* m_Context = nullptr;
 		GameObject* m_SelectionContext = nullptr;
+
+		// 이름 편집 관련 변수
+		GameObject* m_RenamingGameObject = nullptr;
+		static constexpr size_t RenameBufferSize = 256;
+		char m_RenamingBuffer[RenameBufferSize] = {};
 	};
 }

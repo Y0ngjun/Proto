@@ -17,6 +17,7 @@ namespace Proto
 		~GameObject();
 
 		const std::string& GetName() const { return m_Name; }
+		void SetName(const std::string& name) { m_Name = name; }
 		UUID GetUUID() const { return m_UUID; }
 		void SetUUID(UUID uuid) { m_UUID = uuid; }
 		uint32_t GetRuntimeID() const { return m_RuntimeID; }
@@ -47,6 +48,21 @@ namespace Proto
 				}
 			}
 			return nullptr;
+		}
+
+		// 컴포넌트 삭제
+		template<typename T>
+		void RemoveComponent()
+		{
+			auto it = std::find_if(m_Components.begin(), m_Components.end(),
+				[](const std::unique_ptr<Component>& comp) {
+					return dynamic_cast<T*>(comp.get()) != nullptr;
+				});
+
+			if (it != m_Components.end())
+			{
+				m_Components.erase(it);
+			}
 		}
 
 		const std::vector<std::unique_ptr<Component>>& GetComponents() const { return m_Components; }

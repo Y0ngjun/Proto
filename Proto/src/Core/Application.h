@@ -7,6 +7,7 @@
 #include "Window.h"
 #include "../Renderer/Framebuffer.h"
 #include "../Renderer/EditorCamera.h"
+#include "Project.h"
 
 namespace Proto
 {
@@ -31,12 +32,12 @@ namespace Proto
 		void OpenScene(const std::filesystem::path& path);
 		void SaveScene();
 		void SaveScene(const std::filesystem::path& path);
+		void SaveSceneAs();
 
 		void NewProject();
 		void OpenProject();
 		void OpenProject(const std::filesystem::path& path);
 		void SaveProject();
-		void SaveProjectAs();
 
 		int GetGizmoType() const { return m_GizmoType; }
 		void SetGizmoType(int type) { m_GizmoType = type; }
@@ -61,6 +62,9 @@ namespace Proto
 		void OnScenePlay();
 		void OnSceneStop();
 
+		// 저장 경고 및 유효성 검사
+		bool SaveModifiedPrompt(const std::string& itemName);
+
 		Application(const Application&) = delete;
 		Application& operator=(const Application&) = delete;
 
@@ -68,7 +72,8 @@ namespace Proto
 		float m_DeltaTime;
 		float m_LastFrameTime;
 		bool m_IsInitialized;
-		std::filesystem::path m_ActiveScenePath;
+		std::filesystem::path m_ActiveProjectPath;  // 현재 열린 프로젝트 경로
+		std::filesystem::path m_ActiveScenePath;     // 현재 열린 씬 경로
 
 		std::unique_ptr<Framebuffer> m_EditorFramebuffer;
 		std::unique_ptr<Framebuffer> m_GameFramebuffer;
@@ -95,6 +100,14 @@ namespace Proto
 		SceneState m_SceneState = SceneState::Edit;
 		std::string m_SceneBackupString;
 
+		// 저장 경고 상태 관리
+		enum class SavePromptState
+		{
+			None = 0, Pending = 1, Confirmed = 2, Cancelled = 3, DontSave = 4
+		};
+		SavePromptState m_SavePromptState = SavePromptState::None;
+
+		bool m_ShouldClose = false;
 		std::function<void(float)> m_UpdateCallback;
 	};
 }

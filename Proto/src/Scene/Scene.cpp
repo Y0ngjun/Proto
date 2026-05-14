@@ -14,6 +14,9 @@
 #include "Components/SphereCollider.h"
 #include "Components/NativeScriptComponent.h"
 #include "../Renderer/Buffer.h"
+#include "../Renderer/VertexArray.h"
+#include "../Renderer/Shader.h"
+#include "../Asset/AssetManager.h"
 
 #include "../Renderer/Renderer.h"
 #include "../Renderer/EditorCamera.h"
@@ -31,7 +34,43 @@ namespace Proto
 
 		GameObject* ptr = gameObject.get();
 		m_GameObjects.push_back(std::move(gameObject));
+		SetDirty(true);
 		return ptr;
+	}
+
+	GameObject* Scene::CreateMeshGameObject(const std::string& name, UUID meshUUID)
+	{
+		GameObject* go = CreateGameObject(name);
+		auto* mr = go->AddComponent<MeshRenderer>();
+
+		// AssetManager를 통해 메쉬와 셰이더 할당
+		mr->SetMesh(AssetManager::GetAssetAs<VertexArray>(meshUUID));
+		mr->SetShader(AssetManager::GetAssetAs<Shader>(UUID(100)));
+
+		return go;
+	}
+
+	void Scene::RemoveGameObject(GameObject* gameObject)
+	{
+		if (!gameObject) return;
+
+		// 오브젝트 정리 (OnDestroy 호출)
+		for (auto& comp : gameObject->GetComponents())
+		{
+			comp->OnDestroy();
+		}
+
+		// 벡터에서 제거
+		auto it = std::find_if(m_GameObjects.begin(), m_GameObjects.end(),
+			[gameObject](const std::unique_ptr<GameObject>& obj) {
+				return obj.get() == gameObject;
+			});
+
+		if (it != m_GameObjects.end())
+		{
+			m_GameObjects.erase(it);
+			SetDirty(true);
+		}
 	}
 
 	void Scene::CreateDefault()

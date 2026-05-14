@@ -34,6 +34,7 @@ namespace Proto
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 			{
 				m_SelectionContext = nullptr;
+				m_RenamingGameObject = nullptr;
 			}
 
 			if (ImGui::BeginPopupContextWindow("##CreateObject", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
@@ -44,33 +45,38 @@ namespace Proto
 				}
 				if (ImGui::MenuItem("Create Cube"))
 				{
-					auto* go = m_Context->CreateGameObject("Cube");
-					auto* mr = go->AddComponent<MeshRenderer>();
-					mr->SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(1)));
-					mr->SetShader(AssetManager::GetAssetAs<Shader>(UUID(100)));
+					m_Context->CreateMeshGameObject("Cube", UUID(1));
 				}
 				if (ImGui::MenuItem("Create Sphere"))
 				{
-					auto* go = m_Context->CreateGameObject("Sphere");
-					auto* mr = go->AddComponent<MeshRenderer>();
-					mr->SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(3)));
-					mr->SetShader(AssetManager::GetAssetAs<Shader>(UUID(100)));
+					m_Context->CreateMeshGameObject("Sphere", UUID(3));
 				}
 				if (ImGui::MenuItem("Create Cylinder"))
 				{
-					auto* go = m_Context->CreateGameObject("Cylinder");
-					auto* mr = go->AddComponent<MeshRenderer>();
-					mr->SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(4)));
-					mr->SetShader(AssetManager::GetAssetAs<Shader>(UUID(100)));
+					m_Context->CreateMeshGameObject("Cylinder", UUID(4));
 				}
 				if (ImGui::MenuItem("Create Plane"))
 				{
-					auto* go = m_Context->CreateGameObject("Plane");
-					auto* mr = go->AddComponent<MeshRenderer>();
-					mr->SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(2)));
-					mr->SetShader(AssetManager::GetAssetAs<Shader>(UUID(100)));
+					m_Context->CreateMeshGameObject("Plane", UUID(2));
 				}
 				ImGui::EndPopup();
+			}
+
+			// 이름 편집 처리
+			if (m_RenamingGameObject)
+			{
+				ImGui::SetNextItemWidth(-1);
+				ImGui::InputText("##RenameInput", m_RenamingBuffer, RenameBufferSize, ImGuiInputTextFlags_EnterReturnsTrue);
+
+				if (ImGui::IsItemDeactivated())
+				{
+					if (ImGui::IsKeyPressed(ImGuiKey_Enter) && m_RenamingBuffer[0] != '\0')
+					{
+						m_RenamingGameObject->SetName(m_RenamingBuffer);
+					}
+					m_RenamingGameObject = nullptr;
+					m_RenamingBuffer[0] = '\0';
+				}
 			}
 		}
 		ImGui::End();
@@ -81,11 +87,39 @@ namespace Proto
 		ImGuiTreeNodeFlags flags = ((m_SelectionContext == gameObject) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)gameObject, flags, "%s", gameObject->GetName().c_str());
+		bool opened = ImGui::TreeNodeEx((void*)gameObject, flags, "%s", gameObject->GetName().c_str());
 
 		if (ImGui::IsItemClicked())
 		{
 			m_SelectionContext = gameObject;
+		}
+
+		// 우클릭 메뉴
+		if (ImGui::BeginPopupContextItem("EntityContextMenu"))
+		{
+			if (ImGui::MenuItem("Rename"))
+			{
+				m_RenamingGameObject = gameObject;
+				strncpy_s(m_RenamingBuffer, RenameBufferSize, gameObject->GetName().c_str(), RenameBufferSize - 1);
+				m_RenamingBuffer[RenameBufferSize - 1] = '\0';
+				ImGui::CloseCurrentPopup();
+			}
+
+			if (ImGui::MenuItem("Delete"))
+			{
+				if (m_SelectionContext == gameObject)
+				{
+					m_SelectionContext = nullptr;
+				}
+				if (m_RenamingGameObject == gameObject)
+				{
+					m_RenamingGameObject = nullptr;
+				}
+				m_Context->RemoveGameObject(gameObject);
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
 		}
 
 		if (opened)

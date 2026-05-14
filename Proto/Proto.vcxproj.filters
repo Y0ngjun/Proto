@@ -93,9 +93,6 @@
     <ClCompile Include="Dependencies\include\glm\detail\glm.cpp">
       <Filter>�ҽ� ����</Filter>
     </ClCompile>
-    <ClCompile Include="Dependencies\include\glm\glm.cppm">
-      <Filter>�ҽ� ����</Filter>
-    </ClCompile>
     <ClCompile Include="src\Scene\Components\MeshRenderer.cpp">
       <Filter>�ҽ� ����</Filter>
     </ClCompile>
@@ -109,6 +106,45 @@
       <Filter>�ҽ� ����</Filter>
     </ClCompile>
     <ClCompile Include="src\Renderer\MeshLoader.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Asset\AssetManager.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\UUID.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\RawInput.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Log.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Project.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\ConsolePanel.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\ContentBrowserPanel.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\SceneSerializer.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\ScriptRegistry.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\Components\NativeScriptComponent.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\Components\BoxCollider.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\Components\Rigidbody.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\Components\SphereCollider.cpp">
       <Filter>�ҽ� ����</Filter>
     </ClCompile>
   </ItemGroup>
@@ -149,28 +185,16 @@
     <ClInclude Include="src\Scene\Scene.h">
       <Filter>��� ����</Filter>
     </ClInclude>
-    <ClInclude Include="src\Renderer\Camera.h">
-      <Filter>��� ����</Filter>
-    </ClInclude>
     <ClInclude Include="src\Renderer\SceneCamera.h">
       <Filter>��� ����</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene\Components\CameraComponent.h">
       <Filter>��� ����</Filter>
     </ClInclude>
-    <ClInclude Include="src\Test\CubeTest.h">
-      <Filter>��� ����</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\SceneHierarchyPanel.h">
-      <Filter>��� ����</Filter>
-    </ClInclude>
     <ClInclude Include="src\Renderer\Framebuffer.h">
       <Filter>��� ����</Filter>
     </ClInclude>
     <ClInclude Include="src\Renderer\EditorCamera.h">
-      <Filter>��� ����</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\InspectorPanel.h">
       <Filter>��� ����</Filter>
     </ClInclude>
     <ClInclude Include="Dependencies\ImGuizmo\ImGuizmo.h">
@@ -1094,444 +1118,65 @@
     <ClInclude Include="src\Renderer\MeshLoader.h">
       <Filter>��� ����</Filter>
     </ClInclude>
+    <ClInclude Include="src\Asset\Asset.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Asset\AssetManager.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\RawInput.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\YAMLHelpers.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Log.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Project.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\UUID.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\ConsolePanel.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\ContentBrowserPanel.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\Components\NativeScriptComponent.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\SceneSerializer.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\Components\BoxCollider.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\Components\Rigidbody.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\Components\SphereCollider.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\Components\Collider.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Base.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include=".github\copilot-instructions.md" />
-    <None Include="imgui.ini" />
-    <None Include="Proto.slnx" />
-    <None Include="Dependencies\include\glm\detail\func_common.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_common_simd.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_exponential.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_exponential_simd.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_geometric.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_geometric_simd.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_integer.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_integer_simd.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_matrix.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_matrix_simd.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_packing.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_packing_simd.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_trigonometric.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_trigonometric_simd.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_vector_relational.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\func_vector_relational_simd.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_half.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_mat2x2.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_mat2x3.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_mat2x4.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_mat3x2.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_mat3x3.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_mat3x4.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_mat4x2.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_mat4x3.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_mat4x4.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_mat4x4_simd.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_quat.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_quat_simd.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_vec1.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_vec2.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_vec3.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_vec4.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\detail\type_vec_simd.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\matrix_clip_space.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\matrix_common.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\matrix_integer.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\matrix_projection.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\matrix_relational.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\matrix_transform.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\quaternion_common.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\quaternion_common_simd.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\quaternion_exponential.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\quaternion_geometric.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\quaternion_relational.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\quaternion_transform.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\quaternion_trigonometric.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\scalar_common.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\scalar_constants.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\scalar_integer.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\scalar_packing.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\scalar_reciprocal.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\scalar_relational.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\scalar_ulp.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\vector_common.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\vector_integer.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\vector_packing.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\vector_reciprocal.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\vector_relational.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\ext\vector_ulp.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\bitfield.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\color_space.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\constants.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\epsilon.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\integer.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\matrix_access.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\matrix_inverse.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\matrix_transform.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\noise.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\packing.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\quaternion.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\quaternion_simd.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\random.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\round.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\type_precision.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\type_ptr.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtc\ulp.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\associated_min_max.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\bit.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\closest_point.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\color_encoding.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\color_space.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\color_space_YCoCg.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\common.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\compatibility.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\component_wise.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\dual_quaternion.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\easing.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\euler_angles.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\extend.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\extended_min_max.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\exterior_product.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\fast_exponential.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\fast_square_root.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\fast_trigonometry.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\float_normalize.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\functions.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\gradient_paint.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\handed_coordinate_space.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\hash.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\integer.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\intersect.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\io.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\iteration.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\log_base.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\matrix_cross_product.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\matrix_decompose.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\matrix_factorisation.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\matrix_interpolation.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\matrix_major_storage.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\matrix_operation.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\matrix_query.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\matrix_transform_2d.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\mixed_product.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\norm.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\normal.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\normalize_dot.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\optimum_pow.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\orthonormalize.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\pca.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\perpendicular.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\polar_coordinates.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\projection.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\quaternion.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\raw_data.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\rotate_normalized_axis.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\rotate_vector.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\scalar_relational.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\spline.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\std_based_type.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\string_cast.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\structured_bindings.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\texture.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\transform.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\transform2.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\type_aligned.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\type_trait.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\vector_angle.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\vector_query.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="Dependencies\include\glm\gtx\wrap.inl">
-      <Filter>��� ����</Filter>
-    </None>
-    <None Include="docs\spec\design.md" />
-    <None Include="docs\spec\architecture.md" />
     <None Include="docs\progress.md" />
     <None Include="src\Core.md" />
     <None Include="src\Scene.md" />
     <None Include="src\Renderer.md" />
     <None Include="src\Editor.md" />
     <None Include="docs\workflow.md" />
-    <None Include="docs\style-guide.md" />
-    <None Include="docs\testing.md" />
-    <None Include="assets\shaders\default.frag" />
-    <None Include="assets\shaders\default.vert" />
     <None Include="docs\TODO.md" />
+    <None Include="Resources\shaders\default.vert" />
+    <None Include="Resources\shaders\default.frag" />
     <None Include="docs\handoff.md" />
   </ItemGroup>
 </Project>

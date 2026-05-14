@@ -2,7 +2,16 @@
 
 #include "../Core/UUID.h"
 
-namespace Proto {
+namespace Proto 
+{
+	namespace DefaultAsset
+	{
+		constexpr uint64_t Cube = 1;
+		constexpr uint64_t Plane = 2;
+		constexpr uint64_t Sphere = 3;
+		constexpr uint64_t Cylinder = 4;
+		constexpr uint64_t Shader = 100;
+	}
 
 	enum class AssetType
 	{
@@ -22,5 +31,4 @@ namespace Proto {
 		virtual ~Asset() = default;
 		virtual AssetType GetType() const = 0;
 	};
-
 }

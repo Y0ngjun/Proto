@@ -25,7 +25,7 @@ namespace Proto {
 		static bool SaveActive(const std::filesystem::path& path);
 
 		static std::shared_ptr<Project> GetActive() { return s_ActiveProject; }
-		
+
 		ProjectConfig& GetConfig() { return m_Config; }
 
 		static std::filesystem::path GetProjectDirectory()
@@ -46,8 +46,13 @@ namespace Proto {
 			return resourcePath;
 		}
 
+		// Dirty Flag 관리
+		void SetDirty(bool dirty) { m_IsDirty = dirty; }
+		bool IsDirty() const { return m_IsDirty; }
+
 	private:
 		ProjectConfig m_Config;
+		bool m_IsDirty = false;
 		static std::shared_ptr<Project> s_ActiveProject;
 	};
 

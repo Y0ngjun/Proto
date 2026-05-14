@@ -19,6 +19,10 @@ Scene 계층은 게임 세계의 구성 요소들을 관리하며, **GameObject-
 - **Life Cycle**: `OnUpdateEditor`(에디터용 렌더링/업데이트)와 `OnUpdateRuntime`(물리/스크립트 로직 포함)으로 구분된 실행 흐름을 가집니다.
 - **Physics Integration**: 런타임 업데이트 시 물리 연산(Rigidbody, Collision)을 수행합니다.
 - **State Management**: 씬 내부의 모든 객체 상태를 관리하며, `SceneSerializer`를 통해 상태를 보존하거나 복구합니다.
+- **Dirty Flag**: 씬 수정 여부(`SetDirty`, `IsDirty`)를 추적하여 저장 필요성 판단.
+- **GameObject Creation**: `CreateGameObject(name)` (빈 객체)와 `CreateMeshGameObject(name, meshUUID)` (메쉬 포함 객체)를 통해 객체를 생성합니다.
+  - 객체 생성 시 자동으로 `SetDirty(true)` 호출
+  - 객체 삭제 시 자동으로 `SetDirty(true)` 호출
 
 ### 2. GameObject
 ID와 이름을 가진 데이터 컨테이너입니다. 실제 동작은 부착된 컴포넌트들에 의해 결정됩니다.

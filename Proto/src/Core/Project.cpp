@@ -17,9 +17,9 @@ namespace Proto
 	std::shared_ptr<Project> Project::New()
 	{
 		s_ActiveProject = std::make_shared<Project>();
-		
+
 		std::filesystem::path projectDir = std::filesystem::current_path() / "DefaultProject";
-		std::string projectName = "Default Project";
+		std::string projectName = "DefaultProject";
 
 		s_ActiveProject->m_Config.Name = projectName;
 		s_ActiveProject->m_Config.AssetDirectory = "assets";

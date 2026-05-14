@@ -7,7 +7,7 @@ namespace Proto
 	class Window
 	{
 	public:
-		Window(int width = 1280, int height = 720, const char* title = "Proto Engine Test");
+		Window(int width = 1280, int height = 720, const char* title = "Proto Engine");
 		~Window();
 
 		Window(const Window&) = delete;

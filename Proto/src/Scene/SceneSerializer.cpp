@@ -8,7 +8,6 @@
 #include "Components/BoxCollider.h"
 #include "Components/SphereCollider.h"
 #include "Components/NativeScriptComponent.h"
-#include "../Test/CubeTest.h" // For re-binding known scripts
 
 #include <fstream>
 #include <iostream>
@@ -143,11 +142,7 @@ namespace Proto {
 							auto* c = go->AddComponent<NativeScriptComponent>();
 							std::string scriptName = comp["ScriptName"].as<std::string>();
 							
-							// Simple Script Registry (Hardcoded for prototype)
-							if (scriptName.find("CameraController") != std::string::npos)
-								c->Bind<Test::CameraController>();
-							else if (scriptName.find("CubeScript") != std::string::npos)
-								c->Bind<Test::CubeScript>();
+							// Simple Script Registry will be handled here
 						}
 					}
 				}

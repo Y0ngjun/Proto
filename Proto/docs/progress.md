@@ -19,6 +19,7 @@ Milestone 4 (Scripting & UI) 진행 중. MVP 목표: 3D 탄막 게임.
 - [ ] EventBus (게임 이벤트 시스템)
 - [ ] UI System (Canvas, Text, Image)
 - [x] ScriptRegistry (이름 기반 자동 바인딩)
+- [x] 기본 메쉬 생성 단축 (Toolbar "Create Primitive" 버튼, Hierarchy 우클릭 메뉴)
 - [ ] 플레이어 입력-스크립트 연동 강화
 
 ### Milestone 5: Optimization & Refinement (다음)
@@ -33,14 +34,21 @@ Milestone 4 (Scripting & UI) 진행 중. MVP 목표: 3D 탄막 게임.
 
 ---
 
-## 📅 최근 업데이트 (2026-05-02)
-- **통합 관리**: `Scene::CreateDefault()`로 씬 생성 로직 단일화 및 지연 초기화로 안정성 확보
-- **스마트 저장**: Ctrl+S(덮어쓰기) 및 프로젝트 저장 시 현재 씬 자동 저장 연동
-- **콘솔 개선**: 유니티 스타일 분할 뷰(상세 로그 확인) 도입 및 가독성 개선
-- **단축키**: `GetKeyDown` 구현 및 주요 기능(New/Open/Save) 단축키 연동
+## 📅 최근 업데이트 (2026-05-03)
+- **Phase 5 완료**: Proj/Scene 단위 Save/Open 고도화
+  - Proj 단위: NewProject, OpenProject, SaveProject 구현
+  - Scene 단위: NewScene, OpenScene, SaveScene, SaveSceneAs 구현
+  - 저장 경고: Open/New/Close 시 수정 여부 확인 및 경고 팝업
+  - Dirty Flag: Scene/Project에 추가하여 수정 상태 추적
+  - 타이틀 바: 윈도우 제목에 "*" 표시로 수정 여부 시각화
+  - 단축키: Ctrl+N(New Project), Ctrl+O(Open Project), Ctrl+S(Save Scene), Ctrl+Shift+S(Save Scene As), Alt+F4(Exit with prompt)
+  - 메뉴 UI: File 메뉴 정리 및 단축키 연결
+  - 경로 관리: Application에서 프로젝트/씬 경로 관리 (파일 이동 안전)
 
 ---
 
 ## 🔴 제한사항 및 빌드
 - Windows 전용 (FileDialog), 문자열 기반 컴포넌트 직렬화
 - **상태**: ✅ 빌드/실행 성공 (`build.ps1` -> `Proto.exe`)
+
+
