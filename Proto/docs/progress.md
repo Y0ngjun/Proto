@@ -34,16 +34,22 @@ Milestone 4 (Scripting & UI) 진행 중. MVP 목표: 3D 탄막 게임.
 
 ---
 
-## 📅 최근 업데이트 (2026-05-03)
-- **Phase 5 완료**: Proj/Scene 단위 Save/Open 고도화
-  - Proj 단위: NewProject, OpenProject, SaveProject 구현
-  - Scene 단위: NewScene, OpenScene, SaveScene, SaveSceneAs 구현
-  - 저장 경고: Open/New/Close 시 수정 여부 확인 및 경고 팝업
-  - Dirty Flag: Scene/Project에 추가하여 수정 상태 추적
-  - 타이틀 바: 윈도우 제목에 "*" 표시로 수정 여부 시각화
-  - 단축키: Ctrl+N(New Project), Ctrl+O(Open Project), Ctrl+S(Save Scene), Ctrl+Shift+S(Save Scene As), Alt+F4(Exit with prompt)
-  - 메뉴 UI: File 메뉴 정리 및 단축키 연결
-  - 경로 관리: Application에서 프로젝트/씬 경로 관리 (파일 이동 안전)
+## 📅 최근 업데이트 (2026-05-14)
+- **리팩토링 4사이클 완료**: 엔진 전역 종합 코드 품질 개선 완료
+  - **매직 넘버 상수화**: 모든 모듈에서 사용되던 숫자 리터럴을 `UPPER_SNAKE_CASE` 상수로 명명 (`GRAVITY`, `DEFAULT_NEAR_CLIP`, `GRID_SIZE` 등)
+  - **C++ 표준 캐스팅**: C 스타일 캐스트 `(type)val`을 `static_cast<type>` / `dynamic_cast<type>`으로 전면 교체
+  - **한국어 통일**: 모든 에러 로그(`PROTO_LOG_ERROR`), 파일 상단 요약, 인라인 주석을 한국어로 번역
+  - **파일 헤더 통일**: 모든 핵심 클래스 파일 상단에 1~2줄 한국어 요약 헤더 추가
+  - **가상 소멸자 추가**: 상속 계층의 컴포넌트 클래스들에 `virtual ~ClassName() = default` 명시
+  - **네이티브 스크립트 역직렬화 완성**: `ScriptRegistry::BindByName`을 통한 스크립트 이름 기반 자동 복원 구현
+  - **안정성 확보**: 전체 6단계 리팩토링 후 빌드 검증 완료 (경고 0, 오류 0)
+
+## 📅 최근 업데이트 (2026-05-14) — 이전
+- **리팩토링 3사이클 완료**: 엔진 전역 의존성 최적화 및 코드 스타일 가이드 적용
+  - **의존성 최소화**: 모든 헤더에서 불필요한 `#include`를 제거하고 전방 선언(Forward Declaration)으로 대체하여 컴파일 효율성 극대화
+  - **스타일 가이드 준수**: 전면적인 Allman 스타일 중괄호 적용 및 가독성 향상
+  - **로직 정돈**: 모든 모듈에 조기 반환(Early Return) 패턴 및 `const` 사용 강화
+  - **안정성 확보**: 리팩토링 후 전체 빌드 및 실행 안정성 검증 완료 (경고 0, 오류 0)
 
 ---
 

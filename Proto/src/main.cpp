@@ -1,5 +1,11 @@
+/*
+ * Proto 엔진 진입점
+ * 프로젝트 초기화 및 애플리케이션 실행을 담당합니다.
+ */
+
 #include <exception>
-#include <iostream>
+#include <filesystem>
+#include <cstdlib>
 
 #include "Core/Application.h"
 #include "Core/Project.h"
@@ -7,7 +13,7 @@
 
 namespace
 {
-	constexpr const char* DEFAULT_PROJECT_PATH = "DefaultProject/DefaultProject.proto";
+	static constexpr const char* DEFAULT_PROJECT_PATH = "DefaultProject/DefaultProject.proto";
 
 	void InitializeProject(int argc, char** argv)
 	{
@@ -17,19 +23,18 @@ namespace
 			return;
 		}
 
-		std::filesystem::path defaultProjectPath = std::filesystem::current_path() / DEFAULT_PROJECT_PATH;
-		PROTO_LOG_INFO("Checking for default project at: " + defaultProjectPath.string());
+		const std::filesystem::path defaultProjectPath = std::filesystem::current_path() / DEFAULT_PROJECT_PATH;
+		PROTO_LOG_INFO("기본 프로젝트 확인 경로: " + defaultProjectPath.string());
 
 		if (std::filesystem::exists(defaultProjectPath))
 		{
-			PROTO_LOG_INFO("Default project found. Loading...");
+			PROTO_LOG_INFO("기본 프로젝트를 발견했습니다. 로드 중...");
 			Proto::Project::Load(defaultProjectPath);
+			return;
 		}
-		else
-		{
-			PROTO_LOG_INFO("Default project not found. Creating new one...");
-			Proto::Project::New();
-		}
+
+		PROTO_LOG_INFO("프로젝트를 찾을 수 없습니다. 새 프로젝트를 생성합니다...");
+		Proto::Project::New();
 	}
 }
 
@@ -39,6 +44,8 @@ int main(int argc, char** argv)
 
 	try
 	{
+		PROTO_LOG_INFO("Proto 엔진을 시작합니다...");
+
 		InitializeProject(argc, argv);
 
 		auto& app = Proto::Application::Get();
@@ -46,9 +53,10 @@ int main(int argc, char** argv)
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Fatal Error: " << e.what() << std::endl;
-		return -1;
+		PROTO_LOG_ERROR("치명적 오류 발생: " + std::string(e.what()));
+		return EXIT_FAILURE;
 	}
 
-	return 0;
+	PROTO_LOG_INFO("엔진이 성공적으로 종료되었습니다.");
+	return EXIT_SUCCESS;
 }

@@ -1,26 +1,33 @@
+/*
+ * 엔진에서 사용하는 마우스 버튼 코드를 정의합니다.
+ * GLFW 마우스 코드를 기반으로 매핑되어 있습니다.
+ */
+
 #pragma once
+
+#include <stdint.h>
 
 namespace Proto
 {
-	using MouseCode = int;
+	using MouseCode = uint16_t;
 
 	namespace Mouse
 	{
 		enum : MouseCode
 		{
-			Button0         = 0,
-			Button1         = 1,
-			Button2         = 2,
-			Button3         = 3,
-			Button4         = 4,
-			Button5         = 5,
-			Button6         = 6,
-			Button7         = 7,
+			BUTTON_0             = 0,
+			BUTTON_1             = 1,
+			BUTTON_2             = 2,
+			BUTTON_3             = 3,
+			BUTTON_4             = 4,
+			BUTTON_5             = 5,
+			BUTTON_6             = 6,
+			BUTTON_7             = 7,
 
-			ButtonLast      = Button7,
-			ButtonLeft      = Button0,
-			ButtonRight     = Button1,
-			ButtonMiddle    = Button2
+			BUTTON_LEFT          = BUTTON_0,
+			BUTTON_RIGHT         = BUTTON_1,
+			BUTTON_MIDDLE        = BUTTON_2,
+			BUTTON_LAST          = BUTTON_7
 		};
 	}
 }

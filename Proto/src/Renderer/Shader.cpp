@@ -1,3 +1,8 @@
+/*
+ * OpenGL 셰이더(Shader) 프로그램을 생성하고 관리하는 클래스입니다.
+ * 정점 셰이더와 프래그먼트 셰이더를 컴파일 및 링크하며, 유니폼(Uniform) 변수 업로드 기능을 제공합니다.
+ */
+
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
@@ -10,6 +15,11 @@
 
 namespace Proto
 {
+	namespace
+	{
+		static constexpr uint32_t UNBIND_TARGET_ID = 0;
+	}
+
 	Shader::Shader(const std::string& vertexSrc, const std::string& fragmentSrc)
 	{
 		const uint32_t vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -25,6 +35,7 @@ namespace Proto
 
 		int isLinked = 0;
 		glGetProgramiv(m_RendererID, GL_LINK_STATUS, &isLinked);
+
 		if (isLinked == GL_FALSE)
 		{
 			int maxLength = 0;
@@ -37,7 +48,7 @@ namespace Proto
 			glDeleteShader(vertexShader);
 			glDeleteShader(fragmentShader);
 
-			PROTO_LOG_ERROR("[Shader Link Error] " + std::string(infoLog.data()));
+			PROTO_LOG_ERROR("[셰이더 링크 오류] " + std::string(infoLog.data()));
 			return;
 		}
 
@@ -60,6 +71,7 @@ namespace Proto
 
 		int isCompiled = 0;
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
+
 		if (isCompiled == GL_FALSE)
 		{
 			int maxLength = 0;
@@ -70,7 +82,7 @@ namespace Proto
 
 			glDeleteShader(shader);
 
-			PROTO_LOG_ERROR("[Shader Compile Error] " + std::string(infoLog.data()));
+			PROTO_LOG_ERROR("[셰이더 컴파일 오류] " + std::string(infoLog.data()));
 		}
 	}
 
@@ -81,7 +93,7 @@ namespace Proto
 
 	void Shader::Unbind() const
 	{
-		glUseProgram(0);
+		glUseProgram(UNBIND_TARGET_ID);
 	}
 
 	void Shader::UploadUniformMat4(const std::string& name, const glm::mat4& matrix)
@@ -113,7 +125,7 @@ namespace Proto
 		std::ifstream file(filePath);
 		if (!file.is_open())
 		{
-			PROTO_LOG_ERROR("[Shader File Error] Failed to open file: " + filePath);
+			PROTO_LOG_ERROR("[셰이더 파일 오류] 파일을 열 수 없습니다: " + filePath);
 			return "";
 		}
 
@@ -129,7 +141,7 @@ namespace Proto
 
 		if (vertexSrc.empty() || fragmentSrc.empty())
 		{
-			PROTO_LOG_ERROR("[Shader Load Error] Failed to load shaders from files");
+			PROTO_LOG_ERROR("[셰이더 로드 오류] 파일에서 셰이더를 로드하지 못했습니다.");
 			return nullptr;
 		}
 

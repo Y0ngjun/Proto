@@ -1,3 +1,8 @@
+/*
+ * 에디터의 메인 레이아웃 및 핵심 로직을 관리하는 클래스입니다.
+ * 툴바, 뷰포트, 패널 배치(Docking) 및 기즈모 제어 등을 담당합니다.
+ */
+
 #pragma once
 
 #include <memory>
@@ -7,10 +12,11 @@
 
 #include "../Renderer/Framebuffer.h"
 #include "../Renderer/EditorCamera.h"
-#include "../Scene/Scene.h"
 
 namespace Proto
 {
+	class Scene;
+	class GameObject;
 	class SceneHierarchyPanel;
 	class InspectorPanel;
 	class ConsolePanel;
@@ -31,23 +37,47 @@ namespace Proto
 		void OnScenePlay();
 		void OnSceneStop();
 
-		int GetGizmoType() const { return m_GizmoType; }
-		void SetGizmoType(int type) { m_GizmoType = type; }
+		int GetGizmoType() const
+		{
+			return m_GizmoType;
+		}
 
-		bool IsGameViewFocused() const { return m_IsGameViewFocused; }
-		bool IsGameViewHovered() const { return m_IsGameViewHovered; }
+		void SetGizmoType(int type)
+		{
+			m_GizmoType = type;
+		}
 
-		Framebuffer* GetEditorFramebuffer() { return m_EditorFramebuffer.get(); }
-		Framebuffer* GetGameFramebuffer() { return m_GameFramebuffer.get(); }
+		bool IsGameViewFocused() const
+		{
+			return m_IsGameViewFocused;
+		}
 
-		EditorCamera& GetEditorCamera() { return m_EditorCamera; }
+		bool IsGameViewHovered() const
+		{
+			return m_IsGameViewHovered;
+		}
+
+		Framebuffer* GetEditorFramebuffer()
+		{
+			return m_EditorFramebuffer.get();
+		}
+
+		Framebuffer* GetGameFramebuffer()
+		{
+			return m_GameFramebuffer.get();
+		}
+
+		EditorCamera& GetEditorCamera()
+		{
+			return m_EditorCamera;
+		}
 
 	private:
 		void SetDarkThemeColors();
 		void RenderMenuBar();
 		void RenderSceneViewportHeader();
 		void HandleGizmos(GameObject* selectedEntity);
-		
+
 		void BeginFrame() const;
 		void EndFrame() const;
 

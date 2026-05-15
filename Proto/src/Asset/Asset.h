@@ -1,16 +1,20 @@
+/*
+ * 엔진에서 사용하는 에셋의 기본 인터페이스와 타입을 정의합니다.
+ */
+
 #pragma once
 
 #include "../Core/UUID.h"
 
-namespace Proto 
+namespace Proto
 {
 	namespace DefaultAsset
 	{
-		constexpr uint64_t Cube = 1;
-		constexpr uint64_t Plane = 2;
-		constexpr uint64_t Sphere = 3;
-		constexpr uint64_t Cylinder = 4;
-		constexpr uint64_t Shader = 100;
+		static constexpr uint64_t CUBE = 1;
+		static constexpr uint64_t PLANE = 2;
+		static constexpr uint64_t SPHERE = 3;
+		static constexpr uint64_t CYLINDER = 4;
+		static constexpr uint64_t SHADER = 100;
 	}
 
 	enum class AssetType
@@ -27,7 +31,7 @@ namespace Proto
 	{
 	public:
 		UUID Handle;
-		
+
 		virtual ~Asset() = default;
 		virtual AssetType GetType() const = 0;
 	};

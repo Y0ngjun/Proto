@@ -1,3 +1,8 @@
+/*
+ * GLFW 기반의 윈도우 생성 및 컨텍스트 관리를 담당하는 클래스입니다.
+ * 화면 크기 조절, VSync 설정, 이벤트 폴링 등의 기능을 제공합니다.
+ */
+
 #pragma once
 
 struct GLFWwindow;
@@ -31,5 +36,7 @@ namespace Proto
 		GLFWwindow* m_Window;
 		int m_Width;
 		int m_Height;
+
+		static int m_WindowCount;
 	};
 }

@@ -1,3 +1,8 @@
+/*
+ * C++ 코드로 작성된 사용자 정의 스크립트(Native Script)를 게임 오브젝트에 부착하고 관리하는 컴포넌트입니다.
+ * ScriptableEntity를 상속받은 커스텀 스크립트 클래스의 인스턴스화, 생명주기, 이벤트를 처리합니다.
+ */
+
 #include "NativeScriptComponent.h"
 #include "../ScriptRegistry.h"
 #include <yaml-cpp/yaml.h>
@@ -17,8 +22,7 @@ namespace Proto
 	{
 		if (node["ScriptName"])
 		{
-			std::string name = node["ScriptName"].as<std::string>();
-			// ScriptRegistry를 통해 이름 기반으로 자동 바인딩 수행
+			const std::string name = node["ScriptName"].as<std::string>();
 			ScriptRegistry::BindByName(name, this);
 		}
 	}

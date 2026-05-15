@@ -1,6 +1,15 @@
+/*
+ * 씬 내의 게임 오브젝트(GameObject)에 부착되는 모든 컴포넌트의 베이스 클래스입니다.
+ * 생명주기(Lifecycle) 메서드와 직렬화(Serialization) 인터페이스를 정의합니다.
+ */
+
 #pragma once
 
-#include <yaml-cpp/yaml.h>
+namespace YAML
+{
+	class Emitter;
+	class Node;
+}
 
 namespace Proto
 {
@@ -15,9 +24,12 @@ namespace Proto
 		virtual void OnUpdate(float deltaTime) {}
 		virtual void OnDestroy() {}
 
-		GameObject* GetGameObject() const { return m_GameObject; }
+		GameObject* GetGameObject() const
+		{
+			return m_GameObject;
+		}
 
-		// Serialization interface
+		// 직렬화 인터페이스
 		virtual void Serialize(YAML::Emitter& out) const {}
 		virtual void Deserialize(const YAML::Node& node) {}
 		virtual const char* GetComponentTypeName() const = 0;

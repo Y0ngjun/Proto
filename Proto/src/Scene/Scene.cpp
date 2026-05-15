@@ -1,7 +1,13 @@
+/*
+ * 게임 내 모든 오브젝트와 컴포넌트, 물리/렌더링 시스템을 관리하는 핵심 씬(Scene) 클래스입니다.
+ * 런타임 및 에디터 모드에서의 업데이트 흐름과 렌더링, 충돌 처리를 담당합니다.
+ */
+
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <algorithm>
 
 #include "Scene.h"
 #include "Components/Transform.h"
@@ -17,15 +23,21 @@
 #include "../Renderer/VertexArray.h"
 #include "../Renderer/Shader.h"
 #include "../Asset/AssetManager.h"
-
 #include "../Renderer/Renderer.h"
 #include "../Renderer/EditorCamera.h"
+#include "../Core/Log.h"
 
 namespace Proto
 {
-	Scene::Scene()
+	namespace
 	{
+		static constexpr float GRAVITY = -9.81f;
+		static constexpr float GRID_SIZE = 100.0f;
+		static constexpr float COLLISION_EPSILON = 0.0001f;
 	}
+
+	Scene::Scene()
+	{}
 
 	GameObject* Scene::CreateGameObject(const std::string& name)
 	{
@@ -43,26 +55,28 @@ namespace Proto
 		GameObject* go = CreateGameObject(name);
 		auto* mr = go->AddComponent<MeshRenderer>();
 
-		// AssetManager를 통해 메쉬와 셰이더 할당
 		mr->SetMesh(AssetManager::GetAssetAs<VertexArray>(meshUUID));
-		mr->SetShader(AssetManager::GetAssetAs<Shader>(UUID(100)));
+		mr->SetShader(AssetManager::GetAssetAs<Shader>(UUID(DefaultAsset::SHADER)));
+		mr->SetMeshTypeName(name);
 
 		return go;
 	}
 
 	void Scene::RemoveGameObject(GameObject* gameObject)
 	{
-		if (!gameObject) return;
+		if (!gameObject)
+		{
+			return;
+		}
 
-		// 오브젝트 정리 (OnDestroy 호출)
-		for (auto& comp : gameObject->GetComponents())
+		for (const auto& comp : gameObject->GetComponents())
 		{
 			comp->OnDestroy();
 		}
 
-		// 벡터에서 제거
 		auto it = std::find_if(m_GameObjects.begin(), m_GameObjects.end(),
-			[gameObject](const std::unique_ptr<GameObject>& obj) {
+			[gameObject](const std::unique_ptr<GameObject>& obj)
+			{
 				return obj.get() == gameObject;
 			});
 
@@ -75,23 +89,20 @@ namespace Proto
 
 	void Scene::CreateDefault()
 	{
-		// 1. Main Camera (Transform은 CreateGameObject에서 자동 추가됨)
 		auto* camera = CreateGameObject("Main Camera");
 		camera->AddComponent<CameraComponent>();
 		camera->GetComponent<Transform>()->Translation = { 0.0f, 0.0f, 5.0f };
 
-		// 2. Directional Light
 		auto* light = CreateGameObject("Directional Light");
 		light->AddComponent<LightComponent>();
-		// 각도 135, 0, 45 도 -> 라디안 변환값
 		light->GetComponent<Transform>()->Rotation = { 2.35619f, 0.0f, 0.785398f };
 	}
 
 	void Scene::OnRuntimeStart()
 	{
-		for (auto& go : m_GameObjects)
+		for (const auto& go : m_GameObjects)
 		{
-			for (auto& comp : go->GetComponents())
+			for (const auto& comp : go->GetComponents())
 			{
 				comp->OnStart();
 			}
@@ -100,9 +111,9 @@ namespace Proto
 
 	void Scene::OnRuntimeStop()
 	{
-		for (auto& go : m_GameObjects)
+		for (const auto& go : m_GameObjects)
 		{
-			for (auto& comp : go->GetComponents())
+			for (const auto& comp : go->GetComponents())
 			{
 				comp->OnDestroy();
 			}
@@ -111,290 +122,294 @@ namespace Proto
 
 	void Scene::OnUpdateRuntime(float deltaTime, bool isFocused)
 	{
-		// 로직 업데이트는 플레이 상태(deltaTime > 0)일 때만 실행
 		if (deltaTime > 0.0f)
 		{
-			// 1. Physics (Rigidbody) 적분
-			for (auto& go : m_GameObjects)
-			{
-				auto rb = go->GetComponent<Rigidbody>();
-				auto transform = go->GetComponent<Transform>();
-				if (rb && transform)
-				{
-					if (rb->UseGravity)
-					{
-						rb->Acceleration += glm::vec3(0.0f, -9.81f, 0.0f); // 중력 가속도
-					}
+			UpdatePhysics(deltaTime);
+			ResolveCollisions();
 
-					rb->Velocity += rb->Acceleration * deltaTime;
-					rb->Velocity *= glm::max(0.0f, 1.0f - rb->Drag * deltaTime); // 공기 저항
-					transform->Translation += rb->Velocity * deltaTime;
-
-					// 다음 프레임을 위해 가속도 초기화
-					rb->Acceleration = glm::vec3(0.0f);
-				}
-			}
-
-			// 2. Collision Detection (O(N^2) 단순 비교 - MVP 용)
-			for (size_t i = 0; i < m_GameObjects.size(); i++)
-			{
-				auto& goA = m_GameObjects[i];
-				auto transformA = goA->GetComponent<Transform>();
-				if (!transformA) continue;
-
-				auto colliderA = goA->GetComponent<Collider>();
-				if (!colliderA) continue;
-
-				auto* boxA = dynamic_cast<BoxCollider*>(colliderA);
-				auto* sphereA = dynamic_cast<SphereCollider*>(colliderA);
-
-				for (size_t j = i + 1; j < m_GameObjects.size(); j++)
-				{
-					auto& goB = m_GameObjects[j];
-					auto transformB = goB->GetComponent<Transform>();
-					if (!transformB) continue;
-
-					auto colliderB = goB->GetComponent<Collider>();
-					if (!colliderB) continue;
-
-					auto* boxB = dynamic_cast<BoxCollider*>(colliderB);
-					auto* sphereB = dynamic_cast<SphereCollider*>(colliderB);
-
-					bool isColliding = false;
-
-					// Box vs Box
-					if (boxA && boxB)
-					{
-						glm::vec3 posA = transformA->Translation + boxA->Offset;
-						glm::vec3 minA = posA - boxA->Size * 0.5f;
-						glm::vec3 maxA = posA + boxA->Size * 0.5f;
-
-						glm::vec3 posB = transformB->Translation + boxB->Offset;
-						glm::vec3 minB = posB - boxB->Size * 0.5f;
-						glm::vec3 maxB = posB + boxB->Size * 0.5f;
-
-						isColliding = (minA.x < maxB.x && maxA.x > minB.x) &&
-									  (minA.y < maxB.y && maxA.y > minB.y) &&
-									  (minA.z < maxB.z && maxA.z > minB.z);
-
-						if (isColliding)
-						{
-							float overlapX = std::min(maxA.x, maxB.x) - std::max(minA.x, minB.x);
-							float overlapY = std::min(maxA.y, maxB.y) - std::max(minA.y, minB.y);
-							float overlapZ = std::min(maxA.z, maxB.z) - std::max(minA.z, minB.z);
-
-							float minOverlap = std::min({overlapX, overlapY, overlapZ});
-							glm::vec3 normal(0.0f);
-
-							if (minOverlap == overlapX)
-								normal = glm::vec3(posA.x < posB.x ? -1.0f : 1.0f, 0.0f, 0.0f);
-							else if (minOverlap == overlapY)
-								normal = glm::vec3(0.0f, posA.y < posB.y ? -1.0f : 1.0f, 0.0f);
-							else
-								normal = glm::vec3(0.0f, 0.0f, posA.z < posB.z ? -1.0f : 1.0f);
-
-							glm::vec3 separation = normal * minOverlap;
-
-							auto rbA = goA->GetComponent<Rigidbody>();
-							auto rbB = goB->GetComponent<Rigidbody>();
-
-							if (rbA && !rbB)
-							{
-								transformA->Translation += separation;
-								if (glm::dot(rbA->Velocity, normal) < 0.0f)
-									rbA->Velocity -= normal * glm::dot(rbA->Velocity, normal);
-							}
-							else if (!rbA && rbB)
-							{
-								transformB->Translation -= separation;
-								if (glm::dot(rbB->Velocity, -normal) < 0.0f)
-									rbB->Velocity -= -normal * glm::dot(rbB->Velocity, -normal);
-							}
-							else if (rbA && rbB)
-							{
-								transformA->Translation += separation * 0.5f;
-								transformB->Translation -= separation * 0.5f;
-								if (glm::dot(rbA->Velocity, normal) < 0.0f)
-									rbA->Velocity -= normal * glm::dot(rbA->Velocity, normal);
-								if (glm::dot(rbB->Velocity, -normal) < 0.0f)
-									rbB->Velocity -= -normal * glm::dot(rbB->Velocity, -normal);
-							}
-						}
-					}
-					// Sphere vs Sphere
-					else if (sphereA && sphereB)
-					{
-						glm::vec3 posA = transformA->Translation + sphereA->Offset;
-						glm::vec3 posB = transformB->Translation + sphereB->Offset;
-						float distSq = glm::dot(posA - posB, posA - posB);
-						float radSum = sphereA->Radius + sphereB->Radius;
-						
-						isColliding = distSq < (radSum * radSum) && distSq > 0.0001f;
-
-						if (isColliding)
-						{
-							float dist = std::sqrt(distSq);
-							float overlap = radSum - dist;
-							glm::vec3 normal = (posA - posB) / dist;
-							glm::vec3 separation = normal * overlap;
-
-							auto rbA = goA->GetComponent<Rigidbody>();
-							auto rbB = goB->GetComponent<Rigidbody>();
-
-							if (rbA && !rbB)
-							{
-								transformA->Translation += separation;
-								if (glm::dot(rbA->Velocity, normal) < 0.0f)
-									rbA->Velocity -= normal * glm::dot(rbA->Velocity, normal);
-							}
-							else if (!rbA && rbB)
-							{
-								transformB->Translation -= separation;
-								if (glm::dot(rbB->Velocity, -normal) < 0.0f)
-									rbB->Velocity -= -normal * glm::dot(rbB->Velocity, -normal);
-							}
-							else if (rbA && rbB)
-							{
-								transformA->Translation += separation * 0.5f;
-								transformB->Translation -= separation * 0.5f;
-								if (glm::dot(rbA->Velocity, normal) < 0.0f)
-									rbA->Velocity -= normal * glm::dot(rbA->Velocity, normal);
-								if (glm::dot(rbB->Velocity, -normal) < 0.0f)
-									rbB->Velocity -= -normal * glm::dot(rbB->Velocity, -normal);
-							}
-						}
-					}
-					// Box vs Sphere
-					else
-					{
-						auto box = boxA ? boxA : boxB;
-						auto sphere = sphereA ? sphereA : sphereB;
-						auto transBox = boxA ? transformA : transformB;
-						auto transSphere = sphereA ? transformA : transformB;
-
-						glm::vec3 boxPos = transBox->Translation + box->Offset;
-						glm::vec3 minBox = boxPos - box->Size * 0.5f;
-						glm::vec3 maxBox = boxPos + box->Size * 0.5f;
-
-						glm::vec3 spherePos = transSphere->Translation + sphere->Offset;
-						glm::vec3 closest = glm::clamp(spherePos, minBox, maxBox);
-						float distSq = glm::dot(closest - spherePos, closest - spherePos);
-						isColliding = distSq < (sphere->Radius * sphere->Radius);
-					}
-
-					// 충돌 시 스크립트에만 콜백 전달
-					if (isColliding)
-					{
-						if (auto nscA = goA->GetComponent<NativeScriptComponent>())
-							nscA->DispatchCollisionEnter(goB.get());
-
-						if (auto nscB = goB->GetComponent<NativeScriptComponent>())
-							nscB->DispatchCollisionEnter(goA.get());
-					}
-				}
-			}
-
-			// 3. GameObject 로직 업데이트
-			for (auto& go : m_GameObjects)
+			for (const auto& go : m_GameObjects)
 			{
 				go->Update(deltaTime);
 			}
 		}
 
-		Camera* mainCamera = nullptr;
-		glm::mat4 cameraTransform;
-
-		for (auto& go : m_GameObjects)
+		GameObject* mainCameraGO = nullptr;
+		GameObject* fallbackCameraGO = nullptr;
+		for (const auto& go : m_GameObjects)
 		{
 			auto cameraComponent = go->GetComponent<CameraComponent>();
-			if (cameraComponent && cameraComponent->Primary)
+			if (!cameraComponent)
 			{
-				auto transform = go->GetComponent<Transform>();
-				if (transform)
-				{
-					mainCamera = &cameraComponent->Camera;
-					cameraTransform = transform->GetTransform();
-					break;
-				}
+				continue;
+			}
+
+			if (!fallbackCameraGO)
+			{
+				fallbackCameraGO = go.get();
+			}
+
+			if (cameraComponent->Primary)
+			{
+				mainCameraGO = go.get();
+				break;
 			}
 		}
 
-		if (mainCamera)
+		if (!mainCameraGO)
 		{
-			// 카메라의 뷰포트가 설정되지 않았으면 기본값 설정
-			glm::mat4 projMat = mainCamera->GetProjection();
-			if (projMat == glm::mat4(1.0f))
+			mainCameraGO = fallbackCameraGO;
+		}
+
+		if (mainCameraGO)
+		{
+			auto cameraComponent = mainCameraGO->GetComponent<CameraComponent>();
+			auto transform = mainCameraGO->GetComponent<Transform>();
+
+			if (cameraComponent && transform)
 			{
-				// 기본 화면 크기로 설정 (이것은 임시 설정이며, OnViewportResize에서 올바른 크기로 업데이트됨)
-				static_cast<SceneCamera*>(mainCamera)->SetViewportSize(1280, 720);
-			}
+				const glm::mat4 cameraTransform = transform->GetTransform();
+				const glm::mat4 viewProjection = cameraComponent->Camera.GetProjection() * glm::affineInverse(cameraTransform);
+				const glm::vec3 viewPos = glm::vec3(cameraTransform[3]);
 
-			glm::mat4 viewProjection = mainCamera->GetProjection() * glm::affineInverse(cameraTransform);
-			glm::vec3 viewPos = glm::vec3(cameraTransform[3]); // 카메라는 Transform의 4번째 열(마지막 열) 벡터의 x,y,z 위치를 가짐
-
-			// 1. 빛 정보 추출 (Directional Light 하나만 있다고 가정)
-			// 조명이 없을 때 물체 정면이 잘 보이도록 뒤에서 앞으로 쏘는 대각선 방향으로 변경
-			glm::vec3 lightDir = { -0.5f, -0.5f, -1.0f }; 
-			glm::vec3 lightColor = { 1.0f, 1.0f, 1.0f };
-			float lightIntensity = 1.0f;
-
-			for (auto& go : m_GameObjects)
-			{
-				auto light = go->GetComponent<LightComponent>();
-				if (light)
-				{
-					// Directional Light의 빙향은 객체가 바라보는(Forward) 방향
-					// 여기서는 Transform의 x, y, z 회전을 방향 벡터로 간단히 변환하거나 강제로 세팅
-					// 임시로 객체의 z축(Forward) 역방향을 반환하도록 설정
-					glm::mat4 lightTrans = go->GetComponent<Transform>()->GetTransform();
-					lightDir = glm::normalize(glm::vec3(lightTrans[2])); 
-					lightColor = light->Color;
-					lightIntensity = light->Intensity;
-					break;
-				}
-			}
-
-			for (auto& go : m_GameObjects)
-			{
-				auto transform = go->GetComponent<Transform>();
-				auto meshRenderer = go->GetComponent<MeshRenderer>();
-
-				if (meshRenderer && transform)
-				{
-					auto shader = meshRenderer->GetShader();
-					auto mesh = meshRenderer->GetMesh();
-
-					if (shader && mesh)
-					{
-						shader->Bind();
-
-						shader->UploadUniformMat4("u_ViewProjection", viewProjection);
-						shader->UploadUniformMat4("u_Transform", transform->GetTransform());
-
-						// 빛 및 카메라 위치 전송
-						shader->UploadUniformFloat3("u_ViewPos", viewPos);
-						shader->UploadUniformFloat3("u_LightDir", lightDir);
-						shader->UploadUniformFloat3("u_LightColor", lightColor * lightIntensity);
-
-						Renderer::Submit(mesh, shader);
-					}
-				}
+				RenderObjects(viewProjection, viewPos);
 			}
 		}
 	}
 
 	void Scene::OnUpdateEditor(float deltaTime, EditorCamera& camera)
 	{
-		// 지연 초기화: OpenGL 컨텍스트가 확보된 후 첫 렌더링 시점에 Grid 생성
+		const glm::mat4 viewProjection = camera.GetViewProjection();
+		const glm::vec3 viewPos = camera.GetPosition();
+
+		RenderObjects(viewProjection, viewPos, true);
+		RenderGrid(viewProjection, viewPos);
+	}
+
+	void Scene::UpdatePhysics(float deltaTime)
+	{
+		for (const auto& go : m_GameObjects)
+		{
+			auto rb = go->GetComponent<Rigidbody>();
+			auto transform = go->GetComponent<Transform>();
+
+			if (!rb || !transform)
+			{
+				continue;
+			}
+
+			if (rb->UseGravity)
+			{
+				rb->Acceleration += glm::vec3(0.0f, GRAVITY, 0.0f);
+			}
+
+			rb->Velocity += rb->Acceleration * deltaTime;
+			rb->Velocity *= glm::max(0.0f, 1.0f - rb->Drag * deltaTime);
+			transform->Translation += rb->Velocity * deltaTime;
+
+			rb->Acceleration = glm::vec3(0.0f);
+		}
+	}
+
+	void Scene::ResolveCollisions()
+	{
+		for (size_t i = 0; i < m_GameObjects.size(); i++)
+		{
+			for (size_t j = i + 1; j < m_GameObjects.size(); j++)
+			{
+				ResolveCollision(m_GameObjects[i].get(), m_GameObjects[j].get());
+			}
+		}
+	}
+
+	void Scene::ResolveCollision(GameObject* goA, GameObject* goB)
+	{
+		auto transformA = goA->GetComponent<Transform>();
+		auto transformB = goB->GetComponent<Transform>();
+		auto colliderA = goA->GetComponent<Collider>();
+		auto colliderB = goB->GetComponent<Collider>();
+
+		if (!transformA || !transformB || !colliderA || !colliderB)
+		{
+			return;
+		}
+
+		auto* boxA = dynamic_cast<BoxCollider*>(colliderA);
+		auto* sphereA = dynamic_cast<SphereCollider*>(colliderA);
+		auto* boxB = dynamic_cast<BoxCollider*>(colliderB);
+		auto* sphereB = dynamic_cast<SphereCollider*>(colliderB);
+
+		bool isColliding = false;
+		glm::vec3 normal(0.0f);
+		float penetration = 0.0f;
+
+		if (boxA && boxB)
+		{
+			const glm::vec3 posA = transformA->Translation + boxA->Offset;
+			const glm::vec3 minA = posA - boxA->Size * 0.5f;
+			const glm::vec3 maxA = posA + boxA->Size * 0.5f;
+
+			const glm::vec3 posB = transformB->Translation + boxB->Offset;
+			const glm::vec3 minB = posB - boxB->Size * 0.5f;
+			const glm::vec3 maxB = posB + boxB->Size * 0.5f;
+
+			isColliding = (minA.x < maxB.x && maxA.x > minB.x) &&
+				(minA.y < maxB.y && maxA.y > minB.y) &&
+				(minA.z < maxB.z && maxA.z > minB.z);
+
+			if (isColliding)
+			{
+				const float overlapX = std::min(maxA.x, maxB.x) - std::max(minA.x, minB.x);
+				const float overlapY = std::min(maxA.y, maxB.y) - std::max(minA.y, minB.y);
+				const float overlapZ = std::min(maxA.z, maxB.z) - std::max(minA.z, minB.z);
+
+				penetration = std::min({ overlapX, overlapY, overlapZ });
+				if (penetration == overlapX)
+				{
+					normal = glm::vec3(posA.x < posB.x ? -1.0f : 1.0f, 0.0f, 0.0f);
+				}
+				else if (penetration == overlapY)
+				{
+					normal = glm::vec3(0.0f, posA.y < posB.y ? -1.0f : 1.0f, 0.0f);
+				}
+				else
+				{
+					normal = glm::vec3(0.0f, 0.0f, posA.z < posB.z ? -1.0f : 1.0f);
+				}
+			}
+		}
+		else if (sphereA && sphereB)
+		{
+			const glm::vec3 posA = transformA->Translation + sphereA->Offset;
+			const glm::vec3 posB = transformB->Translation + sphereB->Offset;
+			const float distSq = glm::dot(posA - posB, posA - posB);
+			const float radSum = sphereA->Radius + sphereB->Radius;
+
+			if (distSq < (radSum * radSum) && distSq > COLLISION_EPSILON)
+			{
+				isColliding = true;
+				const float dist = std::sqrt(distSq);
+				penetration = radSum - dist;
+				normal = (posA - posB) / dist;
+			}
+		}
+
+		if (isColliding)
+		{
+			auto rbA = goA->GetComponent<Rigidbody>();
+			auto rbB = goB->GetComponent<Rigidbody>();
+			const glm::vec3 separation = normal * penetration;
+
+			if (rbA && !rbB)
+			{
+				transformA->Translation += separation;
+				if (glm::dot(rbA->Velocity, normal) < 0.0f)
+				{
+					rbA->Velocity -= normal * glm::dot(rbA->Velocity, normal);
+				}
+			}
+			else if (!rbA && rbB)
+			{
+				transformB->Translation -= separation;
+				if (glm::dot(rbB->Velocity, -normal) < 0.0f)
+				{
+					rbB->Velocity -= -normal * glm::dot(rbB->Velocity, -normal);
+				}
+			}
+			else if (rbA && rbB)
+			{
+				transformA->Translation += separation * 0.5f;
+				transformB->Translation -= separation * 0.5f;
+				if (glm::dot(rbA->Velocity, normal) < 0.0f)
+				{
+					rbA->Velocity -= normal * glm::dot(rbA->Velocity, normal);
+				}
+
+				if (glm::dot(rbB->Velocity, -normal) < 0.0f)
+				{
+					rbB->Velocity -= -normal * glm::dot(rbB->Velocity, -normal);
+				}
+			}
+
+			if (auto nscA = goA->GetComponent<NativeScriptComponent>())
+			{
+				nscA->DispatchCollisionEnter(goB);
+			}
+
+			if (auto nscB = goB->GetComponent<NativeScriptComponent>())
+			{
+				nscB->DispatchCollisionEnter(goA);
+			}
+		}
+	}
+
+	Scene::LightInfo Scene::GetMainLightInfo()
+	{
+		LightInfo info;
+		for (const auto& go : m_GameObjects)
+		{
+			auto light = go->GetComponent<LightComponent>();
+			if (light)
+			{
+				const glm::mat4 lightTrans = go->GetComponent<Transform>()->GetTransform();
+				info.Direction = glm::normalize(glm::vec3(lightTrans[2]));
+				info.Color = light->Color;
+				info.Intensity = light->Intensity;
+				break;
+			}
+		}
+
+		return info;
+	}
+
+	void Scene::RenderObjects(const glm::mat4& viewProjection, const glm::vec3& viewPos, bool isEditor)
+	{
+		const LightInfo light = GetMainLightInfo();
+
+		for (const auto& go : m_GameObjects)
+		{
+			auto transform = go->GetComponent<Transform>();
+			auto mr = go->GetComponent<MeshRenderer>();
+
+			if (!mr || !transform)
+			{
+				continue;
+			}
+
+			auto shader = mr->GetShader();
+			auto mesh = mr->GetMesh();
+
+			if (!shader || !mesh)
+			{
+				continue;
+			}
+
+			shader->Bind();
+			shader->UploadUniformMat4("u_ViewProjection", viewProjection);
+			shader->UploadUniformMat4("u_Transform", transform->GetTransform());
+			shader->UploadUniformFloat3("u_ViewPos", viewPos);
+			shader->UploadUniformFloat3("u_LightDir", light.Direction);
+			shader->UploadUniformFloat3("u_LightColor", light.Color * light.Intensity);
+
+			if (isEditor)
+			{
+				shader->UploadUniformInt("u_EntityID", static_cast<int>(go->GetRuntimeID()));
+			}
+
+			Renderer::Submit(mesh, shader);
+		}
+	}
+
+	void Scene::RenderGrid(const glm::mat4& viewProjection, const glm::vec3& viewPos)
+	{
 		if (!m_GridVAO)
 		{
 			m_GridVAO = std::make_shared<VertexArray>();
 
 			float gridVertices[] = {
-				-100.0f, 0.0f, -100.0f, 0.0f, 1.0f, 0.0f,
-				 100.0f, 0.0f, -100.0f, 0.0f, 1.0f, 0.0f,
-				 100.0f, 0.0f,  100.0f, 0.0f, 1.0f, 0.0f,
-				-100.0f, 0.0f,  100.0f, 0.0f, 1.0f, 0.0f
+				-GRID_SIZE, 0.0f, -GRID_SIZE, 0.0f, 1.0f, 0.0f,
+				 GRID_SIZE, 0.0f, -GRID_SIZE, 0.0f, 1.0f, 0.0f,
+				 GRID_SIZE, 0.0f,  GRID_SIZE, 0.0f, 1.0f, 0.0f,
+				-GRID_SIZE, 0.0f,  GRID_SIZE, 0.0f, 1.0f, 0.0f
 			};
 
 			uint32_t gridIndices[] = { 0, 1, 2, 2, 3, 0 };
@@ -406,7 +421,7 @@ namespace Proto
 			auto ibo = std::make_shared<IndexBuffer>(gridIndices, 6);
 			m_GridVAO->SetIndexBuffer(ibo);
 
-			std::string gridVertexSrc = R"(
+			const std::string gridVertexSrc = R"(
 				#version 330 core
 				layout(location = 0) in vec3 a_Position;
 				out vec3 v_FragPos;
@@ -417,7 +432,7 @@ namespace Proto
 				}
 			)";
 
-			std::string gridFragmentSrc = R"(
+			const std::string gridFragmentSrc = R"(
 				#version 330 core
 				in vec3 v_FragPos;
 				out vec4 o_Color;
@@ -443,72 +458,25 @@ namespace Proto
 			m_GridShader = std::make_shared<Shader>(gridVertexSrc, gridFragmentSrc);
 		}
 
-		glm::mat4 viewProjection = camera.GetViewProjection();
-		glm::vec3 viewPos = camera.GetPosition();
-
-		// 에디터에서도 정면이 잘 보이도록 대각선 조명 적용
-		glm::vec3 lightDir = { -0.5f, -0.5f, -1.0f };
-		glm::vec3 lightColor = { 1.0f, 1.0f, 1.0f };
-		float lightIntensity = 1.0f;
-
-		for (auto& go : m_GameObjects)
-		{
-			auto light = go->GetComponent<LightComponent>();
-			if (light)
-			{
-				glm::mat4 lightTrans = go->GetComponent<Transform>()->GetTransform();
-				lightDir = glm::normalize(glm::vec3(lightTrans[2]));
-				lightColor = light->Color;
-				lightIntensity = light->Intensity;
-				break;
-			}
-		}
-
-		for (auto& go : m_GameObjects)
-		{
-			auto transform = go->GetComponent<Transform>();
-			auto meshRenderer = go->GetComponent<MeshRenderer>();
-
-			if (meshRenderer && transform)
-			{
-				auto shader = meshRenderer->GetShader();
-				auto mesh = meshRenderer->GetMesh();
-
-				if (shader && mesh)
-				{
-					shader->Bind();
-					shader->UploadUniformMat4("u_ViewProjection", viewProjection);
-					shader->UploadUniformMat4("u_Transform", transform->GetTransform());
-					shader->UploadUniformInt("u_EntityID", (int)go->GetRuntimeID());
-
-					shader->UploadUniformFloat3("u_ViewPos", viewPos);
-					shader->UploadUniformFloat3("u_LightDir", lightDir);
-					shader->UploadUniformFloat3("u_LightColor", lightColor * lightIntensity);
-
-					Renderer::Submit(mesh, shader);
-				}
-			}
-		}
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDepthMask(GL_FALSE);
-
 		if (m_GridShader && m_GridVAO)
 		{
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDepthMask(GL_FALSE);
+
 			m_GridShader->Bind();
 			m_GridShader->UploadUniformMat4("u_ViewProjection", viewProjection);
 			m_GridShader->UploadUniformFloat3("u_CameraPos", viewPos);
 			Renderer::Submit(m_GridVAO, m_GridShader);
-		}
 
-		glDepthMask(GL_TRUE);
-		glDisable(GL_BLEND);
+			glDepthMask(GL_TRUE);
+			glDisable(GL_BLEND);
+		}
 	}
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)
 	{
-		for (auto& go : m_GameObjects)
+		for (const auto& go : m_GameObjects)
 		{
 			auto cameraComponent = go->GetComponent<CameraComponent>();
 			if (cameraComponent && !cameraComponent->FixedAspectRatio)
@@ -520,22 +488,27 @@ namespace Proto
 
 	GameObject* Scene::GetGameObjectByRuntimeID(uint32_t id)
 	{
-		for (auto& go : m_GameObjects)
+		for (const auto& go : m_GameObjects)
 		{
 			if (go->GetRuntimeID() == id)
+			{
 				return go.get();
+			}
 		}
+
 		return nullptr;
 	}
 
 	GameObject* Scene::GetGameObjectByUUID(UUID uuid)
 	{
-		for (auto& go : m_GameObjects)
+		for (const auto& go : m_GameObjects)
 		{
 			if (go->GetUUID() == uuid)
+			{
 				return go.get();
+			}
 		}
+
 		return nullptr;
 	}
-
 }

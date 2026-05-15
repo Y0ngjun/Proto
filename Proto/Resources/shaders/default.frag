@@ -11,20 +11,16 @@ uniform vec3 u_LightDir;
 uniform vec3 u_LightColor;
 
 void main() {
-    // 기본 오브젝트 색상 (밝은 회색)
     vec3 objectColor = vec3(0.8, 0.8, 0.8); 
 
-    // 1. Ambient (주변광)
     float ambientStrength = 0.2;
     vec3 ambient = ambientStrength * u_LightColor;
 
-    // 2. Diffuse (난반사광)
     vec3 norm = normalize(v_Normal);
-    vec3 lightDir = normalize(-u_LightDir); // 빛이 향하는 방향의 반대 방향 계산
+    vec3 lightDir = normalize(-u_LightDir);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * u_LightColor;
 
-    // 3. Specular (정반사광)
     float specularStrength = 0.5;
     vec3 viewDir = normalize(u_ViewPos - v_FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);

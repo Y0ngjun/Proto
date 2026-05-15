@@ -1,3 +1,8 @@
+/*
+ * 씬(Scene) 객체의 직렬화 및 역직렬화를 담당하는 클래스입니다.
+ * YAML 포맷을 사용하여 씬 내의 게임 오브젝트와 컴포넌트 데이터를 파일 단위로 저장하고 불러옵니다.
+ */
+
 #include "SceneSerializer.h"
 #include "../Core/YAMLHelpers.h"
 #include "Components/Transform.h"
@@ -8,20 +13,20 @@
 #include "Components/BoxCollider.h"
 #include "Components/SphereCollider.h"
 #include "Components/NativeScriptComponent.h"
+#include "../Core/Log.h"
+#include "Scene.h"
 
 #include <fstream>
-#include <iostream>
 
-namespace Proto {
-
+namespace Proto
+{
 	SceneSerializer::SceneSerializer(Scene* scene)
 		: m_Scene(scene)
-	{
-	}
+	{}
 
 	void SceneSerializer::Serialize(const std::string& filepath)
 	{
-		std::string yamlString = SerializeToString();
+		const std::string yamlString = SerializeToString();
 		std::ofstream fout(filepath);
 		fout << yamlString;
 	}
@@ -33,14 +38,14 @@ namespace Proto {
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
-		for (auto& go : m_Scene->GetGameObjects())
+		for (const auto& go : m_Scene->GetGameObjects())
 		{
 			out << YAML::BeginMap;
-			out << YAML::Key << "Entity" << YAML::Value << (uint64_t)go->GetUUID();
+			out << YAML::Key << "Entity" << YAML::Value << static_cast<uint64_t>(go->GetUUID());
 			out << YAML::Key << "Name" << YAML::Value << go->GetName();
 
 			out << YAML::Key << "Components" << YAML::Value << YAML::BeginSeq;
-			for (auto& comp : go->GetComponents())
+			for (const auto& comp : go->GetComponents())
 			{
 				comp->Serialize(out);
 			}
@@ -62,9 +67,9 @@ namespace Proto {
 		{
 			data = YAML::LoadFile(filepath);
 		}
-		catch (YAML::ParserException e)
+		catch (const YAML::ParserException& e)
 		{
-			std::cerr << "Failed to load .scene file: " << e.what() << "\n";
+			PROTO_LOG_ERROR("[씬 직렬화 오류] .scene 파일을 로드하는데 실패했습니다: " + std::string(e.what()));
 			return false;
 		}
 
@@ -78,9 +83,9 @@ namespace Proto {
 		{
 			data = YAML::Load(yamlString);
 		}
-		catch (YAML::ParserException e)
+		catch (const YAML::ParserException& e)
 		{
-			std::cerr << "Failed to load scene from string: " << e.what() << "\n";
+			PROTO_LOG_ERROR("[씬 직렬화 오류] 문자열에서 씬을 로드하는데 실패했습니다: " + std::string(e.what()));
 			return false;
 		}
 
@@ -90,62 +95,74 @@ namespace Proto {
 	bool SceneSerializer::DeserializeNode(const YAML::Node& data)
 	{
 		if (!data["Scene"])
-			return false;
-
-		auto entities = data["Entities"];
-		if (entities)
 		{
-			for (auto entity : entities)
+			return false;
+		}
+
+		const auto entities = data["Entities"];
+		if (!entities)
+		{
+			return true;
+		}
+
+		for (const auto& entity : entities)
+		{
+			const uint64_t uuid = entity["Entity"].as<uint64_t>();
+			const std::string name = entity["Name"].as<std::string>();
+
+			GameObject* go = m_Scene->CreateGameObject(name);
+			go->SetUUID(UUID(uuid));
+
+			const auto components = entity["Components"];
+			if (!components)
 			{
-				uint64_t uuid = entity["Entity"].as<uint64_t>();
-				std::string name = entity["Name"].as<std::string>();
+				continue;
+			}
 
-				GameObject* go = m_Scene->CreateGameObject(name);
-				go->SetUUID(UUID(uuid));
+			for (const auto& comp : components)
+			{
+				const std::string compName = comp["Component"].as<std::string>();
 
-				auto components = entity["Components"];
-				if (components)
+				if (compName == "Transform")
 				{
-					for (auto comp : components)
+					auto* c = go->GetComponent<Transform>();
+					if (!c)
 					{
-						std::string compName = comp["Component"].as<std::string>();
-						if (compName == "Transform") {
-							auto* c = go->GetComponent<Transform>();
-							if (!c) c = go->AddComponent<Transform>();
-							c->Deserialize(comp);
-						}
-						else if (compName == "MeshRenderer") {
-							auto* c = go->AddComponent<MeshRenderer>();
-							c->Deserialize(comp);
-						}
-						else if (compName == "CameraComponent") {
-							auto* c = go->AddComponent<CameraComponent>();
-							c->Deserialize(comp);
-						}
-						else if (compName == "LightComponent") {
-							auto* c = go->AddComponent<LightComponent>();
-							c->Deserialize(comp);
-						}
-						else if (compName == "Rigidbody") {
-							auto* c = go->AddComponent<Rigidbody>();
-							c->Deserialize(comp);
-						}
-						else if (compName == "BoxCollider") {
-							auto* c = go->AddComponent<BoxCollider>();
-							c->Deserialize(comp);
-						}
-						else if (compName == "SphereCollider") {
-							auto* c = go->AddComponent<SphereCollider>();
-							c->Deserialize(comp);
-						}
-						else if (compName == "NativeScriptComponent") {
-							auto* c = go->AddComponent<NativeScriptComponent>();
-							std::string scriptName = comp["ScriptName"].as<std::string>();
-						}
+						c = go->AddComponent<Transform>();
 					}
+					c->Deserialize(comp);
+				}
+				else if (compName == "MeshRenderer")
+				{
+					go->AddComponent<MeshRenderer>()->Deserialize(comp);
+				}
+				else if (compName == "CameraComponent")
+				{
+					go->AddComponent<CameraComponent>()->Deserialize(comp);
+				}
+				else if (compName == "LightComponent")
+				{
+					go->AddComponent<LightComponent>()->Deserialize(comp);
+				}
+				else if (compName == "Rigidbody")
+				{
+					go->AddComponent<Rigidbody>()->Deserialize(comp);
+				}
+				else if (compName == "BoxCollider")
+				{
+					go->AddComponent<BoxCollider>()->Deserialize(comp);
+				}
+				else if (compName == "SphereCollider")
+				{
+					go->AddComponent<SphereCollider>()->Deserialize(comp);
+				}
+				else if (compName == "NativeScriptComponent")
+				{
+					go->AddComponent<NativeScriptComponent>()->Deserialize(comp);
 				}
 			}
 		}
+
 		return true;
 	}
 }

@@ -1,3 +1,8 @@
+/*
+ * 프로젝트 자산을 탐색하고 관리하는 에디터 콘텐츠 브라우저 패널 클래스입니다.
+ * 디렉토리 탐색, 파일 실행(프로젝트/씬 로드) 기능을 제공합니다.
+ */
+
 #pragma once
 
 #include <filesystem>
@@ -13,6 +18,7 @@ namespace Proto
 		void OnImGuiRender();
 
 	private:
+		std::filesystem::path m_BaseDirectory;
 		std::filesystem::path m_CurrentDirectory;
 	};
 }

@@ -1,3 +1,8 @@
+/*
+ * 씬 내의 기본 엔티티 단위인 게임 오브젝트 클래스입니다.
+ * 고유 ID(UUID, RuntimeID)를 가지며 여러 컴포넌트를 부착(Add)하고 관리할 수 있습니다.
+ */
+
 #pragma once
 
 #include <string>
@@ -17,15 +22,36 @@ namespace Proto
 		GameObject(const std::string& name = "GameObject");
 		~GameObject();
 
-		const std::string& GetName() const { return m_Name; }
-		void SetName(const std::string& name) { m_Name = name; }
-		
-		UUID GetUUID() const { return m_UUID; }
-		void SetUUID(UUID uuid) { m_UUID = uuid; }
-		
-		uint32_t GetRuntimeID() const { return m_RuntimeID; }
-		void SetRuntimeID(uint32_t id) { m_RuntimeID = id; }
-		
+		const std::string& GetName() const
+		{
+			return m_Name;
+		}
+
+		void SetName(const std::string& name)
+		{
+			m_Name = name;
+		}
+
+		UUID GetUUID() const
+		{
+			return m_UUID;
+		}
+
+		void SetUUID(UUID uuid)
+		{
+			m_UUID = uuid;
+		}
+
+		uint32_t GetRuntimeID() const
+		{
+			return m_RuntimeID;
+		}
+
+		void SetRuntimeID(uint32_t id)
+		{
+			m_RuntimeID = id;
+		}
+
 		void Update(float deltaTime);
 
 		static void ResetIDCounter();
@@ -51,6 +77,7 @@ namespace Proto
 					return target;
 				}
 			}
+
 			return nullptr;
 		}
 
@@ -82,7 +109,10 @@ namespace Proto
 			return *component;
 		}
 
-		const std::vector<std::unique_ptr<Component>>& GetComponents() const { return m_Components; }
+		const std::vector<std::unique_ptr<Component>>& GetComponents() const
+		{
+			return m_Components;
+		}
 
 	private:
 		UUID m_UUID;

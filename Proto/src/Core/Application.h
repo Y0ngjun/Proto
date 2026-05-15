@@ -1,3 +1,8 @@
+/*
+ * 엔진의 메인 애플리케이션 클래스입니다.
+ * 루프 제어, 윈도우 관리, 씬 로딩 및 에디터 레이어와의 연동을 담당합니다.
+ */
+
 #pragma once
 
 #include <functional>
@@ -5,12 +10,12 @@
 #include <string>
 #include <filesystem>
 #include "Window.h"
-#include "Project.h"
 
 namespace Proto
 {
 	class EditorLayer;
 	class Scene;
+	class Project;
 
 	class Application
 	{
@@ -20,8 +25,13 @@ namespace Proto
 		void Run();
 		float GetDeltaTime() const;
 
+		Scene* GetActiveScene() { return m_Scene; }
+
 		void SetScene(Scene* scene);
-		void SetUpdateCallback(const std::function<void(float)>& callback) { m_UpdateCallback = callback; }
+		void SetUpdateCallback(const std::function<void(float)>& callback)
+		{
+			m_UpdateCallback = callback;
+		}
 
 		void NewScene();
 		void OpenScene();
@@ -35,7 +45,11 @@ namespace Proto
 		void OpenProject(const std::filesystem::path& path);
 		void SaveProject();
 
-		bool IsPlaying() const { return m_SceneState == SceneState::Play; }
+		bool IsPlaying() const
+		{
+			return m_SceneState == SceneState::Play;
+		}
+
 		bool IsGameViewFocused() const;
 		void OnScenePlay();
 		void OnSceneStop();
@@ -68,7 +82,8 @@ namespace Proto
 
 		enum class SceneState
 		{
-			Edit = 0, Play = 1
+			Edit = 0,
+			Play = 1
 		};
 
 		SceneState m_SceneState = SceneState::Edit;

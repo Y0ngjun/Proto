@@ -1,11 +1,16 @@
+/*
+ * 엔진 프로젝트 설정을 관리하는 클래스입니다.
+ * 프로젝트 파일(.proto)의 로드, 저장 및 디렉토리 관리 기능을 담당합니다.
+ */
+
 #pragma once
 
 #include <string>
 #include <filesystem>
 #include <memory>
 
-namespace Proto {
-
+namespace Proto
+{
 	struct ProjectConfig
 	{
 		std::string Name = "Untitled";
@@ -20,40 +25,60 @@ namespace Proto {
 	class Project
 	{
 	public:
-		static std::shared_ptr<Project> New();
+		static std::shared_ptr<Project> New(const std::filesystem::path& path = "");
 		static std::shared_ptr<Project> Load(const std::filesystem::path& path);
 		static bool SaveActive(const std::filesystem::path& path);
 
-		static std::shared_ptr<Project> GetActive() { return s_ActiveProject; }
+		static std::shared_ptr<Project> GetActive()
+		{
+			return m_ActiveProject;
+		}
 
-		ProjectConfig& GetConfig() { return m_Config; }
+		ProjectConfig& GetConfig()
+		{
+			return m_Config;
+		}
 
 		static std::filesystem::path GetProjectDirectory()
 		{
-			if (!s_ActiveProject) return "";
-			return s_ActiveProject->m_Config.ProjectDirectory;
+			if (!m_ActiveProject)
+			{
+				return "";
+			}
+
+			return m_ActiveProject->m_Config.ProjectDirectory;
 		}
 
 		static std::filesystem::path GetAssetDirectory()
 		{
-			if (!s_ActiveProject) return "";
-			return s_ActiveProject->m_Config.ProjectDirectory / s_ActiveProject->m_Config.AssetDirectory;
+			if (!m_ActiveProject)
+			{
+				return "";
+			}
+
+			return m_ActiveProject->m_Config.ProjectDirectory / m_ActiveProject->m_Config.AssetDirectory;
 		}
 
 		static std::filesystem::path GetEngineResourceDirectory()
 		{
-			std::filesystem::path resourcePath = std::filesystem::current_path() / "Resources";
-			return resourcePath;
+			static const std::filesystem::path RESOURCE_PATH = std::filesystem::current_path() / "Resources";
+			return RESOURCE_PATH;
 		}
 
-		// Dirty Flag 관리
-		void SetDirty(bool dirty) { m_IsDirty = dirty; }
-		bool IsDirty() const { return m_IsDirty; }
+		void SetDirty(bool dirty)
+		{
+			m_IsDirty = dirty;
+		}
+
+		bool IsDirty() const
+		{
+			return m_IsDirty;
+		}
 
 	private:
 		ProjectConfig m_Config;
 		bool m_IsDirty = false;
-		static std::shared_ptr<Project> s_ActiveProject;
-	};
 
+		static std::shared_ptr<Project> m_ActiveProject;
+	};
 }

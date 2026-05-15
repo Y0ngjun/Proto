@@ -1,4 +1,10 @@
+/*
+ * 게임 오브젝트에 물리 법칙(중력, 속도, 마찰 등)을 적용하는 리지드바디 컴포넌트입니다.
+ * 질량(Mass)과 공기 저항(Drag) 등을 통해 물리 시뮬레이션의 계산에 사용됩니다.
+ */
+
 #include "Rigidbody.h"
+#include <yaml-cpp/yaml.h>
 
 namespace Proto
 {
@@ -17,11 +23,23 @@ namespace Proto
 	{
 		if (node["Velocity"])
 		{
-			auto vel = node["Velocity"];
+			const auto& vel = node["Velocity"];
 			Velocity = { vel[0].as<float>(), vel[1].as<float>(), vel[2].as<float>() };
 		}
-		if (node["Mass"]) Mass = node["Mass"].as<float>();
-		if (node["UseGravity"]) UseGravity = node["UseGravity"].as<bool>();
-		if (node["Drag"]) Drag = node["Drag"].as<float>();
+
+		if (node["Mass"])
+		{
+			Mass = node["Mass"].as<float>();
+		}
+
+		if (node["UseGravity"])
+		{
+			UseGravity = node["UseGravity"].as<bool>();
+		}
+
+		if (node["Drag"])
+		{
+			Drag = node["Drag"].as<float>();
+		}
 	}
 }

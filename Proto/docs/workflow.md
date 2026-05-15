@@ -13,6 +13,7 @@
     *   `docs/style-guide.md`: C++ 네이밍 컨벤션, 포맷팅, 주석 가이드
     *   `docs/testing.md`: 테스트 작성(AAA 패턴) 및 실행 방법
 *   **모듈별 상세 구현 (Layer Details)** - 해당 영역 코드 수정 시 참조
+    *   `src/Asset.md`: AssetManager, BuiltinAssetLoader, UUID 기반 에셋 관리
     *   `src/Core.md`: Application 게임 루프, Window, Input
     *   `src/Scene.md`: GameObject, Component 시스템 데이터 흐름
     *   `src/Renderer.md`: OpenGL 렌더링, Shader, Camera 파이프라인

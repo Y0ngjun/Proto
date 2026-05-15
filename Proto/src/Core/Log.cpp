@@ -1,17 +1,41 @@
-#include "Log.h"
+/*
+ * 엔진의 로깅 시스템을 담당하는 클래스입니다.
+ * 로그 메시지의 저장, 콘솔 출력 및 시간 정보 기록을 관리합니다.
+ */
+
+#include <iostream>
 #include <chrono>
 #include <iomanip>
 #include <sstream>
-#include <iostream>
+
+#include "Log.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace Proto
 {
-	std::vector<LogMessage> Log::s_Messages;
-	std::mutex Log::s_LogMutex;
+	namespace
+	{
+		static constexpr size_t INITIAL_MESSAGE_RESERVE = 1000;
+
+		// 콘솔 색상 코드 상수를 정의합니다.
+		static constexpr const char* COLOR_YELLOW = "\033[33m";
+		static constexpr const char* COLOR_RED = "\033[31m";
+		static constexpr const char* COLOR_RESET = "\033[0m";
+	}
+
+	std::vector<LogMessage> Log::m_Messages;
+	std::mutex Log::m_LogMutex;
 
 	void Log::Init()
 	{
-		s_Messages.reserve(1000);
+#ifdef _WIN32
+		// Windows 콘솔에서 UTF-8 한글 출력을 위해 코드 페이지를 65001로 설정합니다.
+		SetConsoleOutputCP(65001);
+#endif
+		m_Messages.reserve(INITIAL_MESSAGE_RESERVE);
 	}
 
 	void Log::Info(const std::string& message)
@@ -31,40 +55,51 @@ namespace Proto
 
 	void Log::Clear()
 	{
-		std::lock_guard<std::mutex> lock(s_LogMutex);
-		s_Messages.clear();
+		const std::lock_guard<std::mutex> lock(m_LogMutex);
+		m_Messages.clear();
 	}
 
 	void Log::Submit(LogLevel level, const std::string& message)
 	{
-		std::string timestamp = GetCurrentTimestamp();
-		
-		std::lock_guard<std::mutex> lock(s_LogMutex);
-		s_Messages.push_back({ level, message, timestamp });
+		const std::string timestamp = GetCurrentTimestamp();
+
+		{
+			const std::lock_guard<std::mutex> lock(m_LogMutex);
+			m_Messages.push_back({ level, message, timestamp });
+		}
 
 		switch (level)
 		{
 		case LogLevel::Info:
+		{
 			std::cout << "[" << timestamp << "] [INFO] " << message << std::endl;
 			break;
+		}
+
 		case LogLevel::Warn:
-			std::cout << "\033[33m[" << timestamp << "] [WARN] " << message << "\033[0m" << std::endl;
+		{
+			std::cout << COLOR_YELLOW << "[" << timestamp << "] [WARN] " << message << COLOR_RESET << std::endl;
 			break;
+		}
+
 		case LogLevel::Error:
-			std::cerr << "\033[31m[" << timestamp << "] [ERROR] " << message << "\033[0m" << std::endl;
+		{
+			std::cerr << COLOR_RED << "[" << timestamp << "] [ERROR] " << message << COLOR_RESET << std::endl;
 			break;
+		}
 		}
 	}
 
 	std::string Log::GetCurrentTimestamp()
 	{
-		auto now = std::chrono::system_clock::now();
-		auto in_time_t = std::chrono::system_clock::to_time_t(now);
-		struct tm time_info;
-		localtime_s(&time_info, &in_time_t);
+		const auto now = std::chrono::system_clock::now();
+		const auto inTimeT = std::chrono::system_clock::to_time_t(now);
+
+		struct tm timeInfo;
+		localtime_s(&timeInfo, &inTimeT);
 
 		std::stringstream ss;
-		ss << std::put_time(&time_info, "%H:%M:%S");
+		ss << std::put_time(&timeInfo, "%H:%M:%S");
 		return ss.str();
 	}
 }

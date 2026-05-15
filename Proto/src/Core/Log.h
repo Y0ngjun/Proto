@@ -1,3 +1,8 @@
+/*
+ * 엔진의 로깅 시스템을 담당하는 클래스입니다.
+ * 로그 메시지의 저장, 콘솔 출력 및 시간 정보 기록을 관리합니다.
+ */
+
 #pragma once
 
 #include <string>
@@ -31,14 +36,19 @@ namespace Proto
 		static void Error(const std::string& message);
 
 		static void Clear();
-		static const std::vector<LogMessage>& GetMessages() { return s_Messages; }
+
+		static const std::vector<LogMessage>& GetMessages()
+		{
+			return m_Messages;
+		}
 
 	private:
 		static void Submit(LogLevel level, const std::string& message);
 		static std::string GetCurrentTimestamp();
 
-		static std::vector<LogMessage> s_Messages;
-		static std::mutex s_LogMutex;
+	private:
+		static std::vector<LogMessage> m_Messages;
+		static std::mutex m_LogMutex;
 	};
 }
 

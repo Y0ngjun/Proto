@@ -147,6 +147,12 @@
     <ClCompile Include="src\Scene\Components\SphereCollider.cpp">
       <Filter>�ҽ� ����</Filter>
     </ClCompile>
+    <ClCompile Include="src\Asset\BuiltinAssetLoader.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\EditorLayer.cpp">
+      <Filter>�ҽ� ����</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\Window.h">
@@ -1166,6 +1172,18 @@
     <ClInclude Include="src\Core\Base.h">
       <Filter>��� ����</Filter>
     </ClInclude>
+    <ClInclude Include="src\Asset\BuiltinAssetLoader.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\EditorLayer.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Camera.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\ScriptRegistry.h">
+      <Filter>��� ����</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="docs\progress.md" />
@@ -1178,5 +1196,7 @@
     <None Include="Resources\shaders\default.vert" />
     <None Include="Resources\shaders\default.frag" />
     <None Include="docs\handoff.md" />
+    <None Include="src\Asset.md" />
+    <None Include=".github\copilot-instructions.md" />
   </ItemGroup>
 </Project>

@@ -513,6 +513,7 @@
     <ClInclude Include="src\Core\UUID.h" />
     <ClInclude Include="src\Core\FileDialog.h" />
     <ClInclude Include="src\Renderer\Buffer.h" />
+    <ClInclude Include="src\Renderer\Camera.h" />
     <ClInclude Include="src\Renderer\EditorCamera.h" />
     <ClInclude Include="src\Renderer\Framebuffer.h" />
     <ClInclude Include="src\Renderer\MeshLoader.h" />
@@ -537,14 +538,17 @@
     <ClInclude Include="src\Scene\Components\Collider.h" />
     <ClInclude Include="src\Scene\Component.h" />
     <ClInclude Include="src\Core\Base.h" />
+    <ClInclude Include="src\Scene\ScriptRegistry.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".github\copilot-instructions.md" />
     <None Include="docs\handoff.md" />
     <None Include="Resources\shaders\default.vert" />
     <None Include="Resources\shaders\default.frag" />
     <None Include="docs\progress.md" />
     <None Include="docs\TODO.md" />
     <None Include="docs\workflow.md" />
+    <None Include="src\Asset.md" />
     <None Include="src\Core.md" />
     <None Include="src\Editor.md" />
     <None Include="src\Renderer.md" />

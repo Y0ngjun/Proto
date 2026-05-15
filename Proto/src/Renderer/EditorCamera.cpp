@@ -1,3 +1,8 @@
+/*
+ * 에디터 뷰포트 내에서 씬을 관찰하고 조작하기 위한 에디터 카메라 클래스입니다.
+ * 마우스 및 키보드 입력을 처리하여 화면 이동(Pan), 회전(Rotate) 및 줌 기능을 지원합니다.
+ */
+
 #define GLM_ENABLE_EXPERIMENTAL
 
 #include <glfw/glfw3.h>
@@ -9,9 +14,12 @@
 
 namespace Proto
 {
-	static constexpr float MouseSensitivity = 0.003f;
-	static constexpr float RotationSensitivity = 0.8f;
-	static constexpr float MovementSpeed = 5.0f;
+	namespace
+	{
+		static constexpr float MOUSE_SENSITIVITY = 0.003f;
+		static constexpr float ROTATION_SENSITIVITY = 0.8f;
+		static constexpr float MOVEMENT_SPEED = 5.0f;
+	}
 
 	EditorCamera::EditorCamera(float fov, float aspectRatio, float nearClip, float farClip)
 		: m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip)
@@ -64,8 +72,9 @@ namespace Proto
 	{
 		double xpos, ypos;
 		RawInput::GetMousePosition(xpos, ypos);
-		const glm::vec2 mouse{ (float)xpos, (float)ypos };
-		const glm::vec2 delta = (mouse - m_InitialMousePosition) * MouseSensitivity;
+
+		const glm::vec2 mouse{ static_cast<float>(xpos), static_cast<float>(ypos) };
+		const glm::vec2 delta = (mouse - m_InitialMousePosition) * MOUSE_SENSITIVITY;
 		m_InitialMousePosition = mouse;
 
 		HandleMouseInput(delta);
@@ -79,7 +88,7 @@ namespace Proto
 		if (RawInput::GetMouseButton(GLFW_MOUSE_BUTTON_RIGHT))
 		{
 			MouseRotate(delta);
-			// Update focal point to keep position fixed (Free Look style rotation)
+			// 위치 고정을 위한 초점(Focal Point) 업데이트 (Free Look 스타일 회전)
 			m_FocalPoint = m_Position + GetForwardDirection() * m_Distance;
 		}
 		else if (RawInput::GetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE))
@@ -91,19 +100,44 @@ namespace Proto
 	void EditorCamera::HandleKeyboardInput(float deltaTime)
 	{
 		if (!RawInput::GetMouseButton(GLFW_MOUSE_BUTTON_RIGHT))
+		{
 			return;
+		}
 
-		const float speed = MovementSpeed * deltaTime;
+		const float speed = MOVEMENT_SPEED * deltaTime;
 		const glm::vec3 forward = GetForwardDirection();
 		const glm::vec3 right = GetRightDirection();
 		const glm::vec3 up = GetUpDirection();
 
-		if (RawInput::GetKey(GLFW_KEY_W)) m_FocalPoint += forward * speed;
-		if (RawInput::GetKey(GLFW_KEY_S)) m_FocalPoint -= forward * speed;
-		if (RawInput::GetKey(GLFW_KEY_A)) m_FocalPoint -= right * speed;
-		if (RawInput::GetKey(GLFW_KEY_D)) m_FocalPoint += right * speed;
-		if (RawInput::GetKey(GLFW_KEY_E)) m_FocalPoint += up * speed;
-		if (RawInput::GetKey(GLFW_KEY_Q)) m_FocalPoint -= up * speed;
+		if (RawInput::GetKey(GLFW_KEY_W))
+		{
+			m_FocalPoint += forward * speed;
+		}
+
+		if (RawInput::GetKey(GLFW_KEY_S))
+		{
+			m_FocalPoint -= forward * speed;
+		}
+
+		if (RawInput::GetKey(GLFW_KEY_A))
+		{
+			m_FocalPoint -= right * speed;
+		}
+
+		if (RawInput::GetKey(GLFW_KEY_D))
+		{
+			m_FocalPoint += right * speed;
+		}
+
+		if (RawInput::GetKey(GLFW_KEY_E))
+		{
+			m_FocalPoint += up * speed;
+		}
+
+		if (RawInput::GetKey(GLFW_KEY_Q))
+		{
+			m_FocalPoint -= up * speed;
+		}
 	}
 
 	void EditorCamera::MousePan(const glm::vec2& delta)
@@ -116,7 +150,7 @@ namespace Proto
 	void EditorCamera::MouseRotate(const glm::vec2& delta)
 	{
 		const float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
-		m_Yaw += yawSign * delta.x * RotationSensitivity;
-		m_Pitch += delta.y * RotationSensitivity;
+		m_Yaw += yawSign * delta.x * ROTATION_SENSITIVITY;
+		m_Pitch += delta.y * ROTATION_SENSITIVITY;
 	}
 }

@@ -1,5 +1,14 @@
+/*
+ * OpenGL 렌더링 파이프라인의 기본 명령을 수행하는 클래스입니다.
+ * 화면 지우기(Clear), 배경색 설정, 드로우 콜(Draw Call) 제출 기능을 담당합니다.
+ */
+
 #include <glad/glad.h>
+
 #include "Renderer.h"
+#include "VertexArray.h"
+#include "Shader.h"
+#include "Buffer.h"
 
 namespace Proto
 {
@@ -16,7 +25,9 @@ namespace Proto
 	void Renderer::Submit(const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<Shader>& shader)
 	{
 		if (!vertexArray || !shader)
+		{
 			return;
+		}
 
 		shader->Bind();
 		vertexArray->Bind();
