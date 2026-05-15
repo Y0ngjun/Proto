@@ -30,7 +30,11 @@ Release/
 *.tmp
 *.log
 
-# Dependencies/
+# Dependencies (Explicitly tracked)
+!**/Dependencies/
+!**/Dependencies/**
 
-# ImGui
-Proto/imgui.ini
+# ImGui & Editor
+**/imgui.ini
+build.log
+build_log.txt

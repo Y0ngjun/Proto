@@ -1,6 +1,6 @@
 Scene: Untitled
 Entities:
-  - Entity: 7670461822590607760
+  - Entity: 5891540181282475087
     Name: Main Camera
     Components:
       - Component: Transform
@@ -13,7 +13,7 @@ Entities:
         FOV: 0.7853982
         NearClip: 0.1
         FarClip: 1000
-  - Entity: 9983729690975530709
+  - Entity: 15791088558744650056
     Name: Directional Light
     Components:
       - Component: Transform
@@ -23,14 +23,3 @@ Entities:
       - Component: LightComponent
         Color: [1, 1, 1]
         Intensity: 1
-  - Entity: 8798567610814479572
-    Name: Cylinder
-    Components:
-      - Component: Transform
-        Translation: [0, 0, 0]
-        Rotation: [0, 0, 0]
-        Scale: [1, 1, 1]
-      - Component: MeshRenderer
-        MeshUUID: 4
-        ShaderUUID: 100
-        MeshTypeName: Cylinder
