@@ -31,8 +31,8 @@ Release/
 *.log
 
 # Dependencies (Explicitly tracked)
-!**/Dependencies/
-!**/Dependencies/**
+!Proto/Dependencies/
+!Proto/Dependencies/**
 
 # ImGui & Editor
 **/imgui.ini
