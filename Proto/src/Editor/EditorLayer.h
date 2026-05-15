@@ -76,7 +76,7 @@ namespace Proto
 		void SetDarkThemeColors();
 		void RenderMenuBar();
 		void RenderSceneViewportHeader();
-		void HandleGizmos(GameObject* selectedEntity);
+		void HandleGizmos(GameObject* selectedEntity, const glm::vec2& viewportMin, const glm::vec2& viewportSize);
 
 		void BeginFrame() const;
 		void EndFrame() const;

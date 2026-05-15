@@ -110,8 +110,8 @@ namespace Proto
 			glfwSetWindowShouldClose(static_cast<GLFWwindow*>(glfwGetCurrentContext()), true);
 		}
 
-		// 단축키: 기즈모 타입 변경 (뷰포트 포커스 시)
-		if (m_IsViewportFocused && !ImGuizmo::IsUsing())
+		// 단축키: 기즈모 타입 변경 (뷰포트 포커스 시 및 카메라 조작 중이 아닐 때)
+		if (m_IsViewportFocused && !ImGuizmo::IsUsing() && !RawInput::GetMouseButton(Mouse::BUTTON_RIGHT))
 		{
 			if (RawInput::GetKeyDown(GLFW_KEY_Q)) m_GizmoType = -1;
 			if (RawInput::GetKeyDown(GLFW_KEY_W)) m_GizmoType = (int)ImGuizmo::OPERATION::TRANSLATE;
@@ -394,7 +394,7 @@ namespace Proto
 		ImGui::PopStyleColor();
 	}
 
-	void EditorLayer::HandleGizmos(GameObject* selectedEntity)
+	void EditorLayer::HandleGizmos(GameObject* selectedEntity, const glm::vec2& viewportMin, const glm::vec2& viewportSize)
 	{
 		if (!selectedEntity || m_GizmoType == -1)
 		{
@@ -403,7 +403,7 @@ namespace Proto
 
 		ImGuizmo::SetOrthographic(false);
 		ImGuizmo::SetDrawlist();
-		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, (float)ImGui::GetWindowWidth(), (float)ImGui::GetWindowHeight());
+		ImGuizmo::SetRect(viewportMin.x, viewportMin.y, viewportSize.x, viewportSize.y);
 
 		const glm::mat4& cameraProjection = m_EditorCamera.GetProjection();
 		const glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
@@ -470,7 +470,7 @@ namespace Proto
 		const glm::vec2 viewportBounds[2] = { { imageMin.x, imageMin.y }, { imageMax.x, imageMax.y } };
 
 		HandleObjectPicking(activeScene, viewportBounds, { imageMax.x - imageMin.x, imageMax.y - imageMin.y });
-		HandleGizmos(m_SceneHierarchyPanel->GetSelectedGameObject());
+		HandleGizmos(m_SceneHierarchyPanel->GetSelectedGameObject(), { imageMin.x, imageMin.y }, { imageMax.x - imageMin.x, imageMax.y - imageMin.y });
 
 		ImGui::End();
 		ImGui::PopStyleVar(2);

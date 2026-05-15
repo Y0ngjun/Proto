@@ -1,6 +1,6 @@
 Scene: Untitled
 Entities:
-  - Entity: 336924751863663305
+  - Entity: 12479980578388771832
     Name: Main Camera
     Components:
       - Component: Transform
@@ -13,7 +13,7 @@ Entities:
         FOV: 0.7853982
         NearClip: 0.1
         FarClip: 1000
-  - Entity: 8752347547297205040
+  - Entity: 17264348852887890828
     Name: Directional Light
     Components:
       - Component: Transform
@@ -23,25 +23,14 @@ Entities:
       - Component: LightComponent
         Color: [1, 1, 1]
         Intensity: 1
-  - Entity: 12685561422622439195
+  - Entity: 16397192684078673630
     Name: Cube
     Components:
       - Component: Transform
-        Translation: [0, 0, 0]
-        Rotation: [0, 0, 0]
+        Translation: [0, 0, -5.9604645e-08]
+        Rotation: [0, -0, 0]
         Scale: [1, 1, 1]
       - Component: MeshRenderer
         MeshUUID: 1
         ShaderUUID: 100
         MeshTypeName: Cube
-  - Entity: 5579704009431071376
-    Name: Empty Object
-    Components:
-      - Component: Transform
-        Translation: [2.0746384, -0.025012791, 0]
-        Rotation: [0, -0, 0]
-        Scale: [1, 1, 1]
-      - Component: MeshRenderer
-        MeshUUID: 3
-        ShaderUUID: 100
-        MeshTypeName: Sphere
