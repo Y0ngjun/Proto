@@ -263,6 +263,12 @@ namespace Proto
 		m_Scene = new Scene();
 		m_Scene->CreateDefault();
 
+		if (m_EditorLayer)
+		{
+			const auto gameSpec = m_EditorLayer->GetGameFramebuffer()->GetSpecification();
+			m_Scene->OnViewportResize(gameSpec.Width, gameSpec.Height);
+		}
+
 		SaveScene(*path);
 		PROTO_LOG_INFO("새 씬 생성 및 저장 완료: " + m_ActiveScenePath.string());
 	}

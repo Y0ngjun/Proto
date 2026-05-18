@@ -5,6 +5,23 @@ Milestone 4 (Scripting & UI) 진행 중. MVP 목표: 3D 탄막 게임.
 
 ---
 
+## 🚨 긴급 안건
+- 기능 명세 작성
+  - 각 기능 점검
+- 테스트 도입
+- 직렬화/역직렬화 전수조사
+
+## 📋 백로그
+- public API 정의
+- 스마트 포인터 전면 도입
+- 중앙 집중식 데이터 수정 시스템
+  - Command 패턴을 통한 데이터 변경 로직 통일
+  - Undo/Redo 기능 구현 기반 구축
+  - 프로퍼티 리플렉션
+- 씬 그리드 고급화
+- 머터리얼 캡슐화
+- 입력 시스템 개선 (향후 빌드 고려)
+
 ## ✅ 완료된 마일스톤 (Milestone 0~3)
 - **M0: 기초**: App/Window/GameObject/Component/Renderer/Picking/Gizmo 완비
 - **M1: 직렬화**: UUID, YAML 저장/로드, 프로젝트 자동 생성 및 중심 워크플로우 구축
