@@ -19,6 +19,7 @@ Milestone 4 (Scripting & UI) 진행 중. MVP 목표: 3D 탄막 게임.
 - 씬 그리드 고급화
 - 머터리얼 캡슐화
 - 입력 시스템 개선 (향후 빌드 고려)
+- 테스트를 위한 컨텍스트 분리(ImGui, OpenGL 등)
 
 ## 완료된 마일스톤 (Milestone 0~3)
 - **M0: 기초**: App/Window/GameObject/Component/Renderer/Picking/Gizmo 완비
@@ -48,6 +49,12 @@ Milestone 4 (Scripting & UI) 진행 중. MVP 목표: 3D 탄막 게임.
 - [ ] 플레이어 제어, 탄막 패턴, 적 AI, 게임 로직(점수/체력) 구현
 
 ---
+
+## 최근 업데이트 (2026-05-27)
+- Renderer 계층 단위 테스트 추가: `tests/Renderer/RendererTests.cpp` 생성
+  - SceneCamera 9개, EditorCamera 9개 — 총 18개 테스트 케이스 추가
+  - OpenGL 컨텍스트 불필요한 순수 수학 클래스만 대상 (Buffer/VAO/Shader/MeshLoader는 백로그 참조)
+  - 전체 테스트 56개 통과 (경고 0, 오류 0)
 
 ## 최근 업데이트 (2026-05-15)
 - Git 루트 `.gitignore` 통합 최적화 (중복 제거, Dependencies 예외 처리, 빌드 결과물 무시 강화)

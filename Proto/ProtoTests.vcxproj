@@ -179,6 +179,7 @@
     <ClCompile Include="tests\Core\CoreTests.cpp" />
     <ClCompile Include="tests\Editor\EditorTests.cpp" />
     <ClCompile Include="tests\Scene\SceneTests.cpp" />
+    <ClCompile Include="tests\Renderer\RendererTests.cpp" />
     <ClCompile Include="src\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Renderer\EditorCamera.cpp" />
     <ClCompile Include="src\Renderer\Framebuffer.cpp" />
