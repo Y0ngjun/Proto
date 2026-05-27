@@ -1,7 +1,7 @@
 #include <doctest/doctest.h>
-#include "../src/Scene/Scene.h"
-#include "../src/Scene/GameObject.h"
-#include "../src/Scene/Components/Transform.h"
+#include "../../src/Scene/Scene.h"
+#include "../../src/Scene/GameObject.h"
+#include "../../src/Scene/Components/Transform.h"
 
 TEST_SUITE("Scene System")
 {
