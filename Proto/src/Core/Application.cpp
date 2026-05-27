@@ -36,7 +36,7 @@ namespace Proto
 	{
 		static constexpr int DEFAULT_WINDOW_WIDTH = 1920;
 		static constexpr int DEFAULT_WINDOW_HEIGHT = 1080;
-		static constexpr const char* DEFAULT_WINDOW_TITLE = "Proto Engine";
+		static constexpr const char* DEFAULT_WINDOW_TITLE = "Proto";
 
 		static constexpr float EDITOR_CLEAR_COLOR[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 		static constexpr float UI_CLEAR_COLOR[] = { 0.1f, 0.1f, 0.1f, 1.0f };
@@ -153,7 +153,7 @@ namespace Proto
 
 		if (!m_ActiveScenePath.empty())
 		{
-			title += " - " + m_ActiveScenePath.filename().string();
+			title += " - " + m_ActiveScenePath.stem().string();
 			if (m_Scene && m_Scene->IsDirty())
 			{
 				title += " *";

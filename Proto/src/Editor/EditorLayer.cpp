@@ -156,12 +156,32 @@ namespace Proto
 
 		if (ImGui::BeginMenu("File"))
 		{
+			// Scene 그룹
+			if (ImGui::MenuItem("New Scene", "Ctrl+N"))
+			{
+				Application::Get().NewScene();
+			}
+			if (ImGui::MenuItem("Open Scene...", "Ctrl+O"))
+			{
+				Application::Get().OpenScene();
+			}
+			if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
+			{
+				Application::Get().SaveScene();
+			}
+			if (ImGui::MenuItem("Save As Scene...", "Ctrl+Shift+S"))
+			{
+				Application::Get().SaveSceneAs();
+			}
+
+			ImGui::Separator();
+
 			// Project 그룹
-			if (ImGui::MenuItem("New Project", "Ctrl+N"))
+			if (ImGui::MenuItem("New Project"))
 			{
 				Application::Get().NewProject();
 			}
-			if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
+			if (ImGui::MenuItem("Open Project..."))
 			{
 				Application::Get().OpenProject();
 			}
@@ -172,32 +192,31 @@ namespace Proto
 
 			ImGui::Separator();
 
-			// Scene 그룹
-			if (ImGui::MenuItem("New Scene"))
-			{
-				Application::Get().NewScene();
-			}
-			if (ImGui::MenuItem("Open Scene...", "Ctrl+L"))
-			{
-				Application::Get().OpenScene();
-			}
-			if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
-			{
-				Application::Get().SaveScene();
-			}
-			if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
-			{
-				Application::Get().SaveSceneAs();
-			}
-
-			ImGui::Separator();
-
 			// 종료
 			if (ImGui::MenuItem("Exit", "Alt+F4"))
 			{
 				glfwSetWindowShouldClose(static_cast<GLFWwindow*>(glfwGetCurrentContext()), true);
 			}
 
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Settings"))
+		{
+			if (ImGui::MenuItem("Project Settings"))
+			{
+			}
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Help"))
+		{
+			if (ImGui::MenuItem("Shortcuts"))
+			{
+			}
+			if (ImGui::MenuItem("Proto API"))
+			{
+			}
 			ImGui::EndMenu();
 		}
 
