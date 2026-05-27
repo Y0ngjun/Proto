@@ -51,6 +51,15 @@ Milestone 4 (Scripting & UI) 진행 중. MVP 목표: 3D 탄막 게임.
 ---
 
 ## 최근 업데이트 (2026-05-27)
+- Scene 계층 단위 테스트 대폭 확장: `tests/Scene/SceneTests.cpp`
+  - Scene: Dirty Flag, RemoveGameObject, GetByUUID, 다중 객체 UUID 고유성, HasComponent, RemoveComponent — 8개 추가
+  - Transform: GetTransform 항등/이동/배율 행렬 검증 — 3개 추가
+  - Rigidbody: 기본값, Velocity, UseGravity — 3개 신규
+  - BoxCollider / SphereCollider: 기본값 및 프로퍼티 수정 — 각 2개 신규
+  - LightComponent: 기본값, 커스텀 생성자, Intensity 수정 — 3개 신규
+  - NativeScriptComponent: Bind, OnStart/Update/Destroy 생명주기, 중복 방지 — 4개 신규
+  - ScriptRegistry: Register, GetScriptNames, BindByName 성공/실패 — 4개 신규
+  - 전체 테스트 89개 통과 (경고 0, 오류 0)
 - Renderer 계층 단위 테스트 추가: `tests/Renderer/RendererTests.cpp` 생성
   - SceneCamera 9개, EditorCamera 9개 — 총 18개 테스트 케이스 추가
   - OpenGL 컨텍스트 불필요한 순수 수학 클래스만 대상 (Buffer/VAO/Shader/MeshLoader는 백로그 참조)
