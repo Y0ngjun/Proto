@@ -6,8 +6,6 @@ Milestone 4 (Scripting & UI) 진행 중. MVP 목표: 3D 탄막 게임.
 ---
 
 ## 긴급 안건
-- 각 기능 점검
-- 테스트 도입
 
 ## 백로그
 - public API 정의
@@ -32,7 +30,7 @@ Milestone 4 (Scripting & UI) 진행 중. MVP 목표: 3D 탄막 게임.
 ## 진행 중 및 향후 로드맵
 
 ### Milestone 4: Scripting & UI (진행 중)
-- [ ] EventBus (게임 이벤트 시스템)
+- [x] EventBus (게임 이벤트 시스템)
 - [ ] UI System (Canvas, Text, Image)
 - [x] ScriptRegistry (이름 기반 자동 바인딩)
 - [x] 기본 메쉬 생성 단축 (Toolbar "Create Primitive" 버튼, Hierarchy 우클릭 메뉴)
@@ -51,6 +49,13 @@ Milestone 4 (Scripting & UI) 진행 중. MVP 목표: 3D 탄막 게임.
 ---
 
 ## 최근 업데이트 (2026-05-27)
+- EventBus 구현 완료: `src/Core/EventBus.h` (헤더 온리, 타입 안전 Publisher-Subscriber)
+  - `src/Scene/CollisionEvent.h` 추가 — 충돌 이벤트 타입 정의
+  - `Application::GetEventBus()` 통해 전역 접근 가능
+  - `Scene::ResolveCollision()` 에서 충돌 시 `CollisionEvent` 자동 발행
+  - EventBus 테스트 5개 추가 (`tests/Core/CoreTests.cpp`) — 전체 94개 통과
+- Core 계층 단위 테스트 완료: `tests/Core/CoreTests.cpp` (UUID, Log, YAMLHelpers, KeyCodes — 기완료)
+- Editor 계층 단위 테스트 완료: `tests/Editor/EditorTests.cpp` (기완료)
 - Scene 계층 단위 테스트 대폭 확장: `tests/Scene/SceneTests.cpp`
   - Scene: Dirty Flag, RemoveGameObject, GetByUUID, 다중 객체 UUID 고유성, HasComponent, RemoveComponent — 8개 추가
   - Transform: GetTransform 항등/이동/배율 행렬 검증 — 3개 추가

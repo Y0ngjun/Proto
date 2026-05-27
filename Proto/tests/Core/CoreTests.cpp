@@ -6,6 +6,7 @@
 #include "../../src/Core/YAMLHelpers.h"
 #include "../../src/Core/KeyCodes.h"
 #include "../../src/Core/MouseCodes.h"
+#include "../../src/Core/EventBus.h"
 
 // ────────────────────────────────────────────────────────────────────────────
 // UUID
@@ -276,5 +277,94 @@ TEST_SUITE("KeyCodes")
         CHECK(Proto::Mouse::BUTTON_RIGHT  == Proto::Mouse::BUTTON_1);
         CHECK(Proto::Mouse::BUTTON_MIDDLE == Proto::Mouse::BUTTON_2);
         CHECK(Proto::Mouse::BUTTON_LAST   == Proto::Mouse::BUTTON_7);
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// EventBus
+// ────────────────────────────────────────────────────────────────────────────
+
+namespace
+{
+    struct TestEvent
+    {
+        int Value;
+    };
+
+    struct OtherEvent
+    {
+        float Data;
+    };
+}
+
+TEST_SUITE("EventBus")
+{
+    TEST_CASE("Subscribe 후 Publish → 콜백 호출")
+    {
+        // Arrange
+        Proto::EventBus bus;
+        int received = -1;
+        bus.Subscribe<TestEvent>([&](const TestEvent& e) { received = e.Value; });
+
+        // Act
+        bus.Publish(TestEvent{ 42 });
+
+        // Assert
+        CHECK(received == 42);
+    }
+
+    TEST_CASE("Unsubscribe 후 Publish → 콜백 미호출")
+    {
+        // Arrange
+        Proto::EventBus bus;
+        int received = -1;
+        uint32_t id = bus.Subscribe<TestEvent>([&](const TestEvent& e) { received = e.Value; });
+
+        // Act
+        bus.Unsubscribe(id);
+        bus.Publish(TestEvent{ 99 });
+
+        // Assert
+        CHECK(received == -1);
+    }
+
+    TEST_CASE("다중 구독자 모두 호출")
+    {
+        // Arrange
+        Proto::EventBus bus;
+        int countA = 0;
+        int countB = 0;
+        bus.Subscribe<TestEvent>([&](const TestEvent&) { countA++; });
+        bus.Subscribe<TestEvent>([&](const TestEvent&) { countB++; });
+
+        // Act
+        bus.Publish(TestEvent{ 1 });
+
+        // Assert
+        CHECK(countA == 1);
+        CHECK(countB == 1);
+    }
+
+    TEST_CASE("다른 이벤트 타입은 수신하지 않음")
+    {
+        // Arrange
+        Proto::EventBus bus;
+        bool called = false;
+        bus.Subscribe<OtherEvent>([&](const OtherEvent&) { called = true; });
+
+        // Act
+        bus.Publish(TestEvent{ 7 });
+
+        // Assert
+        CHECK(!called);
+    }
+
+    TEST_CASE("리스너 없이 Publish해도 오류 없음")
+    {
+        // Arrange
+        Proto::EventBus bus;
+
+        // Act & Assert
+        CHECK_NOTHROW(bus.Publish(TestEvent{ 0 }));
     }
 }

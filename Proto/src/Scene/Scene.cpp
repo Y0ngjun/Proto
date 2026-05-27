@@ -26,6 +26,8 @@
 #include "../Renderer/Renderer.h"
 #include "../Renderer/EditorCamera.h"
 #include "../Core/Log.h"
+#include "../Core/Application.h"
+#include "CollisionEvent.h"
 
 namespace Proto
 {
@@ -339,6 +341,8 @@ namespace Proto
 			{
 				nscB->DispatchCollisionEnter(goA);
 			}
+
+			Application::Get().GetEventBus().Publish(CollisionEvent{ goA, goB });
 		}
 	}
 

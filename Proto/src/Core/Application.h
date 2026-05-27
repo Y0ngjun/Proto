@@ -10,6 +10,7 @@
 #include <string>
 #include <filesystem>
 #include "Window.h"
+#include "EventBus.h"
 
 namespace Proto
 {
@@ -26,6 +27,7 @@ namespace Proto
 		float GetDeltaTime() const;
 
 		Scene* GetActiveScene() { return m_Scene; }
+		EventBus& GetEventBus() { return m_EventBus; }
 
 		void SetScene(Scene* scene);
 		void SetUpdateCallback(const std::function<void(float)>& callback)
@@ -70,6 +72,7 @@ namespace Proto
 		Application(const Application&) = delete;
 		Application& operator=(const Application&) = delete;
 
+		EventBus m_EventBus;
 		Window m_Window;
 		float m_DeltaTime;
 		float m_LastFrameTime;
