@@ -6,10 +6,10 @@ Proto는 **4계층 아키텍처**를 기반으로 하며, **GameObject-Component
 ## 1. 아키텍처 계층도
 ```text
 Application (Singleton)
-├── Core      : 생명주기, 윈도우(GLFW), 입력 제어 (참조: src/Core.md)
-├── Scene     : GameObject 관리, Component 로직 업데이트 (참조: src/Scene.md)
-├── Renderer  : OpenGL 추상화, 드로우 콜 처리 (참조: src/Renderer.md)
-└── Editor    : ImGui 패널, Gizmo 상호작용 (참조: src/Editor.md)
+├── Core      : 생명주기, 윈도우(GLFW), 입력 제어 (참조: src/Core/Core.md)
+├── Scene     : GameObject 관리, Component 로직 업데이트 (참조: src/Scene/Scene.md)
+├── Renderer  : OpenGL 추상화, 드로우 콜 처리 (참조: src/Renderer/Renderer.md)
+└── Editor    : ImGui 패널, Gizmo 상호작용 (참조: src/Editor/Editor.md)
 ```
 
 ## 2. 핵심 패턴

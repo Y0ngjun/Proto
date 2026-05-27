@@ -51,12 +51,12 @@ Proto는 **쉽고 빠른 게임 프로토타입 개발**을 위한 경량 3D 게
 - 컴포넌트별 속성 실시간 편집
 - Transform, Renderer, Camera, Light 등 기본 컴포넌트
 
-### 물리 시스템 ✅
+### 물리 시스템
 - Rigidbody 기반 중력·속도·드래그 시뮬레이션
 - BoxCollider / SphereCollider 충돌 감지 및 분리 해소
 - NativeScriptComponent 충돌 콜백(OnCollisionEnter) 연동
 
-### 스크립트 시스템 ✅
+### 스크립트 시스템
 - C++ 기반 NativeScriptComponent / ScriptableEntity
 - ScriptRegistry를 통한 이름 기반 자동 바인딩 및 역직렬화
 
