@@ -20,6 +20,26 @@ namespace Proto
 		return RawInput::GetKey(key);
 	}
 
+	bool Input::GetKeyDown(KeyCode key)
+	{
+		if (!m_Enabled)
+		{
+			return false;
+		}
+
+		return RawInput::GetKeyDown(key);
+	}
+
+	bool Input::GetKeyUp(KeyCode key)
+	{
+		if (!m_Enabled)
+		{
+			return false;
+		}
+
+		return RawInput::GetKeyUp(key);
+	}
+
 	bool Input::GetMouseButton(MouseCode button)
 	{
 		if (!m_Enabled)
@@ -30,8 +50,40 @@ namespace Proto
 		return RawInput::GetMouseButton(button);
 	}
 
+	bool Input::GetMouseButtonDown(MouseCode button)
+	{
+		if (!m_Enabled)
+		{
+			return false;
+		}
+
+		return RawInput::GetMouseButtonDown(button);
+	}
+
+	bool Input::GetMouseButtonUp(MouseCode button)
+	{
+		if (!m_Enabled)
+		{
+			return false;
+		}
+
+		return RawInput::GetMouseButtonUp(button);
+	}
+
 	void Input::GetMousePosition(double& x, double& y)
 	{
 		RawInput::GetMousePosition(x, y);
+	}
+
+	void Input::GetMouseDelta(double& dx, double& dy)
+	{
+		if (!m_Enabled)
+		{
+			dx = 0.0;
+			dy = 0.0;
+			return;
+		}
+
+		RawInput::GetMouseDelta(dx, dy);
 	}
 }

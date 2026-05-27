@@ -16,11 +16,26 @@ namespace Proto
 		// 키가 눌려있는지 확인합니다. (게임 뷰가 활성화된 경우에만 유효)
 		static bool GetKey(KeyCode key);
 
+		// 해당 프레임에 키가 처음 눌렸는지 확인합니다.
+		static bool GetKeyDown(KeyCode key);
+
+		// 해당 프레임에 키를 뗐는지 확인합니다.
+		static bool GetKeyUp(KeyCode key);
+
 		// 마우스 버튼이 눌려있는지 확인합니다. (게임 뷰가 활성화된 경우에만 유효)
 		static bool GetMouseButton(MouseCode button);
 
+		// 해당 프레임에 마우스 버튼이 처음 눌렸는지 확인합니다.
+		static bool GetMouseButtonDown(MouseCode button);
+
+		// 해당 프레임에 마우스 버튼을 뗐는지 확인합니다.
+		static bool GetMouseButtonUp(MouseCode button);
+
 		// 현재 마우스 위치를 가져옵니다.
 		static void GetMousePosition(double& x, double& y);
+
+		// 이전 프레임 대비 마우스 이동량을 가져옵니다.
+		static void GetMouseDelta(double& dx, double& dy);
 
 		static void SetEnabled(bool enabled)
 		{
