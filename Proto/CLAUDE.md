@@ -24,7 +24,7 @@ Dependencies/   # 외부 라이브러리 (yaml-cpp, imgui, glfw, glm 등)
 | 문서 | 내용 |
 |------|------|
 | `Documents/progress.md` | 현재 마일스톤 및 진행 상태 |
-| `Documents/architecture.md` | 4계층 아키텍처 개요 |
+| `Documents/architecture.md` | 5계층 아키텍처 개요 |
 | `Documents/design.md` | 프로젝트 목표 및 기술 스택 |
 | `Documents/style_guide.md` | C++ 네이밍·포맷팅·주석 규칙 |
 | `Documents/testing.md` | 테스트 작성(AAA) 및 실행 방법 |

@@ -1,12 +1,13 @@
 # 아키텍처 명세 (Architecture Specification)
 
-Proto는 **4계층 아키텍처**를 기반으로 하며, **GameObject-Component 패턴**으로 구성됩니다.
+Proto는 **5계층 아키텍처**를 기반으로 하며, **GameObject-Component 패턴**으로 구성됩니다.
 상세한 계층별 기능 및 데이터 흐름은 각 `src/*.md` 파일을 참조하세요.
 
 ## 1. 아키텍처 계층도
 ```text
 Application (Singleton)
 ├── Core      : 생명주기, 윈도우(GLFW), 입력 제어 (참조: src/Core/Core.md)
+├── Asset     : 에셋 로딩·UUID 기반 중앙 관리 (참조: src/Asset/Asset.md)
 ├── Scene     : GameObject 관리, Component 로직 업데이트 (참조: src/Scene/Scene.md)
 ├── Renderer  : OpenGL 추상화, 드로우 콜 처리 (참조: src/Renderer/Renderer.md)
 └── Editor    : ImGui 패널, Gizmo 상호작용 (참조: src/Editor/Editor.md)
