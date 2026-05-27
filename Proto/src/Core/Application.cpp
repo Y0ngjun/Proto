@@ -414,6 +414,18 @@ namespace Proto
 		}
 	}
 
+	void Application::OnScenePause()
+	{
+		if (m_SceneState == SceneState::Play)
+			m_SceneState = SceneState::Pause;
+	}
+
+	void Application::OnSceneResume()
+	{
+		if (m_SceneState == SceneState::Pause)
+			m_SceneState = SceneState::Play;
+	}
+
 	bool Application::IsGameViewFocused() const
 	{
 		return m_EditorLayer->IsGameViewFocused();

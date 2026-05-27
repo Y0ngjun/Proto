@@ -27,15 +27,30 @@ namespace Proto
 {
 	namespace
 	{
-		static constexpr float TOOLBAR_HEIGHT = 36.0f;
-		static constexpr float TOOLBAR_BUTTON_WIDTH = 55.0f;
-		static constexpr float TOOLBAR_BUTTON_HEIGHT = 25.0f;
+		static constexpr float TOOLBAR_HEIGHT             = 36.0f;
+		static constexpr float TOOLBAR_BUTTON_WIDTH       = 55.0f;
+		static constexpr float TOOLBAR_PAUSE_BUTTON_WIDTH = 70.0f;
+		static constexpr float TOOLBAR_BUTTON_HEIGHT      = 25.0f;
+		static constexpr float TOOLBAR_BUTTON_SPACING     = 8.0f;
 
-		static constexpr ImVec4 COLOR_PLAY_BG = ImVec4(0.3f, 0.15f, 0.15f, 1.0f);
-		static constexpr ImVec4 COLOR_STOP_BG = ImVec4(0.15f, 0.25f, 0.15f, 1.0f);
+		static constexpr ImVec4 COLOR_PLAY_BG = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+		static constexpr ImVec4 COLOR_STOP_BG = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
 
-		static constexpr ImVec4 COLOR_PLAY_BTN = ImVec4(0.2f, 0.7f, 0.2f, 1.0f);
-		static constexpr ImVec4 COLOR_STOP_BTN = ImVec4(0.8f, 0.2f, 0.2f, 1.0f);
+		static constexpr ImVec4 COLOR_PLAY_BTN          = ImVec4(0.2f, 0.7f, 0.2f, 1.0f);
+		static constexpr ImVec4 COLOR_PLAY_BTN_HOVER    = ImVec4(0.3f, 0.8f, 0.3f, 1.0f);
+		static constexpr ImVec4 COLOR_PLAY_BTN_ACTIVE   = ImVec4(0.1f, 0.6f, 0.1f, 1.0f);
+
+		static constexpr ImVec4 COLOR_STOP_BTN          = ImVec4(0.8f, 0.2f, 0.2f, 1.0f);
+		static constexpr ImVec4 COLOR_STOP_BTN_HOVER    = ImVec4(0.9f, 0.3f, 0.3f, 1.0f);
+		static constexpr ImVec4 COLOR_STOP_BTN_ACTIVE   = ImVec4(0.7f, 0.1f, 0.1f, 1.0f);
+
+		static constexpr ImVec4 COLOR_PAUSE_BTN         = ImVec4(0.7f, 0.6f, 0.1f, 1.0f);
+		static constexpr ImVec4 COLOR_PAUSE_BTN_HOVER   = ImVec4(0.8f, 0.7f, 0.2f, 1.0f);
+		static constexpr ImVec4 COLOR_PAUSE_BTN_ACTIVE  = ImVec4(0.6f, 0.5f, 0.05f, 1.0f);
+
+		static constexpr ImVec4 COLOR_RESUME_BTN        = ImVec4(0.2f, 0.7f, 0.2f, 1.0f);
+		static constexpr ImVec4 COLOR_RESUME_BTN_HOVER  = ImVec4(0.3f, 0.8f, 0.3f, 1.0f);
+		static constexpr ImVec4 COLOR_RESUME_BTN_ACTIVE = ImVec4(0.1f, 0.6f, 0.1f, 1.0f);
 
 		static constexpr ImVec4 COLOR_VIEWPORT_HEADER = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
 	}
@@ -209,6 +224,13 @@ namespace Proto
 			ImGui::EndMenu();
 		}
 
+		if (ImGui::BeginMenu("Layout"))
+		{
+			if (ImGui::MenuItem("Default"))
+				m_ShouldResetLayout = true;
+			ImGui::EndMenu();
+		}
+
 		if (ImGui::BeginMenu("Help"))
 		{
 			if (ImGui::MenuItem("Shortcuts"))
@@ -255,54 +277,128 @@ namespace Proto
 			ImGuiWindowFlags_NoSavedSettings;
 
 		const bool isPlaying = Application::Get().IsPlaying();
-		const ImVec4 bgColor = COLOR_VIEWPORT_HEADER; // 배경색 고정
+		const bool isPaused  = Application::Get().IsPaused();
 
-		ImGui::PushStyleColor(ImGuiCol_WindowBg, bgColor);
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, isPlaying ? COLOR_PLAY_BG : COLOR_STOP_BG);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 4));
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
 
 		ImGui::Begin("Toolbar", nullptr, toolbarFlags);
 
-		const float buttonWidth = TOOLBAR_BUTTON_WIDTH * xScale;
-		const float buttonHeight = TOOLBAR_BUTTON_HEIGHT * yScale;
-		const float offsetX = (ImGui::GetWindowWidth() - buttonWidth) * 0.5f;
-		const float offsetY = (ImGui::GetWindowHeight() - buttonHeight) * 0.5f;
+		const float buttonWidth       = TOOLBAR_BUTTON_WIDTH       * xScale;
+		const float pauseButtonWidth  = TOOLBAR_PAUSE_BUTTON_WIDTH * xScale;
+		const float buttonHeight      = TOOLBAR_BUTTON_HEIGHT      * yScale;
+		const float spacing           = TOOLBAR_BUTTON_SPACING     * xScale;
+		const float windowWidth       = ImGui::GetWindowWidth();
+		const float windowHeight      = ImGui::GetWindowHeight();
+		const float offsetY           = std::max(0.0f, (windowHeight - buttonHeight) * 0.5f);
 
-		ImGui::SetCursorPos(ImVec2(std::max(0.0f, offsetX), std::max(0.0f, offsetY)));
+		// --- Play/Stop 버튼 (중앙 왼쪽) ---
+		const float twoButtonsW   = buttonWidth + pauseButtonWidth + spacing;
+		const float centerOffsetX = std::max(0.0f, (windowWidth - twoButtonsW) * 0.5f);
+		ImGui::SetCursorPos(ImVec2(centerOffsetX, offsetY));
 
-		if (isPlaying)
+		if (isPlaying || isPaused)
 		{
-			// 실행 중일 때 (중지 버튼 색상)
-			ImGui::PushStyleColor(ImGuiCol_Button, COLOR_STOP_BTN);
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.3f, 0.3f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.1f, 0.1f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_Button,        COLOR_STOP_BTN);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_STOP_BTN_HOVER);
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive,  COLOR_STOP_BTN_ACTIVE);
 		}
 		else
 		{
-			// 정지 상태일 때 (회색 버튼)
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_Button,        COLOR_PLAY_BTN);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_PLAY_BTN_HOVER);
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive,  COLOR_PLAY_BTN_ACTIVE);
 		}
 
-		if (ImGui::Button(isPlaying ? "Stop" : "Play", ImVec2(buttonWidth, buttonHeight)))
+		if (ImGui::Button((isPlaying || isPaused) ? "Stop" : "Play", ImVec2(buttonWidth, buttonHeight)))
 		{
-			if (isPlaying)
-			{
+			if (isPlaying || isPaused)
 				Application::Get().OnSceneStop();
-			}
 			else
-			{
 				Application::Get().OnScenePlay();
-			}
+		}
+		ImGui::PopStyleColor(3);
+
+		// --- Pause / Resume 버튼 (중앙 오른쪽) ---
+		ImGui::SameLine(0.0f, spacing);
+
+		if (!isPlaying && !isPaused)
+			ImGui::BeginDisabled(true);
+
+		if (isPaused)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button,        COLOR_RESUME_BTN);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_RESUME_BTN_HOVER);
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive,  COLOR_RESUME_BTN_ACTIVE);
+		}
+		else
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button,        COLOR_PAUSE_BTN);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_PAUSE_BTN_HOVER);
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive,  COLOR_PAUSE_BTN_ACTIVE);
 		}
 
+		if (ImGui::Button(isPaused ? "Resume" : "Pause", ImVec2(pauseButtonWidth, buttonHeight)))
+		{
+			if (isPaused)
+				Application::Get().OnSceneResume();
+			else
+				Application::Get().OnScenePause();
+		}
 		ImGui::PopStyleColor(3);
+
+		if (!isPlaying && !isPaused)
+			ImGui::EndDisabled();
 
 		ImGui::End();
 		ImGui::PopStyleVar(3);
 		ImGui::PopStyleColor(); // WindowBg
+	}
+
+	void EditorLayer::ResetDefaultLayout()
+	{
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		float xScale, yScale;
+		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xScale, &yScale);
+
+		const float toolbarHeight = TOOLBAR_HEIGHT * yScale;
+		const ImVec2 dockspaceSize = ImVec2(viewport->WorkSize.x, viewport->WorkSize.y - toolbarHeight);
+		const ImGuiID dockspaceID = ImGui::GetID("MyDockSpace");
+
+		ImGui::DockBuilderRemoveNode(dockspaceID);
+		ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_DockSpace);
+		ImGui::DockBuilderSetNodeSize(dockspaceID, dockspaceSize);
+
+		// 1단계: 전체를 상(Top) / 하(Bottom) 50:50으로 먼저 분할
+		//        → 모든 패널의 수평 경계를 동일한 Y 위치에 고정
+		ImGuiID dockTop, dockBottom;
+		ImGui::DockBuilderSplitNode(dockspaceID, ImGuiDir_Down, 0.5f, &dockBottom, &dockTop);
+
+		// 2단계: 상단(Top)을 좌(A) 50% / 우(B+C) 50% 분할
+		ImGuiID dockTopA, dockTopBC;
+		ImGui::DockBuilderSplitNode(dockTop, ImGuiDir_Right, 0.5f, &dockTopBC, &dockTopA);
+
+		// 3단계: 상단 우측(BC)을 좌(B) 50% / 우(C) 50% 분할
+		ImGuiID dockTopB, dockTopC;
+		ImGui::DockBuilderSplitNode(dockTopBC, ImGuiDir_Right, 0.5f, &dockTopC, &dockTopB);
+
+		// 4단계: 하단(Bottom)을 동일한 비율로 분할 (경계 Y 위치 보장)
+		ImGuiID dockBottomA, dockBottomBC;
+		ImGui::DockBuilderSplitNode(dockBottom, ImGuiDir_Right, 0.5f, &dockBottomBC, &dockBottomA);
+
+		ImGuiID dockBottomB, dockBottomC;
+		ImGui::DockBuilderSplitNode(dockBottomBC, ImGuiDir_Right, 0.5f, &dockBottomC, &dockBottomB);
+
+		// 5단계: 각 영역에 패널 배치
+		ImGui::DockBuilderDockWindow("Scene", dockTopA);
+		ImGui::DockBuilderDockWindow("Game", dockBottomA);
+		ImGui::DockBuilderDockWindow("Hierarchy", dockTopB);
+		ImGui::DockBuilderDockWindow("Content Browser", dockBottomB);
+		ImGui::DockBuilderDockWindow("Inspector", dockTopC);
+		ImGui::DockBuilderDockWindow("Console", dockBottomC);
+		ImGui::DockBuilderFinish(dockspaceID);
 	}
 
 	void EditorLayer::RenderDockSpace()
@@ -332,40 +428,10 @@ namespace Proto
 		ImGui::PopStyleVar(3);
 
 		const ImGuiID dockspaceID = ImGui::GetID("MyDockSpace");
-		if (ImGui::DockBuilderGetNode(dockspaceID) == nullptr)
+		if (ImGui::DockBuilderGetNode(dockspaceID) == nullptr || m_ShouldResetLayout)
 		{
-			ImGui::DockBuilderRemoveNode(dockspaceID);
-			ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_DockSpace);
-			ImGui::DockBuilderSetNodeSize(dockspaceID, dockspaceSize);
-
-			// 1단계: 전체를 상(Top) / 하(Bottom) 50:50으로 먼저 분할
-			//        → 모든 패널의 수평 경계를 동일한 Y 위치에 고정
-			ImGuiID dockTop, dockBottom;
-			ImGui::DockBuilderSplitNode(dockspaceID, ImGuiDir_Down, 0.5f, &dockBottom, &dockTop);
-
-			// 2단계: 상단(Top)을 좌(A) 50% / 우(B+C) 50% 분할
-			ImGuiID dockTopA, dockTopBC;
-			ImGui::DockBuilderSplitNode(dockTop, ImGuiDir_Right, 0.5f, &dockTopBC, &dockTopA);
-
-			// 3단계: 상단 우측(BC)을 좌(B) 50% / 우(C) 50% 분할
-			ImGuiID dockTopB, dockTopC;
-			ImGui::DockBuilderSplitNode(dockTopBC, ImGuiDir_Right, 0.5f, &dockTopC, &dockTopB);
-
-			// 4단계: 하단(Bottom)을 동일한 비율로 분할 (경계 Y 위치 보장)
-			ImGuiID dockBottomA, dockBottomBC;
-			ImGui::DockBuilderSplitNode(dockBottom, ImGuiDir_Right, 0.5f, &dockBottomBC, &dockBottomA);
-
-			ImGuiID dockBottomB, dockBottomC;
-			ImGui::DockBuilderSplitNode(dockBottomBC, ImGuiDir_Right, 0.5f, &dockBottomC, &dockBottomB);
-
-			// 5단계: 각 영역에 패널 배치
-			ImGui::DockBuilderDockWindow("Scene", dockTopA);
-			ImGui::DockBuilderDockWindow("Game", dockBottomA);
-			ImGui::DockBuilderDockWindow("Hierarchy", dockTopB);
-			ImGui::DockBuilderDockWindow("Content Browser", dockBottomB);
-			ImGui::DockBuilderDockWindow("Inspector", dockTopC);
-			ImGui::DockBuilderDockWindow("Console", dockBottomC);
-			ImGui::DockBuilderFinish(dockspaceID);
+			m_ShouldResetLayout = false;
+			ResetDefaultLayout();
 		}
 
 		ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);

@@ -52,9 +52,16 @@ namespace Proto
 			return m_SceneState == SceneState::Play;
 		}
 
+		bool IsPaused() const
+		{
+			return m_SceneState == SceneState::Pause;
+		}
+
 		bool IsGameViewFocused() const;
 		void OnScenePlay();
 		void OnSceneStop();
+		void OnScenePause();
+		void OnSceneResume();
 
 	private:
 		Application();
@@ -85,8 +92,9 @@ namespace Proto
 
 		enum class SceneState
 		{
-			Edit = 0,
-			Play = 1
+			Edit  = 0,
+			Play  = 1,
+			Pause = 2
 		};
 
 		SceneState m_SceneState = SceneState::Edit;

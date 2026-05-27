@@ -83,6 +83,7 @@ namespace Proto
 
 		void RenderToolbar(Scene*& activeScene);
 		void RenderDockSpace();
+		void ResetDefaultLayout();
 		void RenderSceneViewport(Scene* activeScene);
 		void RenderGameViewport(Scene* activeScene);
 		void HandleObjectPicking(Scene* activeScene, const glm::vec2* viewportBounds, const glm::vec2& viewportSize);
@@ -101,6 +102,7 @@ namespace Proto
 		std::unique_ptr<ConsolePanel> m_ConsolePanel;
 		std::unique_ptr<ContentBrowserPanel> m_ContentBrowserPanel;
 
-		int m_GizmoType = 7; // ImGuizmo::OPERATION::TRANSLATE
+		int  m_GizmoType = 7; // ImGuizmo::OPERATION::TRANSLATE
+		bool m_ShouldResetLayout = false;
 	};
 }
