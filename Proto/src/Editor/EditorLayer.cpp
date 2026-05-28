@@ -13,6 +13,7 @@
 
 #include "../../Dependencies/ImGuizmo/ImGuizmo.h"
 #include "EditorLayer.h"
+#include "EditorStyle.h"
 #include "../Core/Application.h"
 #include "../Core/RawInput.h"
 #include "../Asset/Asset.h"
@@ -25,35 +26,7 @@
 
 namespace Proto
 {
-	namespace
-	{
-		static constexpr float TOOLBAR_HEIGHT             = 36.0f;
-		static constexpr float TOOLBAR_BUTTON_WIDTH       = 55.0f;
-		static constexpr float TOOLBAR_PAUSE_BUTTON_WIDTH = 70.0f;
-		static constexpr float TOOLBAR_BUTTON_HEIGHT      = 25.0f;
-		static constexpr float TOOLBAR_BUTTON_SPACING     = 8.0f;
-
-		static constexpr ImVec4 COLOR_PLAY_BG = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
-		static constexpr ImVec4 COLOR_STOP_BG = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
-
-		static constexpr ImVec4 COLOR_PLAY_BTN          = ImVec4(0.2f, 0.7f, 0.2f, 1.0f);
-		static constexpr ImVec4 COLOR_PLAY_BTN_HOVER    = ImVec4(0.3f, 0.8f, 0.3f, 1.0f);
-		static constexpr ImVec4 COLOR_PLAY_BTN_ACTIVE   = ImVec4(0.1f, 0.6f, 0.1f, 1.0f);
-
-		static constexpr ImVec4 COLOR_STOP_BTN          = ImVec4(0.8f, 0.2f, 0.2f, 1.0f);
-		static constexpr ImVec4 COLOR_STOP_BTN_HOVER    = ImVec4(0.9f, 0.3f, 0.3f, 1.0f);
-		static constexpr ImVec4 COLOR_STOP_BTN_ACTIVE   = ImVec4(0.7f, 0.1f, 0.1f, 1.0f);
-
-		static constexpr ImVec4 COLOR_PAUSE_BTN         = ImVec4(0.7f, 0.6f, 0.1f, 1.0f);
-		static constexpr ImVec4 COLOR_PAUSE_BTN_HOVER   = ImVec4(0.8f, 0.7f, 0.2f, 1.0f);
-		static constexpr ImVec4 COLOR_PAUSE_BTN_ACTIVE  = ImVec4(0.6f, 0.5f, 0.05f, 1.0f);
-
-		static constexpr ImVec4 COLOR_RESUME_BTN        = ImVec4(0.2f, 0.7f, 0.2f, 1.0f);
-		static constexpr ImVec4 COLOR_RESUME_BTN_HOVER  = ImVec4(0.3f, 0.8f, 0.3f, 1.0f);
-		static constexpr ImVec4 COLOR_RESUME_BTN_ACTIVE = ImVec4(0.1f, 0.6f, 0.1f, 1.0f);
-
-		static constexpr ImVec4 COLOR_VIEWPORT_HEADER = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
-	}
+	using namespace EditorStyle;
 
 	EditorLayer::EditorLayer()
 	{}
@@ -71,6 +44,7 @@ namespace Proto
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
 		float xScale, yScale;
 		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xScale, &yScale);
@@ -83,7 +57,7 @@ namespace Proto
 			io.Fonts->AddFontFromFileTTF(fontPath, 18.0f, NULL, io.Fonts->GetGlyphRangesKorean());
 		}
 
-		SetDarkThemeColors();
+		SetLightThemeColors();
 		ImGui::GetStyle().ScaleAllSizes(xScale);
 
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -152,20 +126,82 @@ namespace Proto
 		RenderSceneViewport(activeScene);
 		RenderGameViewport(activeScene);
 
+		// 메인 창 외부에 별도 OS 창으로 띄우는 팝업들
+		auto renderDetachedWindow = [](const char* title, bool& show, auto renderContent)
+		{
+			// 처음 열릴 때 한 번만 메인 뷰포트 오른쪽에 위치 설정
+			ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+			constexpr ImVec2 windowSize = ImVec2(1200.0f, 600.0f);
+			ImGui::SetNextWindowPos(
+				ImVec2(mainViewport->Pos.x + (mainViewport->Size.x - windowSize.x) * 0.5f,
+				       mainViewport->Pos.y + (mainViewport->Size.y - windowSize.y) * 0.5f),
+				ImGuiCond_FirstUseEver
+			);
+			ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
+
+			ImGui::PushStyleColor(ImGuiCol_Text, COLOR_TITLE_TEXT);
+			ImGui::Begin(title, &show);
+			ImGui::PopStyleColor();
+			renderContent();
+			ImGui::End();
+		};
+
+		if (m_ShowProjectSettingsPopup)
+		{
+			renderDetachedWindow("Project Settings", m_ShowProjectSettingsPopup, []()
+			{
+				ImGui::Text("This is the Project Settings dummy window.");
+			});
+		}
+
+		if (m_ShowShortcutsPopup)
+		{
+			renderDetachedWindow("Shortcuts", m_ShowShortcutsPopup, []()
+			{
+				ImGui::Text("This is the Shortcuts dummy window.");
+			});
+		}
+
+		if (m_ShowProtoAPIPopup)
+		{
+			renderDetachedWindow("Proto API", m_ShowProtoAPIPopup, []()
+			{
+				ImGui::Text("This is the Proto API dummy window.");
+			});
+		}
+
 		EndFrame();
 	}
 
-	void EditorLayer::SetDarkThemeColors()
+	void EditorLayer::SetLightThemeColors()
 	{
-		auto& colors = ImGui::GetStyle().Colors;
-		colors[ImGuiCol_WindowBg] = ImVec4{ 0.1f, 0.105f, 0.11f, 1.0f };
 		ImGui::StyleColorsDark();
+		auto& colors = ImGui::GetStyle().Colors;
+		colors[ImGuiCol_WindowBg]          = COLOR_WINDOW_BG;
+		colors[ImGuiCol_MenuBarBg]         = COLOR_MENUBAR_BG;
+		colors[ImGuiCol_PopupBg]           = COLOR_POPUP_BG;
+		colors[ImGuiCol_Header]            = COLOR_HEADER;
+		colors[ImGuiCol_HeaderHovered]     = COLOR_HEADER_HOVER;
+		colors[ImGuiCol_HeaderActive]      = COLOR_HEADER_ACTIVE;
+		colors[ImGuiCol_TitleBg]           = COLOR_TITLE_BG;
+		colors[ImGuiCol_TitleBgActive]     = COLOR_TITLE_BG_ACTIVE;
+		colors[ImGuiCol_TitleBgCollapsed]  = COLOR_TITLE_BG_COLLAPSED;
+		colors[ImGuiCol_Tab]               = COLOR_TAB;
+		colors[ImGuiCol_TabHovered]        = COLOR_TAB_HOVERED;
+		colors[ImGuiCol_TabActive]         = COLOR_TAB_ACTIVE;
+		colors[ImGuiCol_TabUnfocused]      = COLOR_TAB_UNFOCUSED;
+		colors[ImGuiCol_TabUnfocusedActive]= COLOR_TAB_UNFOCUSED_ACTIVE;
+		colors[ImGuiCol_TabSelectedOverline] = COLOR_TAB_OVERLINE;
+		ImGui::GetStyle().TabBarOverlineSize = TAB_OVERLINE_SIZE;
 	}
 
 	void EditorLayer::RenderMenuBar()
 	{
+		ImGui::PushStyleColor(ImGuiCol_Text, COLOR_TEXT);
+
 		if (!ImGui::BeginMainMenuBar())
 		{
+			ImGui::PopStyleColor();
 			return;
 		}
 
@@ -220,6 +256,7 @@ namespace Proto
 		{
 			if (ImGui::MenuItem("Project Settings"))
 			{
+				m_ShowProjectSettingsPopup = true;
 			}
 			ImGui::EndMenu();
 		}
@@ -235,14 +272,17 @@ namespace Proto
 		{
 			if (ImGui::MenuItem("Shortcuts"))
 			{
+				m_ShowShortcutsPopup = true;
 			}
 			if (ImGui::MenuItem("Proto API"))
 			{
+				m_ShowProtoAPIPopup = true;
 			}
 			ImGui::EndMenu();
 		}
 
 		ImGui::EndMainMenuBar();
+		ImGui::PopStyleColor();
 	}
 
 	void EditorLayer::BeginFrame() const
@@ -257,6 +297,14 @@ namespace Proto
 	{
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backupContext = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backupContext);
+		}
 	}
 
 	void EditorLayer::RenderToolbar(Scene*& activeScene)
@@ -294,7 +342,7 @@ namespace Proto
 		const float windowHeight      = ImGui::GetWindowHeight();
 		const float offsetY           = std::max(0.0f, (windowHeight - buttonHeight) * 0.5f);
 
-		// --- Play/Stop 버튼 (중앙 왼쪽) ---
+		// --- Play/Stop 버튼 (중앙 왼쪽, 항상 활성) ---
 		const float twoButtonsW   = buttonWidth + pauseButtonWidth + spacing;
 		const float centerOffsetX = std::max(0.0f, (windowWidth - twoButtonsW) * 0.5f);
 		ImGui::SetCursorPos(ImVec2(centerOffsetX, offsetY));
@@ -304,12 +352,14 @@ namespace Proto
 			ImGui::PushStyleColor(ImGuiCol_Button,        COLOR_STOP_BTN);
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_STOP_BTN_HOVER);
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive,  COLOR_STOP_BTN_ACTIVE);
+			ImGui::PushStyleColor(ImGuiCol_Text,          COLOR_STOP_RESUME_BTN_TEXT);
 		}
 		else
 		{
 			ImGui::PushStyleColor(ImGuiCol_Button,        COLOR_PLAY_BTN);
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_PLAY_BTN_HOVER);
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive,  COLOR_PLAY_BTN_ACTIVE);
+			ImGui::PushStyleColor(ImGuiCol_Text,          COLOR_PLAY_PAUSE_BTN_TEXT);
 		}
 
 		if (ImGui::Button((isPlaying || isPaused) ? "Stop" : "Play", ImVec2(buttonWidth, buttonHeight)))
@@ -319,12 +369,13 @@ namespace Proto
 			else
 				Application::Get().OnScenePlay();
 		}
-		ImGui::PopStyleColor(3);
+		ImGui::PopStyleColor(4); // Button x3 + Text
 
-		// --- Pause / Resume 버튼 (중앙 오른쪽) ---
+		// --- Pause / Resume 버튼 (중앙 오른쪽, 플레이 중에만 활성) ---
 		ImGui::SameLine(0.0f, spacing);
 
-		if (!isPlaying && !isPaused)
+		const bool pauseEnabled = isPlaying || isPaused;
+		if (!pauseEnabled)
 			ImGui::BeginDisabled(true);
 
 		if (isPaused)
@@ -332,12 +383,14 @@ namespace Proto
 			ImGui::PushStyleColor(ImGuiCol_Button,        COLOR_RESUME_BTN);
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_RESUME_BTN_HOVER);
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive,  COLOR_RESUME_BTN_ACTIVE);
+			ImGui::PushStyleColor(ImGuiCol_Text,          COLOR_STOP_RESUME_BTN_TEXT);
 		}
 		else
 		{
 			ImGui::PushStyleColor(ImGuiCol_Button,        COLOR_PAUSE_BTN);
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_PAUSE_BTN_HOVER);
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive,  COLOR_PAUSE_BTN_ACTIVE);
+			ImGui::PushStyleColor(ImGuiCol_Text,          COLOR_PLAY_PAUSE_BTN_TEXT);
 		}
 
 		if (ImGui::Button(isPaused ? "Resume" : "Pause", ImVec2(pauseButtonWidth, buttonHeight)))
@@ -347,9 +400,9 @@ namespace Proto
 			else
 				Application::Get().OnScenePause();
 		}
-		ImGui::PopStyleColor(3);
+		ImGui::PopStyleColor(4); // Button x3 + Text
 
-		if (!isPlaying && !isPaused)
+		if (!pauseEnabled)
 			ImGui::EndDisabled();
 
 		ImGui::End();
@@ -526,7 +579,9 @@ namespace Proto
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
+		ImGui::PushStyleColor(ImGuiCol_Text, COLOR_TITLE_TEXT);
 		ImGui::Begin("Scene");
+		ImGui::PopStyleColor();
 		m_IsViewportFocused = ImGui::IsWindowFocused();
 		m_IsViewportHovered = ImGui::IsWindowHovered();
 
@@ -564,7 +619,9 @@ namespace Proto
 	void EditorLayer::RenderGameViewport(Scene* activeScene)
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+		ImGui::PushStyleColor(ImGuiCol_Text, COLOR_TITLE_TEXT);
 		ImGui::Begin("Game");
+		ImGui::PopStyleColor();
 
 		m_IsGameViewFocused = ImGui::IsWindowFocused();
 		m_IsGameViewHovered = ImGui::IsWindowHovered();

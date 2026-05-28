@@ -6,6 +6,7 @@
 #include <imgui.h>
 
 #include "SceneHierarchyPanel.h"
+#include "EditorStyle.h"
 #include "../Scene/Components/Transform.h"
 #include "../Scene/Components/MeshRenderer.h"
 #include "../Asset/AssetManager.h"
@@ -35,7 +36,9 @@ namespace Proto
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_TITLE_TEXT);
 		ImGui::Begin("Hierarchy");
+		ImGui::PopStyleColor();
 
 		// 헤더 바: 통일된 스타일 (COLOR_VIEWPORT_HEADER 배경)
 		const float barHeight = ImGui::GetFrameHeight() + 8.0f;

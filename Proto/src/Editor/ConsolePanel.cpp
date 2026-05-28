@@ -4,6 +4,7 @@
  */
 
 #include "ConsolePanel.h"
+#include "EditorStyle.h"
 #include "../Core/Log.h"
 #include <imgui.h>
 
@@ -38,7 +39,9 @@ namespace Proto
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_TITLE_TEXT);
 		ImGui::Begin("Console");
+		ImGui::PopStyleColor();
 
 		// 헤더 바: 통일된 스타일
 		const float barHeight = ImGui::GetFrameHeight() + 8.0f;

@@ -73,7 +73,7 @@ namespace Proto
 		}
 
 	private:
-		void SetDarkThemeColors();
+		void SetLightThemeColors();
 		void RenderMenuBar();
 		void RenderSceneViewportHeader();
 		void HandleGizmos(GameObject* selectedEntity, const glm::vec2& viewportMin, const glm::vec2& viewportSize);
@@ -104,5 +104,10 @@ namespace Proto
 
 		int  m_GizmoType = 7; // ImGuizmo::OPERATION::TRANSLATE
 		bool m_ShouldResetLayout = false;
+
+		// 팝업 창 활성화 여부를 컨트롤하는 불리언 변수들
+		bool m_ShowProjectSettingsPopup = false;
+		bool m_ShowShortcutsPopup = false;
+		bool m_ShowProtoAPIPopup = false;
 	};
 }

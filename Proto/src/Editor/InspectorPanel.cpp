@@ -10,6 +10,7 @@
 
 #include "../../Dependencies/ImGuizmo/ImGuizmo.h"
 #include "InspectorPanel.h"
+#include "EditorStyle.h"
 #include "../Core/Application.h"
 #include "../Scene/GameObject.h"
 #include "../Scene/Components/Transform.h"
@@ -94,7 +95,9 @@ namespace Proto
 
 	void InspectorPanel::OnImGuiRender(GameObject* selectedContext)
 	{
+		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_TITLE_TEXT);
 		ImGui::Begin("Inspector");
+		ImGui::PopStyleColor();
 
 		if (selectedContext)
 		{

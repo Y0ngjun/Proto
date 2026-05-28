@@ -4,6 +4,7 @@
  */
 
 #include "ContentBrowserPanel.h"
+#include "EditorStyle.h"
 #include "../Core/Application.h"
 #include "../Core/Project.h"
 #include <imgui.h>
@@ -57,7 +58,9 @@ namespace Proto
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_TITLE_TEXT);
 		ImGui::Begin("Content Browser");
+		ImGui::PopStyleColor();
 
 		const std::filesystem::path projectPath = Project::GetProjectDirectory();
 		if (projectPath.empty())
