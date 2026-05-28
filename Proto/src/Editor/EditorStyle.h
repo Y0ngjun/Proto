@@ -24,7 +24,7 @@ namespace Proto::EditorStyle
 	static constexpr ImVec4 COLOR_PLAY_BTN_ACTIVE = ImVec4(0.7f, 0.7f, 0.7f, 1.0f);
 
 	// Stop 버튼 (플레이 모드에서 표시)
-	static constexpr ImVec4 COLOR_STOP_BTN        = ImVec4(0.47f, 0.6f, 0.8f, 1.0f);
+	static constexpr ImVec4 COLOR_STOP_BTN        = ImVec4(0.55f, 0.73f, 0.95f, 1.0f);
 	static constexpr ImVec4 COLOR_STOP_BTN_HOVER  = ImVec4(0.55f, 0.66f, 0.8f, 1.0f);
 	static constexpr ImVec4 COLOR_STOP_BTN_ACTIVE = ImVec4(0.55f, 0.66f, 0.8f, 1.0f);
 
@@ -34,7 +34,7 @@ namespace Proto::EditorStyle
 	static constexpr ImVec4 COLOR_PAUSE_BTN_ACTIVE = ImVec4(0.7f, 0.7f, 0.7f, 1.0f);
 
 	// Resume 버튼 (일시정지 중 표시)
-	static constexpr ImVec4 COLOR_RESUME_BTN        = ImVec4(0.47f, 0.6f, 0.8f, 1.0f);
+	static constexpr ImVec4 COLOR_RESUME_BTN        = ImVec4(0.55f, 0.73f, 0.95f, 1.0f);
 	static constexpr ImVec4 COLOR_RESUME_BTN_HOVER  = ImVec4(0.55f, 0.66f, 0.8f, 1.0f);
 	static constexpr ImVec4 COLOR_RESUME_BTN_ACTIVE = ImVec4(0.55f, 0.66f, 0.8f, 1.0f);
 
@@ -43,9 +43,35 @@ namespace Proto::EditorStyle
 	static constexpr ImVec4 COLOR_STOP_RESUME_BTN_TEXT = ImVec4(0.0f,  0.0f,  0.0f,  1.0f); // Stop / Resume 버튼 글씨
 
 	// -----------------------------------------------------------------------
+	// 씬 뷰포트 패널
+	// -----------------------------------------------------------------------
+	static constexpr ImVec4 COLOR_GIZMO_BTN_TEXT          = ImVec4(0.33f, 0.33f, 0.33f, 1.0f); // 기본 버튼 텍스트
+	static constexpr ImVec4 COLOR_GIZMO_BTN_SELECTED_TEXT = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // 선택된 버튼 텍스트
+	static constexpr ImVec4 COLOR_GIZMO_BTN              = ImVec4(0.89f, 0.89f, 0.89f, 1.0f); // 기본 버튼
+	static constexpr ImVec4 COLOR_GIZMO_BTN_HOVERED      = ImVec4(0.93f, 0.93f, 0.93f, 1.0f); // 기본 버튼 호버
+	static constexpr ImVec4 COLOR_GIZMO_BTN_ACTIVE        = ImVec4(0.93f, 0.93f, 0.93f, 1.0f); // 기본 버튼 클릭 순간
+	static constexpr ImVec4 COLOR_GIZMO_BTN_SELECTED      = ImVec4(0.55f, 0.73f, 0.95f, 1.0f); // 선택된 버튼
+	static constexpr ImVec4 COLOR_GIZMO_BTN_SEL_HOVERED   = ImVec4(0.55f, 0.73f, 0.95f, 1.0f); // 선택된 버튼 호버
+	static constexpr ImVec4 COLOR_GIZMO_BTN_SEL_ACTIVE    = ImVec4(0.55f, 0.73f, 0.95f, 1.0f); // 선택된 버튼 클릭 순간
+
+	// -----------------------------------------------------------------------
+	// 경계선 / 구분선
+	// -----------------------------------------------------------------------
+	static constexpr ImVec4 COLOR_BORDER            = ImVec4(0.85f, 0.85f, 0.85f, 1.0f); // 패널 외곽 테두리
+	static constexpr ImVec4 COLOR_BORDER_SHADOW     = ImVec4(0.85f, 0.85f, 0.85f, 1.0f); // 테두리 그림자
+	static constexpr ImVec4 COLOR_SEPARATOR         = ImVec4(0.85f, 0.85f, 0.85f, 1.0f); // 구분선
+	static constexpr ImVec4 COLOR_SEPARATOR_HOVERED = ImVec4(0.85f, 0.85f, 0.85f, 1.0f); // 구분선 호버
+	static constexpr ImVec4 COLOR_SEPARATOR_ACTIVE  = ImVec4(0.85f, 0.85f, 0.85f, 1.0f); // 구분선 클릭
+	// 도킹 분할선 호버 시 ImGui가 내부적으로 SeparatorHovered를 ResizeGripHovered로 덮어씀 — 반드시 함께 설정
+	static constexpr ImVec4 COLOR_RESIZE_GRIP        = ImVec4(0.85f, 0.85f, 0.85f, 1.0f); // 리사이즈 핸들
+	static constexpr ImVec4 COLOR_RESIZE_GRIP_HOVERED= ImVec4(0.85f, 0.85f, 0.85f, 1.0f); // 리사이즈 핸들 호버 (도킹 분할선 호버색 실제 소스)
+	static constexpr ImVec4 COLOR_RESIZE_GRIP_ACTIVE = ImVec4(0.85f, 0.85f, 0.85f, 1.0f); // 리사이즈 핸들 클릭
+
+	// -----------------------------------------------------------------------
 	// 전역 UI
 	// -----------------------------------------------------------------------
-	static constexpr ImVec4 COLOR_VIEWPORT_HEADER = ImVec4(0.15f, 0.15f,  0.15f,  1.0f); // 씬 뷰포트 기즈모 헤더 바
+	static constexpr ImVec4 COLOR_VIEWPORT_HEADER = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // 씬 뷰포트 기즈모 헤더 바
+	static constexpr ImVec4 COLOR_PANEL_HEADER_BG = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // 패널 헤더 바 배경 (Hierarchy / ContentBrowser / Console)
 	static constexpr ImVec4 COLOR_WINDOW_BG       = ImVec4(0.1f,  0.105f, 0.11f,  1.0f); // 패널 배경
 	static constexpr ImVec4 COLOR_MENUBAR_BG      = ImVec4(1.0f,  1.0f,   1.0f,   1.0f); // 메뉴바 배경
 	static constexpr ImVec4 COLOR_POPUP_BG        = ImVec4(1.0f,  1.0f,   1.0f,   1.0f); // 드롭다운 팝업 배경
@@ -53,6 +79,28 @@ namespace Proto::EditorStyle
 	static constexpr ImVec4 COLOR_HEADER_HOVER    = ImVec4(0.85f, 0.85f,  0.85f,  1.0f); // 트리 헤더 (호버)
 	static constexpr ImVec4 COLOR_HEADER_ACTIVE   = ImVec4(0.85f, 0.85f,  0.85f,  1.0f); // 트리 헤더 (클릭)
 	static constexpr ImVec4 COLOR_TEXT            = ImVec4(0.0f,  0.0f,   0.0f,   1.0f); // 메뉴바 텍스트
+
+	// -----------------------------------------------------------------------
+	// 콘솔 패널 - 로그 레벨 색
+	// -----------------------------------------------------------------------
+	static constexpr ImVec4 COLOR_LOG_INFO    = ImVec4(0.0f, 1.0f, 1.0f, 1.0f); // Info  (Cyan)
+	static constexpr ImVec4 COLOR_LOG_WARN    = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // Warn  (Yellow)
+	static constexpr ImVec4 COLOR_LOG_ERROR   = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // Error (Red)
+	static constexpr ImVec4 COLOR_LOG_DEFAULT = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // 기본  (White)
+
+	// -----------------------------------------------------------------------
+	// 인스펙터 패널 - 상태 표시 색
+	// -----------------------------------------------------------------------
+	static constexpr ImVec4 COLOR_STATUS_ERROR   = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // 오류 (Red)
+	static constexpr ImVec4 COLOR_STATUS_WARNING = ImVec4(1.0f, 0.5f, 0.0f, 1.0f); // 경고 (Orange)
+	static constexpr ImVec4 COLOR_STATUS_SUCCESS = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // 정상 (Green)
+
+	// -----------------------------------------------------------------------
+	// 콘텐츠 브라우저 패널 - 파일 타입 색
+	// -----------------------------------------------------------------------
+	static constexpr ImVec4 COLOR_FILE_FOLDER  = ImVec4(0.3f, 0.5f, 0.8f, 1.0f); // 폴더        (Blue)
+	static constexpr ImVec4 COLOR_FILE_PROJECT = ImVec4(0.8f, 0.5f, 0.2f, 1.0f); // .proto 파일 (Orange)
+	static constexpr ImVec4 COLOR_FILE_DEFAULT = ImVec4(0.2f, 0.2f, 0.2f, 1.0f); // 일반 파일   (Grey)
 
 	// -----------------------------------------------------------------------
 	// 도킹 탭

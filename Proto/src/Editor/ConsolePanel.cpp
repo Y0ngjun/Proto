@@ -12,11 +12,6 @@ namespace Proto
 {
 	namespace
 	{
-		static constexpr ImVec4 COLOR_INFO = ImVec4(0.0f, 1.0f, 1.0f, 1.0f); // Cyan
-		static constexpr ImVec4 COLOR_WARN = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
-		static constexpr ImVec4 COLOR_ERROR = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // Red
-		static constexpr ImVec4 COLOR_WHITE = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-
 		static constexpr float FOOTER_HEIGHT_MULTIPLIER = 3.0f;
 	}
 
@@ -27,12 +22,12 @@ namespace Proto
 	{
 		switch (level)
 		{
-		case LogLevel::Info:  return COLOR_INFO;
-		case LogLevel::Warn:  return COLOR_WARN;
-		case LogLevel::Error: return COLOR_ERROR;
+		case LogLevel::Info:  return EditorStyle::COLOR_LOG_INFO;
+		case LogLevel::Warn:  return EditorStyle::COLOR_LOG_WARN;
+		case LogLevel::Error: return EditorStyle::COLOR_LOG_ERROR;
 		}
 
-		return COLOR_WHITE;
+		return EditorStyle::COLOR_LOG_DEFAULT;
 	}
 
 	void ConsolePanel::OnImGuiRender()
@@ -45,7 +40,7 @@ namespace Proto
 
 		// 헤더 바: 통일된 스타일
 		const float barHeight = ImGui::GetFrameHeight() + 8.0f;
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, EditorStyle::COLOR_PANEL_HEADER_BG);
 		ImGui::BeginChild("ConsoleHeader", ImVec2(0, barHeight), false,
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 		ImGui::SetCursorPos(ImVec2(8.0f, 4.0f));

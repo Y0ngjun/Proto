@@ -193,6 +193,14 @@ namespace Proto
 		colors[ImGuiCol_TabUnfocusedActive]= COLOR_TAB_UNFOCUSED_ACTIVE;
 		colors[ImGuiCol_TabSelectedOverline] = COLOR_TAB_OVERLINE;
 		ImGui::GetStyle().TabBarOverlineSize = TAB_OVERLINE_SIZE;
+		colors[ImGuiCol_Border]            = COLOR_BORDER;
+		colors[ImGuiCol_BorderShadow]      = COLOR_BORDER_SHADOW;
+		colors[ImGuiCol_Separator]         = COLOR_SEPARATOR;
+		colors[ImGuiCol_SeparatorHovered]  = COLOR_SEPARATOR_HOVERED;
+		colors[ImGuiCol_SeparatorActive]   = COLOR_SEPARATOR_ACTIVE;
+		colors[ImGuiCol_ResizeGrip]        = COLOR_RESIZE_GRIP;
+		colors[ImGuiCol_ResizeGripHovered] = COLOR_RESIZE_GRIP_HOVERED;
+		colors[ImGuiCol_ResizeGripActive]  = COLOR_RESIZE_GRIP_ACTIVE;
 	}
 
 	void EditorLayer::RenderMenuBar()
@@ -504,7 +512,17 @@ namespace Proto
 				const bool isSelected = m_GizmoType == type;
 				if (isSelected)
 				{
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.4f, 0.9f));
+					ImGui::PushStyleColor(ImGuiCol_Button,        COLOR_GIZMO_BTN_SELECTED);
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_GIZMO_BTN_SEL_HOVERED);
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive,  COLOR_GIZMO_BTN_SEL_ACTIVE);
+					ImGui::PushStyleColor(ImGuiCol_Text,          COLOR_GIZMO_BTN_SELECTED_TEXT);
+				}
+				else
+				{
+					ImGui::PushStyleColor(ImGuiCol_Button,        COLOR_GIZMO_BTN);
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_GIZMO_BTN_HOVERED);
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive,  COLOR_GIZMO_BTN_ACTIVE);
+					ImGui::PushStyleColor(ImGuiCol_Text,          COLOR_GIZMO_BTN_TEXT);
 				}
 
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
@@ -513,11 +531,7 @@ namespace Proto
 					m_GizmoType = type;
 				}
 				ImGui::PopStyleVar();
-
-				if (isSelected)
-				{
-					ImGui::PopStyleColor();
-				}
+				ImGui::PopStyleColor(4);
 			};
 
 		renderGizmoButton("None(Q)", -1);

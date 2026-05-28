@@ -42,7 +42,7 @@ namespace Proto
 
 		// 헤더 바: 통일된 스타일 (COLOR_VIEWPORT_HEADER 배경)
 		const float barHeight = ImGui::GetFrameHeight() + 8.0f;
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, EditorStyle::COLOR_PANEL_HEADER_BG);
 		ImGui::BeginChild("HierarchyHeader", ImVec2(0, barHeight), false,
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 		ImGui::SetCursorPos(ImVec2(8.0f, 4.0f));

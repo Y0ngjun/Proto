@@ -33,10 +33,6 @@ namespace Proto
 {
 	namespace
 	{
-		static constexpr ImVec4 COLOR_ERROR = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
-		static constexpr ImVec4 COLOR_WARNING = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
-		static constexpr ImVec4 COLOR_SUCCESS = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
-
 		static constexpr float DRAG_SPEED = 0.1f;
 		static constexpr float DEFAULT_FOV_MIN = 1.0f;
 		static constexpr float DEFAULT_FOV_MAX = 179.0f;
@@ -199,7 +195,7 @@ namespace Proto
 				}
 				else
 				{
-					ImGui::TextColored(COLOR_ERROR, "Mesh: Not Set");
+					ImGui::TextColored(EditorStyle::COLOR_STATUS_ERROR, "Mesh: Not Set");
 				}
 
 				if (component.GetShader())
@@ -208,7 +204,7 @@ namespace Proto
 				}
 				else
 				{
-					ImGui::TextColored(COLOR_ERROR, "Shader: Not Set");
+					ImGui::TextColored(EditorStyle::COLOR_STATUS_ERROR, "Shader: Not Set");
 				}
 			});
 
@@ -298,7 +294,7 @@ namespace Proto
 				}
 				else
 				{
-					ImGui::TextColored(COLOR_WARNING, "No scripts registered");
+					ImGui::TextColored(EditorStyle::COLOR_STATUS_WARNING, "No scripts registered");
 				}
 
 				if (!component.ScriptName.empty())
@@ -307,11 +303,11 @@ namespace Proto
 
 					if (component.Instance)
 					{
-						ImGui::TextColored(COLOR_SUCCESS, "Instance: Ready");
+						ImGui::TextColored(EditorStyle::COLOR_STATUS_SUCCESS, "Instance: Ready");
 					}
 					else
 					{
-						ImGui::TextColored(COLOR_WARNING, "Instance: Pending OnStart");
+						ImGui::TextColored(EditorStyle::COLOR_STATUS_WARNING, "Instance: Pending OnStart");
 					}
 				}
 			});

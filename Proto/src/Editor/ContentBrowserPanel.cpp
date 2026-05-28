@@ -13,10 +13,6 @@ namespace Proto
 {
 	namespace
 	{
-		static constexpr ImVec4 COLOR_FOLDER = ImVec4(0.3f, 0.5f, 0.8f, 1.0f); // Blue
-		static constexpr ImVec4 COLOR_PROJECT = ImVec4(0.8f, 0.5f, 0.2f, 1.0f); // Orange
-		static constexpr ImVec4 COLOR_FILE = ImVec4(0.2f, 0.2f, 0.2f, 1.0f); // Grey
-
 		static constexpr float DEFAULT_PADDING = 16.0f;
 		static constexpr float DEFAULT_CELL_SIZE = 100.0f;
 	}
@@ -28,15 +24,15 @@ namespace Proto
 	{
 		if (entry.is_directory())
 		{
-			return COLOR_FOLDER;
+			return EditorStyle::COLOR_FILE_FOLDER;
 		}
 
 		if (entry.path().extension() == ".proto")
 		{
-			return COLOR_PROJECT;
+			return EditorStyle::COLOR_FILE_PROJECT;
 		}
 
-		return COLOR_FILE;
+		return EditorStyle::COLOR_FILE_DEFAULT;
 	}
 
 	static const char* GetFileIcon(const std::filesystem::directory_entry& entry)
@@ -80,7 +76,7 @@ namespace Proto
 
 		// 헤더 바: 통일된 스타일
 		const float barHeight = ImGui::GetFrameHeight() + 8.0f;
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, EditorStyle::COLOR_PANEL_HEADER_BG);
 		ImGui::BeginChild("ContentBrowserHeader", ImVec2(0, barHeight), false,
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 		ImGui::SetCursorPos(ImVec2(8.0f, 4.0f));
