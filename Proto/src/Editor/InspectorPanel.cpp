@@ -94,12 +94,14 @@ namespace Proto
 		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_TITLE_TEXT);
 		ImGui::Begin("Inspector");
 		ImGui::PopStyleColor();
+		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_PANEL_TEXT);
 
 		if (selectedContext)
 		{
 			DrawComponents(selectedContext);
 		}
 
+		ImGui::PopStyleColor();
 		ImGui::End();
 	}
 

@@ -39,6 +39,7 @@ namespace Proto
 		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_TITLE_TEXT);
 		ImGui::Begin("Hierarchy");
 		ImGui::PopStyleColor();
+		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_PANEL_TEXT);
 
 		// 헤더 바: 통일된 스타일 (COLOR_VIEWPORT_HEADER 배경)
 		const float barHeight = ImGui::GetFrameHeight() + 8.0f;
@@ -103,6 +104,7 @@ namespace Proto
 
 		if (!m_Context)
 		{
+			ImGui::PopStyleColor();
 			ImGui::End();
 			ImGui::PopStyleVar(2);
 			return;
@@ -176,6 +178,7 @@ namespace Proto
 			}
 		}
 
+		ImGui::PopStyleColor();
 		ImGui::End();
 		ImGui::PopStyleVar(2);
 	}

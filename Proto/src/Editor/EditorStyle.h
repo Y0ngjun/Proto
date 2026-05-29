@@ -72,18 +72,19 @@ namespace Proto::EditorStyle
 	// -----------------------------------------------------------------------
 	static constexpr ImVec4 COLOR_VIEWPORT_HEADER = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // 씬 뷰포트 기즈모 헤더 바
 	static constexpr ImVec4 COLOR_PANEL_HEADER_BG = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // 패널 헤더 바 배경 (Hierarchy / ContentBrowser / Console)
-	static constexpr ImVec4 COLOR_WINDOW_BG       = ImVec4(0.1f,  0.105f, 0.11f,  1.0f); // 패널 배경
+	static constexpr ImVec4 COLOR_WINDOW_BG       = ImVec4(0.72f, 0.72f, 0.72f, 1.0f); // 패널 배경
 	static constexpr ImVec4 COLOR_MENUBAR_BG      = ImVec4(1.0f,  1.0f,   1.0f,   1.0f); // 메뉴바 배경
 	static constexpr ImVec4 COLOR_POPUP_BG        = ImVec4(1.0f,  1.0f,   1.0f,   1.0f); // 드롭다운 팝업 배경
 	static constexpr ImVec4 COLOR_HEADER          = ImVec4(0.85f, 0.85f,  0.85f,  1.0f); // 트리 헤더 (기본)
 	static constexpr ImVec4 COLOR_HEADER_HOVER    = ImVec4(0.85f, 0.85f,  0.85f,  1.0f); // 트리 헤더 (호버)
 	static constexpr ImVec4 COLOR_HEADER_ACTIVE   = ImVec4(0.85f, 0.85f,  0.85f,  1.0f); // 트리 헤더 (클릭)
 	static constexpr ImVec4 COLOR_TEXT            = ImVec4(0.0f,  0.0f,   0.0f,   1.0f); // 메뉴바 텍스트
+	static constexpr ImVec4 COLOR_PANEL_TEXT      = ImVec4(0.0f,  0.0f,   0.0f,   1.0f); // 패널 본문 텍스트
 
 	// -----------------------------------------------------------------------
 	// 콘솔 패널 - 로그 레벨 색
 	// -----------------------------------------------------------------------
-	static constexpr ImVec4 COLOR_LOG_INFO    = ImVec4(0.0f, 1.0f, 1.0f, 1.0f); // Info  (Cyan)
+	static constexpr ImVec4 COLOR_LOG_INFO    = ImVec4(0.0f, 0.0f, 0.0f, 1.0f); // Info  (Black)
 	static constexpr ImVec4 COLOR_LOG_WARN    = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // Warn  (Yellow)
 	static constexpr ImVec4 COLOR_LOG_ERROR   = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // Error (Red)
 	static constexpr ImVec4 COLOR_LOG_DEFAULT = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // 기본  (White)

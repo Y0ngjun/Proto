@@ -57,11 +57,13 @@ namespace Proto
 		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_TITLE_TEXT);
 		ImGui::Begin("Content Browser");
 		ImGui::PopStyleColor();
+		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_PANEL_TEXT);
 
 		const std::filesystem::path projectPath = Project::GetProjectDirectory();
 		if (projectPath.empty())
 		{
 			ImGui::Text("No Project Open.");
+			ImGui::PopStyleColor();
 			ImGui::End();
 			ImGui::PopStyleVar(2);
 			return;
@@ -173,6 +175,7 @@ namespace Proto
 		}
 
 		ImGui::Columns(1);
+		ImGui::PopStyleColor();
 		ImGui::End();
 		ImGui::PopStyleVar(2);
 	}
