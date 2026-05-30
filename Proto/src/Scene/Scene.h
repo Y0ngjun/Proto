@@ -70,6 +70,7 @@ namespace Proto
 
 		void RenderObjects(const glm::mat4& viewProjection, const glm::vec3& viewPos, bool isEditor = false);
 		void RenderGrid(const glm::mat4& viewProjection, const glm::vec3& viewPos);
+		void DrawSkyGradient(const EditorCamera& camera);
 
 		LightInfo GetMainLightInfo();
 
@@ -77,6 +78,9 @@ namespace Proto
 
 		std::shared_ptr<VertexArray> m_GridVAO;
 		std::shared_ptr<Shader> m_GridShader;
+
+		std::shared_ptr<VertexArray> m_SkyVAO;
+		std::shared_ptr<Shader> m_SkyShader;
 
 		bool m_IsDirty = false;
 	};

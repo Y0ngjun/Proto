@@ -299,6 +299,7 @@ namespace Proto
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
+		ImGuizmo::AllowAxisFlip(false);
 	}
 
 	void EditorLayer::EndFrame() const
