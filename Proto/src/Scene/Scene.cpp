@@ -57,9 +57,31 @@ namespace Proto
 	Scene::Scene()
 	{}
 
+	std::string Scene::MakeUniqueName(const std::string& name, const GameObject* exclude) const
+	{
+		std::string uniqueName = name;
+		int suffix = 1;
+		while (true)
+		{
+			bool conflict = false;
+			for (const auto& go : m_GameObjects)
+			{
+				if (go.get() == exclude) continue;
+				if (go->GetName() == uniqueName)
+				{
+					conflict = true;
+					break;
+				}
+			}
+			if (!conflict) break;
+			uniqueName = name + " (" + std::to_string(suffix++) + ")";
+		}
+		return uniqueName;
+	}
+
 	GameObject* Scene::CreateGameObject(const std::string& name)
 	{
-		auto gameObject = std::make_unique<GameObject>(name);
+		auto gameObject = std::make_unique<GameObject>(MakeUniqueName(name));
 		gameObject->AddComponent<Transform>();
 
 		GameObject* ptr = gameObject.get();

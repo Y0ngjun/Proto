@@ -135,9 +135,9 @@ namespace Proto
 			ImGui::SetNextWindowPos(
 				ImVec2(mainViewport->Pos.x + (mainViewport->Size.x - windowSize.x) * 0.5f,
 				       mainViewport->Pos.y + (mainViewport->Size.y - windowSize.y) * 0.5f),
-				ImGuiCond_FirstUseEver
+				ImGuiCond_Appearing
 			);
-			ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
+			ImGui::SetNextWindowSize(windowSize, ImGuiCond_Appearing);
 
 			ImGui::PushStyleColor(ImGuiCol_Text, COLOR_TITLE_TEXT);
 			ImGui::Begin(title, &show);
@@ -201,11 +201,14 @@ namespace Proto
 		colors[ImGuiCol_ResizeGrip]        = COLOR_RESIZE_GRIP;
 		colors[ImGuiCol_ResizeGripHovered] = COLOR_RESIZE_GRIP_HOVERED;
 		colors[ImGuiCol_ResizeGripActive]  = COLOR_RESIZE_GRIP_ACTIVE;
+		colors[ImGuiCol_Text]              = COLOR_TEXT;
+		colors[ImGuiCol_ButtonHovered]     = COLOR_BUTTON_HOVERED;
+		colors[ImGuiCol_ButtonActive]      = COLOR_BUTTON_ACTIVE;
 	}
 
 	void EditorLayer::RenderMenuBar()
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, COLOR_TEXT);
+		ImGui::PushStyleColor(ImGuiCol_Text, COLOR_MENUBAR_TEXT);
 
 		if (!ImGui::BeginMainMenuBar())
 		{
@@ -216,7 +219,7 @@ namespace Proto
 		if (ImGui::BeginMenu("File"))
 		{
 			// Scene 그룹
-			if (ImGui::MenuItem("New Scene", "Ctrl+N"))
+			if (ImGui::MenuItem("New Scene...", "Ctrl+N"))
 			{
 				Application::Get().NewScene();
 			}
@@ -228,7 +231,7 @@ namespace Proto
 			{
 				Application::Get().SaveScene();
 			}
-			if (ImGui::MenuItem("Save As Scene...", "Ctrl+Shift+S"))
+			if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
 			{
 				Application::Get().SaveSceneAs();
 			}
@@ -236,7 +239,7 @@ namespace Proto
 			ImGui::Separator();
 
 			// Project 그룹
-			if (ImGui::MenuItem("New Project"))
+			if (ImGui::MenuItem("New Project..."))
 			{
 				Application::Get().NewProject();
 			}

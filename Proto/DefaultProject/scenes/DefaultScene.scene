@@ -1,6 +1,6 @@
 Scene: Untitled
 Entities:
-  - Entity: 2060261205170374486
+  - Entity: 4667726528188410679
     Name: Main Camera
     Components:
       - Component: Transform
@@ -13,7 +13,7 @@ Entities:
         FOV: 0.7853982
         NearClip: 0.1
         FarClip: 1000
-  - Entity: 17528018536018193634
+  - Entity: 1720775253612351822
     Name: Directional Light
     Components:
       - Component: Transform
@@ -23,12 +23,67 @@ Entities:
       - Component: LightComponent
         Color: [1, 1, 1]
         Intensity: 1
-  - Entity: 6540939682594762562
+  - Entity: 13508567340489471784
+    Name: Cube (1)
+    Components:
+      - Component: Transform
+        Translation: [0, 0, 0]
+        Rotation: [0, 0, 0]
+        Scale: [1, 1, 1]
+      - Component: MeshRenderer
+        MeshUUID: 1
+        ShaderUUID: 100
+        MeshTypeName: Cube
+  - Entity: 15514015728084144905
+    Name: Cube (1) (1)
+    Components:
+      - Component: Transform
+        Translation: [0, 0, 0]
+        Rotation: [0, 0, 0]
+        Scale: [1, 1, 1]
+      - Component: MeshRenderer
+        MeshUUID: 1
+        ShaderUUID: 100
+        MeshTypeName: Cube
+  - Entity: 13193497975317107954
     Name: Cube
     Components:
       - Component: Transform
-        Translation: [-3.7252903e-09, 0, 1.8626451e-09]
-        Rotation: [0, -1.312093, 0]
+        Translation: [0, 0, 0]
+        Rotation: [0, 0, 0]
+        Scale: [1, 1, 1]
+      - Component: MeshRenderer
+        MeshUUID: 1
+        ShaderUUID: 100
+        MeshTypeName: Cube
+  - Entity: 17747478781836307462
+    Name: Cube (2)
+    Components:
+      - Component: Transform
+        Translation: [0, 0, 0]
+        Rotation: [0, 0, 0]
+        Scale: [1, 1, 1]
+      - Component: MeshRenderer
+        MeshUUID: 1
+        ShaderUUID: 100
+        MeshTypeName: Cube
+  - Entity: 10956904522087817644
+    Name: Cube (2) (1)
+    Components:
+      - Component: Transform
+        Translation: [0, 0, 0]
+        Rotation: [0, 0, 0]
+        Scale: [1, 1, 1]
+      - Component: MeshRenderer
+        MeshUUID: 1
+        ShaderUUID: 100
+        MeshTypeName: Cube
+  - Entity: 10961389782138879187
+    Name: Cube (4)
+    Components:
+      - Component: Transform
+        Translation: [0, 0, 0]
+        Rotation: [0, 0, 0]
         Scale: [1, 1, 1]
       - Component: MeshRenderer
         MeshUUID: 1

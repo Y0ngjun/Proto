@@ -8,6 +8,7 @@
 #include "SceneHierarchyPanel.h"
 #include "EditorStyle.h"
 #include "../Scene/Components/Transform.h"
+#include "../Scene/Components/CameraComponent.h"
 #include "../Scene/Components/MeshRenderer.h"
 #include "../Asset/AssetManager.h"
 #include "../Asset/Asset.h"
@@ -54,26 +55,30 @@ namespace Proto
 			ImGui::BeginDisabled();
 		}
 
+		ImGui::PushStyleColor(ImGuiCol_Button,        EditorStyle::COLOR_GIZMO_BTN);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, EditorStyle::COLOR_GIZMO_BTN_HOVERED);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive,  EditorStyle::COLOR_GIZMO_BTN_ACTIVE);
+		ImGui::PushStyleColor(ImGuiCol_Text,          EditorStyle::COLOR_GIZMO_BTN_TEXT);
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
-		if (ImGui::Button("+ Add", ImVec2(120.0f, 0)))
+		if (ImGui::Button("+", ImVec2(120.0f, 0)))
 		{
 			ImGui::OpenPopup("HierarchyCreateMenu");
 		}
 		ImGui::PopStyleVar();
+		ImGui::PopStyleColor(4);
 
 		if (!canCreate)
 		{
 			ImGui::EndDisabled();
 		}
 
+		ImGui::PopStyleVar(2);
 		if (ImGui::BeginPopup("HierarchyCreateMenu"))
 		{
-			if (ImGui::MenuItem("Empty Object"))
+			if (ImGui::MenuItem("Empty", "Ctrl+Shift+N"))
 			{
 				m_Context->CreateGameObject("Empty Object");
 			}
-
-			ImGui::Separator();
 
 			if (ImGui::MenuItem("Cube"))
 			{
@@ -85,20 +90,56 @@ namespace Proto
 				m_Context->CreateMeshGameObject("Sphere", UUID(DefaultAsset::SPHERE));
 			}
 
-			if (ImGui::MenuItem("Plane"))
-			{
-				m_Context->CreateMeshGameObject("Plane", UUID(DefaultAsset::PLANE));
-			}
-
 			if (ImGui::MenuItem("Cylinder"))
 			{
 				m_Context->CreateMeshGameObject("Cylinder", UUID(DefaultAsset::CYLINDER));
 			}
 
+			if (ImGui::MenuItem("Plane"))
+			{
+				m_Context->CreateMeshGameObject("Plane", UUID(DefaultAsset::PLANE));
+			}
+
+			if (ImGui::MenuItem("Camera"))
+			{
+				bool hasPrimary = false;
+				for (const auto& go : m_Context->GetGameObjects())
+				{
+					auto* cam = go->GetComponent<CameraComponent>();
+					if (cam && cam->Primary)
+					{
+						hasPrimary = true;
+						break;
+					}
+				}
+
+				GameObject* go = m_Context->CreateGameObject("Camera");
+				auto* cam = go->AddComponent<CameraComponent>();
+				cam->Primary = !hasPrimary;
+			}
+
+			if (ImGui::BeginMenu("UI"))
+			{
+				if (ImGui::MenuItem("Canvas"))
+				{
+					// TODO: UI Canvas 오브젝트 생성
+				}
+
+				if (ImGui::MenuItem("Text"))
+				{
+					// TODO: UI Text 오브젝트 생성
+				}
+
+				ImGui::EndMenu();
+			}
+
 			ImGui::EndPopup();
 		}
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
 		ImGui::EndChild();
+		const bool isHeaderHovered = ImGui::IsItemHovered();
 		ImGui::PopStyleColor();
 		ImGui::Separator();
 
@@ -123,12 +164,13 @@ namespace Proto
 		}
 
 		// 배경 클릭 시 선택 해제 (아이템이나 상단바를 클릭하지 않았을 때만)
-		if (ImGui::IsMouseClicked(0) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
+		if (ImGui::IsMouseClicked(0) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered() && !isHeaderHovered)
 		{
 			m_SelectionContext = nullptr;
 			m_RenamingGameObject = nullptr;
 		}
 
+		ImGui::PopStyleVar(2);
 		if (ImGui::BeginPopupContextWindow("##CreateObject", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
 		{
 			if (ImGui::MenuItem("Create Empty Object"))
@@ -158,6 +200,8 @@ namespace Proto
 
 			ImGui::EndPopup();
 		}
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
 		if (m_RenamingGameObject)
 		{
@@ -166,7 +210,7 @@ namespace Proto
 			{
 				if (m_RenamingBuffer[0] != '\0')
 				{
-					m_RenamingGameObject->SetName(m_RenamingBuffer);
+					m_RenamingGameObject->SetName(m_Context->MakeUniqueName(m_RenamingBuffer, m_RenamingGameObject));
 				}
 
 				m_RenamingGameObject = nullptr;
@@ -197,6 +241,7 @@ namespace Proto
 			m_SelectionContext = gameObject;
 		}
 
+		ImGui::PopStyleVar(2);
 		if (ImGui::BeginPopupContextItem("EntityContextMenu"))
 		{
 			if (ImGui::MenuItem("Rename"))
@@ -225,6 +270,8 @@ namespace Proto
 
 			ImGui::EndPopup();
 		}
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
 		if (opened)
 		{

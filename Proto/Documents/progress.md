@@ -7,6 +7,7 @@ Proto: 4계층 아키텍처 기반 3D 엔진 | MVP 목표: 3D 탄막 게임
 - 숏컷 구현
 - 레이아웃 구현 (색깔)
 - Camera Component 배경 타입 옵션 추가 (SkyGradient / SolidColor) + 하늘 그라디언트 상수를 Scene 레이어 내 별도 설정 헤더로 분리
+- 직렬화/역직렬화 전수조사 (현재 카메라가 Stop 시 역직렬화 안됨)
 
 ---
 

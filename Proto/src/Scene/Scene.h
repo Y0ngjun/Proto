@@ -29,6 +29,8 @@ namespace Proto
 		void RemoveGameObject(GameObject* gameObject);
 		void CreateDefault();
 
+		std::string MakeUniqueName(const std::string& name, const GameObject* exclude = nullptr) const;
+
 		void OnUpdateRuntime(float deltaTime, bool isFocused = true);
 		void OnUpdateEditor(float deltaTime, EditorCamera& camera);
 
