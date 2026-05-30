@@ -52,6 +52,21 @@ namespace Proto
 		static constexpr float     GRID_COARSE_ALPHA = 0.35f; // 굵은 선 최대 불투명도
 		static constexpr float     GRID_FADE_MULTIPLIER = 20.0f; // 페이드 거리 = 카메라 높이 × 이 값
 		static constexpr float     GRID_FADE_MIN        = 80.0f; // 페이드 거리 최솟값 (유닛)
+
+	// 루트까지 로컬 변환을 누적하여 월드 변환 행렬 반환
+	static glm::mat4 ComputeWorldTransform(GameObject* go)
+	{
+		std::vector<GameObject*> chain;
+		GameObject* cursor = go;
+		while (cursor) { chain.push_back(cursor); cursor = cursor->GetParent(); }
+		glm::mat4 world(1.0f);
+		for (int i = static_cast<int>(chain.size()) - 1; i >= 0; --i)
+		{
+			auto* t = chain[i]->GetComponent<Transform>();
+			if (t) world = world * t->GetTransform();
+		}
+		return world;
+	}
 	}
 
 	Scene::Scene()
@@ -102,17 +117,36 @@ namespace Proto
 		return go;
 	}
 
+	void Scene::SetParent(GameObject* child, GameObject* newParent)
+	{
+		if (!child || child == newParent) return;
+		// 순환 관계 검사: newParent가 child의 자손이면 무시
+		GameObject* cursor = newParent;
+		while (cursor) { if (cursor == child) return; cursor = cursor->GetParent(); }
+		// 기존 부모의 자식 목록에서 제거
+		if (child->m_Parent)
+		{
+			auto& siblings = child->m_Parent->m_Children;
+			siblings.erase(std::remove(siblings.begin(), siblings.end(), child), siblings.end());
+		}
+		// 새 부모 연결
+		child->m_Parent = newParent;
+		if (newParent) newParent->m_Children.push_back(child);
+		SetDirty(true);
+	}
+
 	void Scene::RemoveGameObject(GameObject* gameObject)
 	{
-		if (!gameObject)
-		{
-			return;
-		}
+		if (!gameObject) return;
+		// 자식을 재귀적으로 먼저 삭제 (복사 후 순회 — 재귀 호출이 m_Children 수정)
+		for (GameObject* child : std::vector<GameObject*>(gameObject->m_Children))
+			RemoveGameObject(child);
+		// 부모의 자식 목록에서 제거
+		if (gameObject->m_Parent)
+			SetParent(gameObject, nullptr);
 
 		for (const auto& comp : gameObject->GetComponents())
-		{
 			comp->OnDestroy();
-		}
 
 		auto it = std::find_if(m_GameObjects.begin(), m_GameObjects.end(),
 			[gameObject](const std::unique_ptr<GameObject>& obj)
@@ -393,7 +427,7 @@ namespace Proto
 			auto light = go->GetComponent<LightComponent>();
 			if (light)
 			{
-				const glm::mat4 lightTrans = go->GetComponent<Transform>()->GetTransform();
+				const glm::mat4 lightTrans = ComputeWorldTransform(go.get());
 				info.Direction = glm::normalize(glm::vec3(lightTrans[2]));
 				info.Color = light->Color;
 				info.Intensity = light->Intensity;
@@ -428,7 +462,7 @@ namespace Proto
 
 			shader->Bind();
 			shader->UploadUniformMat4("u_ViewProjection", viewProjection);
-			shader->UploadUniformMat4("u_Transform", transform->GetTransform());
+			shader->UploadUniformMat4("u_Transform", ComputeWorldTransform(go.get()));
 			shader->UploadUniformFloat3("u_ViewPos", viewPos);
 			shader->UploadUniformFloat3("u_LightDir", light.Direction);
 			shader->UploadUniformFloat3("u_LightColor", light.Color * light.Intensity);

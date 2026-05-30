@@ -47,6 +47,9 @@ namespace Proto
 		GameObject* GetGameObjectByRuntimeID(uint32_t id);
 		GameObject* GetGameObjectByUUID(UUID uuid);
 
+		// 부모-자식 관계 설정. newParent가 nullptr이면 루트로 분리. 순환 관계는 무시.
+		void SetParent(GameObject* child, GameObject* newParent);
+
 		// 상태 변경(Dirty Flag) 관리
 		void SetDirty(bool dirty)
 		{

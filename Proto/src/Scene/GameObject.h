@@ -114,10 +114,18 @@ namespace Proto
 			return m_Components;
 		}
 
+		GameObject* GetParent() const { return m_Parent; }
+		const std::vector<GameObject*>& GetChildren() const { return m_Children; }
+		bool IsRoot() const { return m_Parent == nullptr; }
+
 	private:
+		friend class Scene;
+
 		UUID m_UUID;
 		uint32_t m_RuntimeID;
 		std::string m_Name;
 		std::vector<std::unique_ptr<Component>> m_Components;
+		GameObject* m_Parent = nullptr;           // 부모 오브젝트 (nullptr이면 루트)
+		std::vector<GameObject*> m_Children;      // 자식 오브젝트 목록 (비소유)
 	};
 }

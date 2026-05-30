@@ -4,6 +4,7 @@
  */
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #include "SceneHierarchyPanel.h"
 #include "EditorStyle.h"
@@ -151,9 +152,15 @@ namespace Proto
 			return;
 		}
 
+		// 루트 목록을 먼저 수집 (렌더링 중 삭제로 인한 벡터 이터레이터 무효화 방지)
+		std::vector<GameObject*> roots;
 		for (auto& go : m_Context->GetGameObjects())
 		{
-			DrawEntityNode(go.get());
+			if (go->IsRoot()) roots.push_back(go.get());
+		}
+		for (GameObject* root : roots)
+		{
+			DrawEntityNode(root);
 		}
 
 		// Delete 키로 오브젝트 삭제 (포커스된 상태에서만)
@@ -173,29 +180,57 @@ namespace Proto
 		ImGui::PopStyleVar(2);
 		if (ImGui::BeginPopupContextWindow("##CreateObject", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
 		{
-			if (ImGui::MenuItem("Create Empty Object"))
+			if (ImGui::MenuItem("Empty", "Ctrl+Shift+N"))
 			{
 				m_Context->CreateGameObject("Empty Object");
 			}
 
-			if (ImGui::MenuItem("Create Cube"))
+			if (ImGui::MenuItem("Cube"))
 			{
 				m_Context->CreateMeshGameObject("Cube", UUID(DefaultAsset::CUBE));
 			}
 
-			if (ImGui::MenuItem("Create Sphere"))
+			if (ImGui::MenuItem("Sphere"))
 			{
 				m_Context->CreateMeshGameObject("Sphere", UUID(DefaultAsset::SPHERE));
 			}
 
-			if (ImGui::MenuItem("Create Cylinder"))
+			if (ImGui::MenuItem("Cylinder"))
 			{
 				m_Context->CreateMeshGameObject("Cylinder", UUID(DefaultAsset::CYLINDER));
 			}
 
-			if (ImGui::MenuItem("Create Plane"))
+			if (ImGui::MenuItem("Plane"))
 			{
 				m_Context->CreateMeshGameObject("Plane", UUID(DefaultAsset::PLANE));
+			}
+
+			if (ImGui::MenuItem("Camera"))
+			{
+				bool hasPrimary = false;
+				for (const auto& go : m_Context->GetGameObjects())
+				{
+					auto* cam = go->GetComponent<CameraComponent>();
+					if (cam && cam->Primary) { hasPrimary = true; break; }
+				}
+				GameObject* go = m_Context->CreateGameObject("Camera");
+				auto* cam = go->AddComponent<CameraComponent>();
+				cam->Primary = !hasPrimary;
+			}
+
+			if (ImGui::BeginMenu("UI"))
+			{
+				if (ImGui::MenuItem("Canvas"))
+				{
+					// TODO: UI Canvas 오브젝트 생성
+				}
+
+				if (ImGui::MenuItem("Text"))
+				{
+					// TODO: UI Text 오브젝트 생성
+				}
+
+				ImGui::EndMenu();
 			}
 
 			ImGui::EndPopup();
@@ -222,6 +257,20 @@ namespace Proto
 			}
 		}
 
+		// 패널 전체를 배경 드롭 타겟으로: 노드 위 드롭은 각 노드 타겟이 우선 처리 (더 작은 rect 우선)
+		if (ImGuiWindow* win = ImGui::GetCurrentWindow())
+		{
+			if (ImGui::BeginDragDropTargetCustom(win->InnerRect, win->ID))
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_GAMEOBJECT"))
+				{
+					GameObject* dragged = *static_cast<GameObject**>(payload->Data);
+					m_Context->SetParent(dragged, nullptr);
+				}
+				ImGui::EndDragDropTarget();
+			}
+		}
+
 		ImGui::PopStyleColor();
 		ImGui::End();
 		ImGui::PopStyleVar(2);
@@ -231,14 +280,38 @@ namespace Proto
 	{
 		ImGui::PushID((void*)gameObject);
 
-		ImGuiTreeNodeFlags flags = ((m_SelectionContext == gameObject) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+		bool deleted = false;
+		const bool hasChildren = !gameObject->GetChildren().empty();
+		ImGuiTreeNodeFlags flags =
+			((m_SelectionContext == gameObject) ? ImGuiTreeNodeFlags_Selected : 0) |
+			ImGuiTreeNodeFlags_OpenOnArrow |
+			ImGuiTreeNodeFlags_SpanAvailWidth;
+		// 자식이 없으면 리프 노드로 표시 (화살표 숨김, TreePush 생략)
+		if (!hasChildren)
+			flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
 		const bool opened = ImGui::TreeNodeEx((void*)gameObject, flags, "%s", gameObject->GetName().c_str());
 
 		if (ImGui::IsItemClicked())
-		{
 			m_SelectionContext = gameObject;
+
+		// 드래그 소스: 이 노드를 드래그 시작
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceNoDisableHover))
+		{
+			ImGui::SetDragDropPayload("HIERARCHY_GAMEOBJECT", &gameObject, sizeof(GameObject*));
+			ImGui::Text("%s", gameObject->GetName().c_str());
+			ImGui::EndDragDropSource();
+		}
+
+		// 드롭 타겟: 이 노드에 드롭 → 드래그된 오브젝트를 자식으로 편입
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_GAMEOBJECT"))
+			{
+				GameObject* dragged = *static_cast<GameObject**>(payload->Data);
+				m_Context->SetParent(dragged, gameObject);
+			}
+			ImGui::EndDragDropTarget();
 		}
 
 		ImGui::PopStyleVar(2);
@@ -254,17 +327,11 @@ namespace Proto
 
 			if (ImGui::MenuItem("Delete"))
 			{
-				if (m_SelectionContext == gameObject)
-				{
-					m_SelectionContext = nullptr;
-				}
-
-				if (m_RenamingGameObject == gameObject)
-				{
-					m_RenamingGameObject = nullptr;
-				}
-
+				// 자식까지 재귀 삭제되므로 선택/리네임 포인터를 무조건 초기화
+				m_SelectionContext = nullptr;
+				m_RenamingGameObject = nullptr;
 				m_Context->RemoveGameObject(gameObject);
+				deleted = true;
 				ImGui::CloseCurrentPopup();
 			}
 
@@ -273,8 +340,15 @@ namespace Proto
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
-		if (opened)
+		// TreePop은 Push 여부(opened && hasChildren)에만 의존 — deleted 여부와 무관
+		if (opened && hasChildren)
 		{
+			// 삭제된 경우 자식 렌더링만 생략 (use-after-free 방지), TreePop은 항상 호출
+			if (!deleted)
+			{
+				for (GameObject* child : std::vector<GameObject*>(gameObject->GetChildren()))
+					DrawEntityNode(child);
+			}
 			ImGui::TreePop();
 		}
 
