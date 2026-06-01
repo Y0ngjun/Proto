@@ -29,6 +29,8 @@ namespace Proto
 		void RemoveGameObject(GameObject* gameObject);
 		void CreateDefault();
 
+		std::string MakeUniqueName(const std::string& name, const GameObject* exclude = nullptr) const;
+
 		void OnUpdateRuntime(float deltaTime, bool isFocused = true);
 		void OnUpdateEditor(float deltaTime, EditorCamera& camera);
 
@@ -44,6 +46,9 @@ namespace Proto
 
 		GameObject* GetGameObjectByRuntimeID(uint32_t id);
 		GameObject* GetGameObjectByUUID(UUID uuid);
+
+		// 부모-자식 관계 설정. newParent가 nullptr이면 루트로 분리. 순환 관계는 무시.
+		void SetParent(GameObject* child, GameObject* newParent);
 
 		// 상태 변경(Dirty Flag) 관리
 		void SetDirty(bool dirty)
@@ -70,6 +75,7 @@ namespace Proto
 
 		void RenderObjects(const glm::mat4& viewProjection, const glm::vec3& viewPos, bool isEditor = false);
 		void RenderGrid(const glm::mat4& viewProjection, const glm::vec3& viewPos);
+		void DrawSkyGradient(const EditorCamera& camera);
 
 		LightInfo GetMainLightInfo();
 
@@ -77,6 +83,9 @@ namespace Proto
 
 		std::shared_ptr<VertexArray> m_GridVAO;
 		std::shared_ptr<Shader> m_GridShader;
+
+		std::shared_ptr<VertexArray> m_SkyVAO;
+		std::shared_ptr<Shader> m_SkyShader;
 
 		bool m_IsDirty = false;
 	};

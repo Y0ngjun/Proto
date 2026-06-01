@@ -34,16 +34,69 @@ namespace Proto
 	namespace
 	{
 		static constexpr float GRAVITY = -9.81f;
-		static constexpr float GRID_SIZE = 100.0f;
 		static constexpr float COLLISION_EPSILON = 0.0001f;
+
+		// --- 에디터 하늘 그라디언트 색상 ---
+		static constexpr glm::vec3 SKY_COLOR     = { 0.29f, 0.38f, 0.49f }; // 하늘 (파란색)
+		static constexpr glm::vec3 HORIZON_COLOR = { 0.77f, 0.82f, 0.82f }; // 지평선 (청백색)
+		static constexpr glm::vec3 GROUND_COLOR  = { 0.41f, 0.39f, 0.37f }; // 대지 (회갈색)
+
+		// 지평선 범위 (단위: dir.y, 0~1). 값을 키울수록 그라디언트가 넓고 부드러워짐
+		static constexpr float SKY_HORIZON_RANGE    = 0.45f; // 하늘↔지평선 전환 폭 (y=0 지평선부터 y=값까지 선형 블렌드)
+		static constexpr float GROUND_HORIZON_RANGE = 0.05f; // 대지↔지평선 전환 폭
+
+		// --- 에디터 그리드 ---
+		static constexpr glm::vec3 GRID_COLOR_FINE   = { 0.42f, 0.42f, 0.42f }; // 세밀 그리드 색 (1유닛)
+		static constexpr glm::vec3 GRID_COLOR_COARSE = { 0.47f, 0.47f, 0.47f }; // 굵은 그리드 색 (10유닛)
+		static constexpr float     GRID_FINE_ALPHA   = 0.15f; // 세밀 선 최대 불투명도
+		static constexpr float     GRID_COARSE_ALPHA = 0.35f; // 굵은 선 최대 불투명도
+		static constexpr float     GRID_FADE_MULTIPLIER = 20.0f; // 페이드 거리 = 카메라 높이 × 이 값
+		static constexpr float     GRID_FADE_MIN        = 80.0f; // 페이드 거리 최솟값 (유닛)
+
+	// 루트까지 로컬 변환을 누적하여 월드 변환 행렬 반환
+	static glm::mat4 ComputeWorldTransform(GameObject* go)
+	{
+		std::vector<GameObject*> chain;
+		GameObject* cursor = go;
+		while (cursor) { chain.push_back(cursor); cursor = cursor->GetParent(); }
+		glm::mat4 world(1.0f);
+		for (int i = static_cast<int>(chain.size()) - 1; i >= 0; --i)
+		{
+			auto* t = chain[i]->GetComponent<Transform>();
+			if (t) world = world * t->GetTransform();
+		}
+		return world;
+	}
 	}
 
 	Scene::Scene()
 	{}
 
+	std::string Scene::MakeUniqueName(const std::string& name, const GameObject* exclude) const
+	{
+		std::string uniqueName = name;
+		int suffix = 1;
+		while (true)
+		{
+			bool conflict = false;
+			for (const auto& go : m_GameObjects)
+			{
+				if (go.get() == exclude) continue;
+				if (go->GetName() == uniqueName)
+				{
+					conflict = true;
+					break;
+				}
+			}
+			if (!conflict) break;
+			uniqueName = name + " (" + std::to_string(suffix++) + ")";
+		}
+		return uniqueName;
+	}
+
 	GameObject* Scene::CreateGameObject(const std::string& name)
 	{
-		auto gameObject = std::make_unique<GameObject>(name);
+		auto gameObject = std::make_unique<GameObject>(MakeUniqueName(name));
 		gameObject->AddComponent<Transform>();
 
 		GameObject* ptr = gameObject.get();
@@ -64,17 +117,36 @@ namespace Proto
 		return go;
 	}
 
+	void Scene::SetParent(GameObject* child, GameObject* newParent)
+	{
+		if (!child || child == newParent) return;
+		// 순환 관계 검사: newParent가 child의 자손이면 무시
+		GameObject* cursor = newParent;
+		while (cursor) { if (cursor == child) return; cursor = cursor->GetParent(); }
+		// 기존 부모의 자식 목록에서 제거
+		if (child->m_Parent)
+		{
+			auto& siblings = child->m_Parent->m_Children;
+			siblings.erase(std::remove(siblings.begin(), siblings.end(), child), siblings.end());
+		}
+		// 새 부모 연결
+		child->m_Parent = newParent;
+		if (newParent) newParent->m_Children.push_back(child);
+		SetDirty(true);
+	}
+
 	void Scene::RemoveGameObject(GameObject* gameObject)
 	{
-		if (!gameObject)
-		{
-			return;
-		}
+		if (!gameObject) return;
+		// 자식을 재귀적으로 먼저 삭제 (복사 후 순회 — 재귀 호출이 m_Children 수정)
+		for (GameObject* child : std::vector<GameObject*>(gameObject->m_Children))
+			RemoveGameObject(child);
+		// 부모의 자식 목록에서 제거
+		if (gameObject->m_Parent)
+			SetParent(gameObject, nullptr);
 
 		for (const auto& comp : gameObject->GetComponents())
-		{
 			comp->OnDestroy();
-		}
 
 		auto it = std::find_if(m_GameObjects.begin(), m_GameObjects.end(),
 			[gameObject](const std::unique_ptr<GameObject>& obj)
@@ -183,6 +255,7 @@ namespace Proto
 		const glm::mat4 viewProjection = camera.GetViewProjection();
 		const glm::vec3 viewPos = camera.GetPosition();
 
+		DrawSkyGradient(camera);
 		RenderObjects(viewProjection, viewPos, true);
 		RenderGrid(viewProjection, viewPos);
 	}
@@ -354,7 +427,7 @@ namespace Proto
 			auto light = go->GetComponent<LightComponent>();
 			if (light)
 			{
-				const glm::mat4 lightTrans = go->GetComponent<Transform>()->GetTransform();
+				const glm::mat4 lightTrans = ComputeWorldTransform(go.get());
 				info.Direction = glm::normalize(glm::vec3(lightTrans[2]));
 				info.Color = light->Color;
 				info.Intensity = light->Intensity;
@@ -389,7 +462,7 @@ namespace Proto
 
 			shader->Bind();
 			shader->UploadUniformMat4("u_ViewProjection", viewProjection);
-			shader->UploadUniformMat4("u_Transform", transform->GetTransform());
+			shader->UploadUniformMat4("u_Transform", ComputeWorldTransform(go.get()));
 			shader->UploadUniformFloat3("u_ViewPos", viewPos);
 			shader->UploadUniformFloat3("u_LightDir", light.Direction);
 			shader->UploadUniformFloat3("u_LightColor", light.Color * light.Intensity);
@@ -403,79 +476,190 @@ namespace Proto
 		}
 	}
 
+	void Scene::DrawSkyGradient(const EditorCamera& camera)
+	{
+		if (!m_SkyVAO)
+		{
+			// 전체화면 쿼드 (NDC 공간). VertexArray의 24-byte stride에 맞게 더미 법선 포함
+			const float v[] = {
+				-1.f, -1.f, 0.f,  0.f, 0.f, 1.f,
+				 1.f, -1.f, 0.f,  0.f, 0.f, 1.f,
+				 1.f,  1.f, 0.f,  0.f, 0.f, 1.f,
+				-1.f,  1.f, 0.f,  0.f, 0.f, 1.f,
+			};
+			const uint32_t idx[] = { 0, 1, 2, 2, 3, 0 };
+
+			m_SkyVAO = std::make_shared<VertexArray>();
+			auto vb = std::make_shared<VertexBuffer>(v, sizeof(v));
+			m_SkyVAO->AddVertexBuffer(vb);
+			m_SkyVAO->SetIndexBuffer(std::make_shared<IndexBuffer>(idx, 6));
+
+			const std::string vertSrc = R"(
+				#version 330 core
+				layout(location = 0) in vec3 a_Position;
+				layout(location = 1) in vec3 a_Normal;
+				out vec2 v_NDC;
+				void main()
+				{
+					v_NDC = a_Position.xy;
+					gl_Position = vec4(a_Position.xy, 1.0, 1.0);
+				}
+			)";
+
+			const std::string fragSrc = R"(
+				#version 330 core
+				in vec2 v_NDC;
+				uniform mat4 u_InvViewProj;
+				uniform vec3 u_CameraPos;
+				uniform vec3 u_SkyColor;
+				uniform vec3 u_HorizonColor;
+				uniform vec3 u_GroundColor;
+				uniform float u_SkyHorizonRange;
+				uniform float u_GroundHorizonRange;
+				layout(location = 0) out vec4 color;
+				layout(location = 1) out int color2;
+				void main()
+				{
+					vec4 worldPos = u_InvViewProj * vec4(v_NDC, 1.0, 1.0);
+					worldPos /= worldPos.w;
+					vec3 dir = normalize(worldPos.xyz - u_CameraPos);
+
+					// 대지→지평선: -GROUND_RANGE ~ 0 (선형)
+					float groundBlend = clamp(dir.y / u_GroundHorizonRange + 1.0, 0.0, 1.0);
+					// 지평선→하늘: 0 ~ SKY_RANGE (선형)
+					float skyBlend = clamp(dir.y / u_SkyHorizonRange, 0.0, 1.0);
+					color = vec4(mix(mix(u_GroundColor, u_HorizonColor, groundBlend), u_SkyColor, skyBlend), 1.0);
+					color2 = -1;
+				}
+			)";
+
+			m_SkyShader = std::make_shared<Shader>(vertSrc, fragSrc);
+		}
+
+		glDisable(GL_DEPTH_TEST);
+
+		m_SkyShader->Bind();
+		m_SkyShader->UploadUniformMat4("u_InvViewProj", glm::inverse(camera.GetViewProjection()));
+		m_SkyShader->UploadUniformFloat3("u_CameraPos",    camera.GetPosition());
+		m_SkyShader->UploadUniformFloat3("u_SkyColor",     SKY_COLOR);
+		m_SkyShader->UploadUniformFloat3("u_HorizonColor", HORIZON_COLOR);
+		m_SkyShader->UploadUniformFloat3("u_GroundColor",  GROUND_COLOR);
+		m_SkyShader->UploadUniformFloat("u_SkyHorizonRange",    SKY_HORIZON_RANGE);
+		m_SkyShader->UploadUniformFloat("u_GroundHorizonRange", GROUND_HORIZON_RANGE);
+		Renderer::Submit(m_SkyVAO, m_SkyShader);
+
+		glEnable(GL_DEPTH_TEST);
+	}
+
 	void Scene::RenderGrid(const glm::mat4& viewProjection, const glm::vec3& viewPos)
 	{
 		if (!m_GridVAO)
 		{
-			m_GridVAO = std::make_shared<VertexArray>();
-
-			float gridVertices[] = {
-				-GRID_SIZE, 0.0f, -GRID_SIZE, 0.0f, 1.0f, 0.0f,
-				 GRID_SIZE, 0.0f, -GRID_SIZE, 0.0f, 1.0f, 0.0f,
-				 GRID_SIZE, 0.0f,  GRID_SIZE, 0.0f, 1.0f, 0.0f,
-				-GRID_SIZE, 0.0f,  GRID_SIZE, 0.0f, 1.0f, 0.0f
+			// 무한 그리드: 전체화면 쿼드 + 셰이더에서 y=0 평면 레이캐스팅
+			const float v[] = {
+				-1.f, -1.f, 0.f,  0.f, 0.f, 1.f,
+				 1.f, -1.f, 0.f,  0.f, 0.f, 1.f,
+				 1.f,  1.f, 0.f,  0.f, 0.f, 1.f,
+				-1.f,  1.f, 0.f,  0.f, 0.f, 1.f,
 			};
+			const uint32_t idx[] = { 0, 1, 2, 2, 3, 0 };
 
-			uint32_t gridIndices[] = { 0, 1, 2, 2, 3, 0 };
+			m_GridVAO = std::make_shared<VertexArray>();
+			m_GridVAO->AddVertexBuffer(std::make_shared<VertexBuffer>(v, sizeof(v)));
+			m_GridVAO->SetIndexBuffer(std::make_shared<IndexBuffer>(idx, 6));
 
-			m_GridVAO->Bind();
-			auto vbo = std::make_shared<VertexBuffer>(gridVertices, sizeof(gridVertices));
-			m_GridVAO->AddVertexBuffer(vbo);
-
-			auto ibo = std::make_shared<IndexBuffer>(gridIndices, 6);
-			m_GridVAO->SetIndexBuffer(ibo);
-
-			const std::string gridVertexSrc = R"(
+			const std::string vertSrc = R"(
 				#version 330 core
 				layout(location = 0) in vec3 a_Position;
-				out vec3 v_FragPos;
-				uniform mat4 u_ViewProjection;
-				void main() {
-					v_FragPos = a_Position;
-					gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+				layout(location = 1) in vec3 a_Normal;
+				out vec2 v_NDC;
+				void main()
+				{
+					v_NDC = a_Position.xy;
+					gl_Position = vec4(a_Position.xy, 1.0, 1.0);
 				}
 			)";
 
-			const std::string gridFragmentSrc = R"(
+			const std::string fragSrc = R"(
 				#version 330 core
-				in vec3 v_FragPos;
-				out vec4 o_Color;
+				in vec2 v_NDC;
+				uniform mat4 u_InvViewProj;
 				uniform vec3 u_CameraPos;
-				void main() {
-					float gridSize = 1.0;
-					float thickness = 0.03;
-					vec2 coord = v_FragPos.xz / gridSize;
-					vec2 grid = abs(fract(coord - 0.5) - 0.5) / fwidth(coord);
-					float line = min(grid.x, grid.y);
-					float alpha = 1.0 - min(line, 1.0);
-					vec4 gridColor = vec4(0.1, 0.1, 0.1, alpha * 0.6);
-					if (abs(v_FragPos.z) < thickness) gridColor = vec4(1.0, 0.3, 0.3, 0.8);
-					if (abs(v_FragPos.x) < thickness) gridColor = vec4(0.3, 0.3, 1.0, 0.8);
-					float dist = distance(v_FragPos, vec3(u_CameraPos.x, 0.0, u_CameraPos.z));
-					float fading = max(0.0, 1.0 - dist / 50.0);
-					gridColor.a *= fading;
-					if(gridColor.a < 0.01) discard;
-					o_Color = gridColor;
+				uniform vec3 u_GridColorFine;
+				uniform vec3 u_GridColorCoarse;
+				uniform float u_GridFineAlpha;
+				uniform float u_GridCoarseAlpha;
+				uniform float u_FadeMultiplier;
+				uniform float u_FadeMin;
+				layout(location = 0) out vec4 color;
+				layout(location = 1) out int color2;
+
+				// 주어진 셀 크기의 그리드 선 강도 반환 (fwidth 기반 AA)
+				float gridLine(vec2 worldXZ, float cellSize)
+				{
+					vec2 coord = worldXZ / cellSize;
+					vec2 g = abs(fract(coord - 0.5) - 0.5) / fwidth(coord);
+					return 1.0 - min(min(g.x, g.y), 1.0);
+				}
+
+				void main()
+				{
+					// 픽셀 → 월드 레이 계산
+					vec4 nearH = u_InvViewProj * vec4(v_NDC, -1.0, 1.0);
+					vec4 farH  = u_InvViewProj * vec4(v_NDC,  1.0, 1.0);
+					vec3 rayDir = normalize(farH.xyz / farH.w - nearH.xyz / nearH.w);
+
+					// y=0 평면 교점 (수평선에 가까우면 또는 역방향이면 기각)
+					if (abs(rayDir.y) < 0.0001) discard;
+					float t = -u_CameraPos.y / rayDir.y;
+					if (t < 0.0) discard;
+
+					vec3 hit = u_CameraPos + t * rayDir;
+
+					// 카메라 높이 기반 동적 페이드
+					float camH     = abs(u_CameraPos.y);
+					float fadeDist = max(camH * u_FadeMultiplier, u_FadeMin);
+					float fade     = 1.0 - clamp(length(hit.xz - u_CameraPos.xz) / fadeDist, 0.0, 1.0);
+					if (fade < 0.001) discard;
+
+					// 멀티스케일: 1유닛(세밀) + 10유닛(굵은)
+					float fine   = gridLine(hit.xz, 1.0);
+					float coarse = gridLine(hit.xz, 10.0);
+
+					// LOD: 카메라 높이 5~25 구간에서 세밀 그리드 선형 페이드 아웃
+					float fineFade = 1.0 - clamp((camH - 5.0) / 20.0, 0.0, 1.0);
+					float alpha = coarse * u_GridCoarseAlpha + fine * u_GridFineAlpha * fineFade;
+
+					vec4 col = vec4(mix(u_GridColorFine, u_GridColorCoarse, coarse), alpha * fade);
+
+					if (col.a < 0.005) discard;
+					color  = col;
+					color2 = -1;
 				}
 			)";
 
-			m_GridShader = std::make_shared<Shader>(gridVertexSrc, gridFragmentSrc);
+			m_GridShader = std::make_shared<Shader>(vertSrc, fragSrc);
 		}
 
-		if (m_GridShader && m_GridVAO)
-		{
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glDepthMask(GL_FALSE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDepthMask(GL_FALSE);
+		glDepthFunc(GL_LEQUAL); // 전체화면 쿼드 depth=1.0 이 빈 픽셀(깊이 1.0)과 같으므로 LEQUAL 필요
 
-			m_GridShader->Bind();
-			m_GridShader->UploadUniformMat4("u_ViewProjection", viewProjection);
-			m_GridShader->UploadUniformFloat3("u_CameraPos", viewPos);
-			Renderer::Submit(m_GridVAO, m_GridShader);
+		m_GridShader->Bind();
+		m_GridShader->UploadUniformMat4("u_InvViewProj", glm::inverse(viewProjection));
+		m_GridShader->UploadUniformFloat3("u_CameraPos",       viewPos);
+		m_GridShader->UploadUniformFloat3("u_GridColorFine",   GRID_COLOR_FINE);
+		m_GridShader->UploadUniformFloat3("u_GridColorCoarse", GRID_COLOR_COARSE);
+		m_GridShader->UploadUniformFloat("u_GridFineAlpha",    GRID_FINE_ALPHA);
+		m_GridShader->UploadUniformFloat("u_GridCoarseAlpha",  GRID_COARSE_ALPHA);
+		m_GridShader->UploadUniformFloat("u_FadeMultiplier",   GRID_FADE_MULTIPLIER);
+		m_GridShader->UploadUniformFloat("u_FadeMin",          GRID_FADE_MIN);
+		Renderer::Submit(m_GridVAO, m_GridShader);
 
-			glDepthMask(GL_TRUE);
-			glDisable(GL_BLEND);
-		}
+		glDepthFunc(GL_LESS);
+		glDepthMask(GL_TRUE);
+		glDisable(GL_BLEND);
 	}
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)

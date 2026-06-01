@@ -1,6 +1,6 @@
 Scene: Untitled
 Entities:
-  - Entity: 5208844523675269773
+  - Entity: 6144818225185805422
     Name: Main Camera
     ParentUUID: 0
     Components:
@@ -14,7 +14,7 @@ Entities:
         FOV: 0.7853982
         NearClip: 0.1
         FarClip: 1000
-  - Entity: 11759208128831303870
+  - Entity: 9501358418177257329
     Name: Directional Light
     ParentUUID: 0
     Components:

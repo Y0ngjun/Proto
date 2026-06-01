@@ -43,6 +43,10 @@ namespace Proto
 			out << YAML::BeginMap;
 			out << YAML::Key << "Entity" << YAML::Value << static_cast<uint64_t>(go->GetUUID());
 			out << YAML::Key << "Name" << YAML::Value << go->GetName();
+			// 부모 UUID 저장 (루트이면 0)
+			const uint64_t parentUUID = go->GetParent()
+				? static_cast<uint64_t>(go->GetParent()->GetUUID()) : 0ULL;
+			out << YAML::Key << "ParentUUID" << YAML::Value << parentUUID;
 
 			out << YAML::Key << "Components" << YAML::Value << YAML::BeginSeq;
 			for (const auto& comp : go->GetComponents())
@@ -161,6 +165,18 @@ namespace Proto
 					go->AddComponent<NativeScriptComponent>()->Deserialize(comp);
 				}
 			}
+		}
+
+		// --- 2차 패스: 부모-자식 관계 복원 ---
+		for (const auto& entity : entities)
+		{
+			if (!entity["ParentUUID"]) continue;
+			const uint64_t parentUUID = entity["ParentUUID"].as<uint64_t>();
+			if (parentUUID == 0ULL) continue;
+			const uint64_t childUUID = entity["Entity"].as<uint64_t>();
+			GameObject* child  = m_Scene->GetGameObjectByUUID(UUID(childUUID));
+			GameObject* parent = m_Scene->GetGameObjectByUUID(UUID(parentUUID));
+			if (child && parent) m_Scene->SetParent(child, parent);
 		}
 
 		return true;

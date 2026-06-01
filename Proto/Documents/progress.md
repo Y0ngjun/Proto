@@ -1,11 +1,13 @@
 # 진행 상황 (Progress)
 
-Proto: 4계층 아키텍처 기반 3D 엔진 | MVP 목표: 3D 탄막 게임
+Proto: 5계층 아키텍처 기반 3D 엔진 | MVP 목표: 3D 탄막 게임
 
 ## 백로그
 - 로드맵 재구성
 - 숏컷 구현
 - 레이아웃 구현 (색깔)
+- Camera Component 배경 타입 옵션 추가 (SkyGradient / SolidColor) + 하늘 그라디언트 상수를 Scene 레이어 내 별도 설정 헤더로 분리
+- 직렬화/역직렬화 전수조사 (현재 카메라가 Stop 시 역직렬화 안됨)
 
 ---
 
@@ -17,6 +19,8 @@ Proto: 4계층 아키텍처 기반 3D 엔진 | MVP 목표: 3D 탄막 게임
 - **M3: Physics** — Rigidbody, Collider(Box/Sphere), 충돌 감지 및 콜백
 - **M4: Scripting** — EventBus, 입력 연동 강화(KeyDown/Up·MouseDelta), 기본 메쉬 생성 단축
 - **인프라** — 입력 시스템 분리(RawInput/Input), 에디터 고도화, 단위 테스트 94개
+- **에디터 UX** — Scene 뷰포트 하늘/대지 그라디언트 배경 (카메라 방향 연동)
+- **하이어라키 계층** — 드래그앤드롭으로 부모-자식 관계 설정/해제, 재귀 렌더링, 월드 변환(자식이 부모 Transform 상속), 직렬화 지원
 
 ---
 
