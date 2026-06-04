@@ -19,7 +19,9 @@ namespace Proto
 		void OnImGuiRender();
 
 	private:
-		bool m_AutoScroll = true;
+bool m_FilterInfo  = true;
+		bool m_FilterWarn  = true;
+		bool m_FilterError = true;
 		int m_SelectedMessageIndex = -1;
 	};
 }

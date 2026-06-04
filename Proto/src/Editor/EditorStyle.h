@@ -117,4 +117,9 @@ namespace Proto::EditorStyle
 	static constexpr ImVec4 COLOR_LOG_WARN    = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // Warn  (Yellow)
 	static constexpr ImVec4 COLOR_LOG_ERROR   = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // Error (Red)
 	static constexpr ImVec4 COLOR_LOG_DEFAULT = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // 기본  (White)
+
+	// 필터 버튼 활성 상태 색 (별도 지정 가능)
+	static constexpr ImVec4 COLOR_CONSOLE_FILTER_ACTIVE         = ImVec4(0.60f, 0.60f, 0.60f, 1.0f); // 활성 버튼
+	static constexpr ImVec4 COLOR_CONSOLE_FILTER_ACTIVE_HOVERED = ImVec4(0.70f, 0.70f, 0.70f, 1.0f); // 활성 버튼 호버
+	static constexpr ImVec4 COLOR_CONSOLE_FILTER_ACTIVE_PRESSED = ImVec4(0.65f, 0.65f, 0.65f, 1.0f); // 활성 버튼 클릭
 }

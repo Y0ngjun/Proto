@@ -460,7 +460,7 @@ namespace Proto
 		ImGui::DockBuilderDockWindow("Scene", dockTopA);
 		ImGui::DockBuilderDockWindow("Game", dockBottomA);
 		ImGui::DockBuilderDockWindow("Hierarchy", dockTopB);
-		ImGui::DockBuilderDockWindow("Content Browser", dockBottomB);
+		ImGui::DockBuilderDockWindow("Project", dockBottomB);
 		ImGui::DockBuilderDockWindow("Inspector", dockTopC);
 		ImGui::DockBuilderDockWindow("Console", dockBottomC);
 		ImGui::DockBuilderFinish(dockspaceID);

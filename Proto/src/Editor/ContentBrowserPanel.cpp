@@ -8,46 +8,114 @@
 #include "../Core/Application.h"
 #include "../Core/Project.h"
 #include <imgui.h>
+#include <fstream>
 
 namespace Proto
 {
 	namespace
 	{
-		static constexpr float DEFAULT_PADDING = 16.0f;
-		static constexpr float DEFAULT_CELL_SIZE = 100.0f;
+		static constexpr float FOLDER_TREE_RATIO = 0.28f;
+		static constexpr float LIST_PADDING      = 8.0f;
 	}
 
 	ContentBrowserPanel::ContentBrowserPanel()
 	{}
 
-	static ImVec4 GetFileColor(const std::filesystem::directory_entry& entry)
+	void ContentBrowserPanel::CreateAsset(const char* type)
 	{
-		if (entry.is_directory())
+		if (std::string(type) == "Folder")
 		{
-			return EditorStyle::COLOR_FILE_FOLDER;
+			std::filesystem::path p = m_CurrentDirectory / "New Folder";
+			int suffix = 1;
+			while (std::filesystem::exists(p))
+				p = m_CurrentDirectory / ("New Folder " + std::to_string(suffix++));
+			std::filesystem::create_directory(p);
 		}
-
-		if (entry.path().extension() == ".proj")
+		else if (std::string(type) == "Script")
 		{
-			return EditorStyle::COLOR_FILE_PROJECT;
+			std::filesystem::path p = m_CurrentDirectory / "NewScript.h";
+			int suffix = 1;
+			while (std::filesystem::exists(p))
+				p = m_CurrentDirectory / ("NewScript" + std::to_string(suffix++) + ".h");
+			std::ofstream f(p);
+			f << "#pragma once\n#include \"../Core/NativeScript.h\"\n\nnamespace Proto\n{\n\tclass "
+			  << p.stem().string() << " : public NativeScript\n\t{\n\t};\n}\n";
 		}
-
-		return EditorStyle::COLOR_FILE_DEFAULT;
+		else if (std::string(type) == "Scene")
+		{
+			std::filesystem::path p = m_CurrentDirectory / "NewScene.proto";
+			int suffix = 1;
+			while (std::filesystem::exists(p))
+				p = m_CurrentDirectory / ("NewScene" + std::to_string(suffix++) + ".proto");
+			std::ofstream f(p);
+		}
 	}
 
 	static const char* GetFileIcon(const std::filesystem::directory_entry& entry)
 	{
 		if (entry.is_directory())
-		{
 			return "DIR";
-		}
 
 		if (entry.path().extension() == ".proj")
-		{
 			return "PROJ";
-		}
+
+		if (entry.path().extension() == ".proto")
+			return "SCENE";
+
+		if (entry.path().extension() == ".h" || entry.path().extension() == ".cpp")
+			return "SCRIPT";
 
 		return "FILE";
+	}
+
+	// 왼쪽 패널: 폴더 트리 재귀 렌더링
+	void ContentBrowserPanel::DrawFolderTree(const std::filesystem::path& dir, const std::filesystem::path& base)
+	{
+		try
+		{
+			for (const auto& entry : std::filesystem::directory_iterator(dir))
+			{
+				if (!entry.is_directory())
+					continue;
+
+				const std::string name = entry.path().filename().string();
+				ImGui::PushID(entry.path().string().c_str());
+
+				bool hasSubFolders = false;
+				try
+				{
+					for (const auto& sub : std::filesystem::directory_iterator(entry.path()))
+					{
+						if (sub.is_directory()) { hasSubFolders = true; break; }
+					}
+				}
+				catch (...) {}
+
+				ImGuiTreeNodeFlags flags =
+					ImGuiTreeNodeFlags_OpenOnArrow |
+					ImGuiTreeNodeFlags_SpanAvailWidth;
+
+				if (!hasSubFolders)
+					flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+
+				if (m_CurrentDirectory == entry.path())
+					flags |= ImGuiTreeNodeFlags_Selected;
+
+				const bool opened = ImGui::TreeNodeEx(name.c_str(), flags);
+
+				if (ImGui::IsItemClicked())
+					m_CurrentDirectory = entry.path();
+
+				if (opened && hasSubFolders)
+				{
+					DrawFolderTree(entry.path(), base);
+					ImGui::TreePop();
+				}
+
+				ImGui::PopID();
+			}
+		}
+		catch (...) {}
 	}
 
 	void ContentBrowserPanel::OnImGuiRender()
@@ -55,7 +123,7 @@ namespace Proto
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_TITLE_TEXT);
-		ImGui::Begin("Content Browser");
+		ImGui::Begin("Project");
 		ImGui::PopStyleColor();
 		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_PANEL_TEXT);
 
@@ -73,100 +141,154 @@ namespace Proto
 		if (projectPath != m_BaseDirectory || m_CurrentDirectory.empty() || !std::filesystem::exists(m_CurrentDirectory))
 		{
 			m_BaseDirectory = projectPath;
-			m_CurrentDirectory = projectPath;
+			const std::filesystem::path assetsDir = projectPath / "Assets";
+			m_CurrentDirectory = std::filesystem::exists(assetsDir) ? assetsDir : projectPath;
 		}
 
-		// 헤더 바: 통일된 스타일
+		// ── 헤더 바 ──────────────────────────────────────────────────────────
 		const float barHeight = ImGui::GetFrameHeight() + 8.0f;
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, EditorStyle::COLOR_PANEL_HEADER_BG);
-		ImGui::BeginChild("ContentBrowserHeader", ImVec2(0, barHeight), false,
+		ImGui::BeginChild("ProjectHeader", ImVec2(0, barHeight), false,
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 		ImGui::SetCursorPos(ImVec2(8.0f, 4.0f));
 
-		// 버튼 영역: 항상 자리를 차지하도록 구성 (루트면 비활성화)
+		ImGui::PushStyleColor(ImGuiCol_Button,        EditorStyle::COLOR_GIZMO_BTN);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, EditorStyle::COLOR_GIZMO_BTN_HOVERED);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive,  EditorStyle::COLOR_GIZMO_BTN_ACTIVE);
+		ImGui::PushStyleColor(ImGuiCol_Text,          EditorStyle::COLOR_GIZMO_BTN_TEXT);
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
-		const bool isRoot = (m_CurrentDirectory == projectPath);
-		
-		if (isRoot) ImGui::BeginDisabled();
 
-		if (ImGui::Button("Root", ImVec2(120.0f, 0)))
-		{
-			m_CurrentDirectory = projectPath;
-		}
+		if (ImGui::Button("+", ImVec2(120.0f, 0)))
+			ImGui::OpenPopup("ProjectCreateMenu");
 
-		ImGui::SameLine(0, 4);
-
-		if (ImGui::Button("<- Back", ImVec2(120.0f, 0)))
-		{
-			m_CurrentDirectory = m_CurrentDirectory.parent_path();
-		}
-
-		if (isRoot) ImGui::EndDisabled();
 		ImGui::PopStyleVar();
+		ImGui::PopStyleColor(4);
 
-		// 경로 텍스트: 버튼 뒤에 고정된 위치에 출력
-		ImGui::SameLine(0, 8);
-		std::string relativePath = std::filesystem::relative(m_CurrentDirectory, projectPath).string();
-		
-		std::string displayPath;
-		if (relativePath == ".") 
+		ImGui::SetNextWindowPos(ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y));
+		ImGui::PopStyleVar(2);
+
+		if (ImGui::BeginPopup("ProjectCreateMenu"))
 		{
-			displayPath = "Root";
+			if (ImGui::MenuItem("Folder"))  CreateAsset("Folder");
+			if (ImGui::MenuItem("Script"))  CreateAsset("Script");
+			if (ImGui::MenuItem("Scene"))   CreateAsset("Scene");
+			ImGui::EndPopup();
 		}
-		else 
-		{
-			displayPath = "Root/" + relativePath;
-			// 슬래시 스타일 통일 (윈도우 역슬래시 -> 포워드 슬래시)
-			std::replace(displayPath.begin(), displayPath.end(), '\\', '/');
-		}
-		
-		ImGui::Text("%s", displayPath.c_str());
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
 		ImGui::EndChild();
 		ImGui::PopStyleColor();
 		ImGui::Separator();
 
-		const float panelWidth = ImGui::GetContentRegionAvail().x;
-		int columnCount = (int)(panelWidth / (DEFAULT_CELL_SIZE + DEFAULT_PADDING));
-		if (columnCount < 1)
-		{
-			columnCount = 1;
-		}
+		// ── Two Column Layout ─────────────────────────────────────────────────
+		const float totalWidth = ImGui::GetContentRegionAvail().x;
+		const float treeWidth  = totalWidth * FOLDER_TREE_RATIO;
 
-		ImGui::Columns(columnCount, 0, false);
+		// 왼쪽: 폴더 트리 (Root 노드 없이 바로 하위 폴더부터 표시)
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, EditorStyle::COLOR_WINDOW_BG);
+		ImGui::BeginChild("ProjectFolderTree", ImVec2(treeWidth, 0), false);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 4, 2 });
+
+		DrawFolderTree(m_BaseDirectory, m_BaseDirectory);
+
+		ImGui::PopStyleVar();
+		ImGui::EndChild();
+		ImGui::PopStyleColor();
+
+		ImGui::SameLine(0, 0);
+
+		// 세로 구분선
+		ImGui::PushStyleColor(ImGuiCol_Separator, EditorStyle::COLOR_SEPARATOR);
+		{
+			const float lineX = ImGui::GetCursorScreenPos().x;
+			const float lineY1 = ImGui::GetCursorScreenPos().y;
+			const float lineY2 = lineY1 + ImGui::GetContentRegionAvail().y;
+			ImGui::GetWindowDrawList()->AddLine(ImVec2(lineX, lineY1), ImVec2(lineX, lineY2),
+				ImGui::GetColorU32(EditorStyle::COLOR_SEPARATOR), 1.0f);
+		}
+		ImGui::PopStyleColor();
+
+		// 오른쪽: 파일 리스트
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ LIST_PADDING, LIST_PADDING });
+		ImGui::BeginChild("ProjectFileList", ImVec2(0, 0), false);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 4, 2 });
 
 		try
 		{
-			for (const auto& directoryEntry : std::filesystem::directory_iterator(m_CurrentDirectory))
+			// 폴더 먼저, 파일 나중
+			for (int pass = 0; pass < 2; ++pass)
 			{
-				const auto& path = directoryEntry.path();
-				const std::string filenameString = path.filename().string();
-
-				ImGui::PushID(filenameString.c_str());
-				ImGui::PushStyleColor(ImGuiCol_Button, GetFileColor(directoryEntry));
-
-				ImGui::Button(GetFileIcon(directoryEntry), ImVec2(DEFAULT_CELL_SIZE, DEFAULT_CELL_SIZE));
-				ImGui::PopStyleColor();
-
-				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+				for (const auto& directoryEntry : std::filesystem::directory_iterator(m_CurrentDirectory))
 				{
-					if (directoryEntry.is_directory())
-					{
-						m_CurrentDirectory /= path.filename();
-					}
-					else if (path.extension() == ".proj")
-					{
-						Application::Get().OpenProject(path);
-					}
-					else if (path.extension() == ".proto")
-					{
-						Application::Get().OpenScene(path);
-					}
-				}
+					const bool isDir = directoryEntry.is_directory();
+					if (pass == 0 && !isDir) continue;
+					if (pass == 1 &&  isDir) continue;
 
-				ImGui::TextWrapped("%s", filenameString.c_str());
-				ImGui::NextColumn();
-				ImGui::PopID();
+					const auto& path           = directoryEntry.path();
+					const std::string filename  = path.filename().string();
+					const std::string label     = std::string("[") + GetFileIcon(directoryEntry) + "]  " + filename;
+					const bool isRenaming       = (m_RenamingPath == path);
+
+					ImGui::PushID(filename.c_str());
+
+					if (isRenaming)
+					{
+						ImGui::SetNextItemWidth(-1);
+						if (ImGui::InputText("##rename", m_RenameBuffer, RENAME_BUFFER_SIZE,
+							ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+						{
+							if (m_RenameBuffer[0] != '\0')
+							{
+								std::filesystem::path newPath = path.parent_path() / m_RenameBuffer;
+								if (!std::filesystem::exists(newPath))
+									std::filesystem::rename(path, newPath);
+							}
+							m_RenamingPath.clear();
+						}
+						if (ImGui::IsItemDeactivated() && !ImGui::IsKeyPressed(ImGuiKey_Enter))
+							m_RenamingPath.clear();
+					}
+					else
+					{
+						const bool selected = false;
+						if (ImGui::Selectable(label.c_str(), selected, ImGuiSelectableFlags_AllowDoubleClick))
+						{
+							if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+							{
+								if (isDir)
+									m_CurrentDirectory /= path.filename();
+								else if (path.extension() == ".proj")
+									Application::Get().OpenProject(path);
+								else if (path.extension() == ".proto")
+									Application::Get().OpenScene(path);
+							}
+						}
+
+						// 아이템 우클릭 메뉴
+						if (ImGui::BeginPopupContextItem("##ItemContext"))
+						{
+							if (ImGui::MenuItem("Rename"))
+							{
+								m_RenamingPath = path;
+								strncpy_s(m_RenameBuffer, RENAME_BUFFER_SIZE, filename.c_str(), RENAME_BUFFER_SIZE - 1);
+								ImGui::CloseCurrentPopup();
+							}
+							if (ImGui::MenuItem("Delete"))
+							{
+								if (isDir)
+									std::filesystem::remove_all(path);
+								else
+									std::filesystem::remove(path);
+								ImGui::CloseCurrentPopup();
+							}
+							ImGui::EndPopup();
+						}
+					}
+
+					ImGui::PopID();
+				}
 			}
 		}
 		catch (...)
@@ -174,7 +296,19 @@ namespace Proto
 			ImGui::Text("Error reading directory.");
 		}
 
-		ImGui::Columns(1);
+		// 빈 공간 우클릭 메뉴 (+버튼과 동일, 커서 위치에 표시)
+		if (ImGui::BeginPopupContextWindow("##EmptyContext", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+		{
+			if (ImGui::MenuItem("Folder"))  CreateAsset("Folder");
+			if (ImGui::MenuItem("Script"))  CreateAsset("Script");
+			if (ImGui::MenuItem("Scene"))   CreateAsset("Scene");
+			ImGui::EndPopup();
+		}
+
+		ImGui::PopStyleVar();
+		ImGui::EndChild();
+		ImGui::PopStyleVar();
+
 		ImGui::PopStyleColor();
 		ImGui::End();
 		ImGui::PopStyleVar(2);

@@ -12,7 +12,7 @@ namespace Proto
 {
 	namespace
 	{
-		static constexpr float FOOTER_HEIGHT_MULTIPLIER = 3.0f;
+		static constexpr float FOOTER_HEIGHT_MULTIPLIER = 6.0f;
 	}
 
 	ConsolePanel::ConsolePanel()
@@ -32,6 +32,7 @@ namespace Proto
 
 	void ConsolePanel::OnImGuiRender()
 	{
+
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_TITLE_TEXT);
@@ -45,6 +46,11 @@ namespace Proto
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 		ImGui::SetCursorPos(ImVec2(8.0f, 4.0f));
 
+		// Clear 버튼 (맨 왼쪽)
+		ImGui::PushStyleColor(ImGuiCol_Button,        EditorStyle::COLOR_GIZMO_BTN);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, EditorStyle::COLOR_GIZMO_BTN_HOVERED);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive,  EditorStyle::COLOR_GIZMO_BTN_ACTIVE);
+		ImGui::PushStyleColor(ImGuiCol_Text,          EditorStyle::COLOR_GIZMO_BTN_TEXT);
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
 		if (ImGui::Button("Clear", ImVec2(120.0f, 0)))
 		{
@@ -52,21 +58,70 @@ namespace Proto
 			m_SelectedMessageIndex = -1;
 		}
 		ImGui::PopStyleVar();
+		ImGui::PopStyleColor(4);
 
-		ImGui::SameLine(0, 8);
-		ImGui::Checkbox("Auto-scroll", &m_AutoScroll);
+		// 필터 버튼 (오른쪽 정렬) — Log / Warning / Error
+		const float filterBtnWidth = 120.0f;
+		const float filterSpacing  = 4.0f;
+		const float totalRight     = filterBtnWidth * 3 + filterSpacing * 2 + 8.0f;
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - totalRight + ImGui::GetCursorPosX() - ImGui::GetScrollX());
+
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+
+		auto PushFilterBtnStyle = [&](bool active)
+		{
+			if (active)
+			{
+				ImGui::PushStyleColor(ImGuiCol_Button,        EditorStyle::COLOR_CONSOLE_FILTER_ACTIVE);
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, EditorStyle::COLOR_CONSOLE_FILTER_ACTIVE_HOVERED);
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive,  EditorStyle::COLOR_CONSOLE_FILTER_ACTIVE_PRESSED);
+			}
+			else
+			{
+				ImGui::PushStyleColor(ImGuiCol_Button,        EditorStyle::COLOR_GIZMO_BTN);
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, EditorStyle::COLOR_GIZMO_BTN_HOVERED);
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive,  EditorStyle::COLOR_GIZMO_BTN_ACTIVE);
+			}
+			ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_GIZMO_BTN_TEXT);
+		};
+
+		PushFilterBtnStyle(m_FilterInfo);
+		if (ImGui::Button("Log", ImVec2(filterBtnWidth, 0)))
+			m_FilterInfo = !m_FilterInfo;
+		ImGui::PopStyleColor(4);
+
+		ImGui::SameLine(0, filterSpacing);
+
+		PushFilterBtnStyle(m_FilterWarn);
+		if (ImGui::Button("Warning", ImVec2(filterBtnWidth, 0)))
+			m_FilterWarn = !m_FilterWarn;
+		ImGui::PopStyleColor(4);
+
+		ImGui::SameLine(0, filterSpacing);
+
+		PushFilterBtnStyle(m_FilterError);
+		if (ImGui::Button("Error", ImVec2(filterBtnWidth, 0)))
+			m_FilterError = !m_FilterError;
+		ImGui::PopStyleColor(4);
+
+		ImGui::PopStyleVar();
 
 		ImGui::EndChild();
 		ImGui::PopStyleColor();
 		ImGui::Separator();
 
 		const float footerHeight = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing() * FOOTER_HEIGHT_MULTIPLIER;
-		ImGui::BeginChild("LogList", ImVec2(0, -footerHeight), false, ImGuiWindowFlags_HorizontalScrollbar);
+		ImGui::BeginChild("LogList", ImVec2(0, -footerHeight), false);
 
 		const auto& messages = Log::GetMessages();
 		for (int i = 0; i < (int)messages.size(); i++)
 		{
 			const auto& msg = messages[i];
+
+			if (msg.Level == LogLevel::Info  && !m_FilterInfo)  continue;
+			if (msg.Level == LogLevel::Warn  && !m_FilterWarn)  continue;
+			if (msg.Level == LogLevel::Error && !m_FilterError) continue;
+
 			const std::string label = "[" + msg.Timestamp + "] " + msg.Message;
 
 			ImGui::PushStyleColor(ImGuiCol_Text, GetLevelColor(msg.Level));
@@ -77,14 +132,12 @@ namespace Proto
 			ImGui::PopStyleColor();
 		}
 
-		if (m_AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+		if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
 		{
 			ImGui::SetScrollHereY(1.0f);
 		}
 
 		ImGui::EndChild();
-
-		ImGui::Separator();
 
 		ImGui::BeginChild("LogDetail", ImVec2(0, 0), true);
 

@@ -12,6 +12,17 @@ Documents/      # 개발 문서
 Dependencies/   # 외부 라이브러리 (yaml-cpp, imgui, glfw, glm 등)
 ```
 
+## 빌드 및 테스트
+
+```powershell
+.\build.ps1                        # Debug 빌드
+.\build.ps1 -Config Release        # Release 빌드
+.\build.ps1 -Tests                 # Debug 빌드 + 테스트 실행
+.\build.ps1 -Run                   # Debug 빌드 + Proto.exe 실행
+.\build.ps1 -Tests -Run            # Debug 빌드 + 테스트 + 실행
+.\build.ps1 -Config Release -Tests # Release 빌드 + 테스트
+```
+
 ## 참조 문서
 
 | 문서 | 내용 |

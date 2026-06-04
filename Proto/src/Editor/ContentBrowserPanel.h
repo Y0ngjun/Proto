@@ -18,7 +18,14 @@ namespace Proto
 		void OnImGuiRender();
 
 	private:
+		void DrawFolderTree(const std::filesystem::path& dir, const std::filesystem::path& base);
+		void CreateAsset(const char* type);
+
 		std::filesystem::path m_BaseDirectory;
 		std::filesystem::path m_CurrentDirectory;
+		std::filesystem::path m_RenamingPath;
+
+		static constexpr int RENAME_BUFFER_SIZE = 256;
+		char m_RenameBuffer[RENAME_BUFFER_SIZE] = {};
 	};
 }
