@@ -27,7 +27,7 @@ namespace Proto
 			return EditorStyle::COLOR_FILE_FOLDER;
 		}
 
-		if (entry.path().extension() == ".proto")
+		if (entry.path().extension() == ".proj")
 		{
 			return EditorStyle::COLOR_FILE_PROJECT;
 		}
@@ -42,7 +42,7 @@ namespace Proto
 			return "DIR";
 		}
 
-		if (entry.path().extension() == ".proto")
+		if (entry.path().extension() == ".proj")
 		{
 			return "PROJ";
 		}
@@ -154,11 +154,11 @@ namespace Proto
 					{
 						m_CurrentDirectory /= path.filename();
 					}
-					else if (path.extension() == ".proto")
+					else if (path.extension() == ".proj")
 					{
 						Application::Get().OpenProject(path);
 					}
-					else if (path.extension() == ".scene")
+					else if (path.extension() == ".proto")
 					{
 						Application::Get().OpenScene(path);
 					}

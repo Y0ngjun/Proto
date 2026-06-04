@@ -248,7 +248,7 @@ namespace Proto
 			return;
 		}
 
-		const auto path = FileDialog::SaveFile("Proto Scene (*.scene)\0*.scene\0");
+		const auto path = FileDialog::SaveFile("Proto Scene (*.proto)\0*.proto\0");
 		if (!path)
 		{
 			PROTO_LOG_INFO("새 씬 생성이 취소되었습니다.");
@@ -275,7 +275,7 @@ namespace Proto
 
 	void Application::OpenScene()
 	{
-		const auto path = FileDialog::OpenFile("Proto Scene (*.scene)\0*.scene\0");
+		const auto path = FileDialog::OpenFile("Proto Scene (*.proto)\0*.proto\0");
 		if (path)
 		{
 			OpenScene(*path);
@@ -333,9 +333,9 @@ namespace Proto
 	void Application::SaveScene(const std::filesystem::path& path)
 	{
 		std::filesystem::path scenePath = path;
-		if (scenePath.extension() != ".scene")
+		if (scenePath.extension() != ".proto")
 		{
-			scenePath += ".scene";
+			scenePath += ".proto";
 		}
 
 		SceneSerializer serializer(m_Scene);
@@ -348,7 +348,7 @@ namespace Proto
 
 	void Application::SaveSceneAs()
 	{
-		const auto path = FileDialog::SaveFile("Proto Scene (*.scene)\0*.scene\0");
+		const auto path = FileDialog::SaveFile("Proto Scene (*.proto)\0*.proto\0");
 		if (path)
 		{
 			SaveScene(*path);
@@ -362,7 +362,7 @@ namespace Proto
 			return;
 		}
 
-		const auto path = FileDialog::SaveFile("Proto Project (*.proto)\0*.proto\0");
+		const auto path = FileDialog::SaveFile("Proto Project (*.proj)\0*.proj\0");
 		if (path)
 		{
 			const auto project = Project::New(*path);
@@ -381,7 +381,7 @@ namespace Proto
 			return;
 		}
 
-		const auto path = FileDialog::OpenFile("Proto Project (*.proto)\0*.proto\0");
+		const auto path = FileDialog::OpenFile("Proto Project (*.proj)\0*.proj\0");
 		if (path)
 		{
 			const auto project = Project::Load(*path);

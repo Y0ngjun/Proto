@@ -550,6 +550,56 @@ namespace Proto
 		ImGui::PopStyleColor();
 	}
 
+	void EditorLayer::RenderGameViewportHeader()
+	{
+		static constexpr const char* ASPECT_LABELS[] = { "Free", "16:9", "9:16", "1:1" };
+
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, COLOR_VIEWPORT_HEADER);
+		const float barHeight = ImGui::GetFrameHeight() + 8.0f;
+
+		ImGui::BeginChild("GameViewportBar", ImVec2(0, barHeight), false,
+			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+		ImGui::SetCursorPos(ImVec2(8.0f, 4.0f));
+
+		ImGui::PushStyleColor(ImGuiCol_Button,        COLOR_GIZMO_BTN);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_GIZMO_BTN_HOVERED);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive,  COLOR_GIZMO_BTN_ACTIVE);
+		ImGui::PushStyleColor(ImGuiCol_Text,          COLOR_GIZMO_BTN_TEXT);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+
+		char btnLabel[32];
+		snprintf(btnLabel, sizeof(btnLabel), "Aspect: %s", ASPECT_LABELS[(int)m_GameAspectMode]);
+		if (ImGui::Button(btnLabel, ImVec2(240.0f, 0)))
+		{
+			ImGui::OpenPopup("AspectPopup");
+		}
+
+		ImGui::PopStyleVar();
+		ImGui::PopStyleColor(4);
+
+		ImGui::SetNextWindowPos(ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y));
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, COLOR_POPUP_BG);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,   ImVec2(8.0f, 6.0f));
+		if (ImGui::BeginPopup("AspectPopup"))
+		{
+			for (int i = 0; i < 4; ++i)
+			{
+				const bool selected = (int)m_GameAspectMode == i;
+				if (ImGui::MenuItem(ASPECT_LABELS[i], nullptr, selected))
+				{
+					m_GameAspectMode = (GameAspectMode)i;
+				}
+			}
+			ImGui::EndPopup();
+		}
+		ImGui::PopStyleVar(2);
+		ImGui::PopStyleColor();
+
+		ImGui::EndChild();
+		ImGui::PopStyleColor();
+	}
+
 	void EditorLayer::HandleGizmos(GameObject* selectedEntity, const glm::vec2& viewportMin, const glm::vec2& viewportSize)
 	{
 		if (!selectedEntity || m_GizmoType == -1)
@@ -637,6 +687,7 @@ namespace Proto
 	void EditorLayer::RenderGameViewport(Scene* activeScene)
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 		ImGui::PushStyleColor(ImGuiCol_Text, COLOR_TITLE_TEXT);
 		ImGui::Begin("Game");
 		ImGui::PopStyleColor();
@@ -644,25 +695,71 @@ namespace Proto
 		m_IsGameViewFocused = ImGui::IsWindowFocused();
 		m_IsGameViewHovered = ImGui::IsWindowHovered();
 
-		const ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-		const auto& fbSpec = m_GameFramebuffer->GetSpecification();
+		RenderGameViewportHeader();
 
-		if (viewportPanelSize.x > 0 && viewportPanelSize.y > 0 &&
-			(fbSpec.Width != (uint32_t)viewportPanelSize.x || fbSpec.Height != (uint32_t)viewportPanelSize.y))
+		const ImVec2 panelSize = ImGui::GetContentRegionAvail();
+
+		float gameW = panelSize.x;
+		float gameH = panelSize.y;
+		float offsetX = 0.0f;
+		float offsetY = 0.0f;
+
+		if (m_GameAspectMode != GameAspectMode::Free && panelSize.x > 0 && panelSize.y > 0)
 		{
-			m_GameFramebuffer->Resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y);
-
-			if (activeScene)
+			float targetRatio;
+			switch (m_GameAspectMode)
 			{
-				activeScene->OnViewportResize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y);
+			case GameAspectMode::Aspect16_9: targetRatio = 16.0f / 9.0f; break;
+			case GameAspectMode::Aspect9_16: targetRatio = 9.0f / 16.0f; break;
+			default:                         targetRatio = 1.0f;         break;
+			}
+
+			const float panelRatio = panelSize.x / panelSize.y;
+			if (panelRatio > targetRatio)
+			{
+				gameH = panelSize.y;
+				gameW = gameH * targetRatio;
+				offsetX = (panelSize.x - gameW) * 0.5f;
+			}
+			else
+			{
+				gameW = panelSize.x;
+				gameH = gameW / targetRatio;
+				offsetY = (panelSize.y - gameH) * 0.5f;
 			}
 		}
 
+		const auto& fbSpec = m_GameFramebuffer->GetSpecification();
+		if (gameW > 0 && gameH > 0 &&
+			(fbSpec.Width != (uint32_t)gameW || fbSpec.Height != (uint32_t)gameH))
+		{
+			m_GameFramebuffer->Resize((uint32_t)gameW, (uint32_t)gameH);
+			if (activeScene)
+			{
+				activeScene->OnViewportResize((uint32_t)gameW, (uint32_t)gameH);
+			}
+		}
+
+		if (m_GameAspectMode != GameAspectMode::Free)
+		{
+			const ImVec2 screenPos = ImGui::GetCursorScreenPos();
+			ImDrawList* drawList = ImGui::GetWindowDrawList();
+			drawList->AddRectFilled(
+				screenPos,
+				ImVec2(screenPos.x + panelSize.x, screenPos.y + panelSize.y),
+				IM_COL32(20, 20, 20, 255)
+			);
+		}
+
+		const ImVec2 cursorPos = ImGui::GetCursorPos();
+		ImGui::SetCursorPos(ImVec2(cursorPos.x + offsetX, cursorPos.y + offsetY));
+
 		const uint32_t textureID = m_GameFramebuffer->GetColorAttachmentRendererID();
-		ImGui::Image(reinterpret_cast<void*>((uintptr_t)textureID), ImVec2{ viewportPanelSize.x, viewportPanelSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+		ImGui::Image(reinterpret_cast<void*>((uintptr_t)textureID),
+			ImVec2{ gameW, gameH }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
 		ImGui::End();
-		ImGui::PopStyleVar();
+		ImGui::PopStyleVar(2);
 	}
 
 	void EditorLayer::HandleObjectPicking(Scene* activeScene, const glm::vec2* viewportBounds, const glm::vec2& viewportSize)

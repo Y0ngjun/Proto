@@ -1,0 +1,4 @@
+Project:
+  Name: DefaultProject
+  AssetDirectory: Assets
+  StartScene: Assets/Scenes/DefaultScene.proto

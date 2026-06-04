@@ -13,7 +13,7 @@
 
 namespace
 {
-	static constexpr const char* DEFAULT_PROJECT_PATH = "DefaultProject/DefaultProject.proto";
+	static constexpr const char* DEFAULT_PROJECT_PATH = "DefaultProject/DefaultProject.proj";
 
 	void InitializeProject(int argc, char** argv)
 	{

@@ -1,6 +1,6 @@
 Scene: Untitled
 Entities:
-  - Entity: 6144818225185805422
+  - Entity: 16116515301408735987
     Name: Main Camera
     ParentUUID: 0
     Components:
@@ -14,7 +14,7 @@ Entities:
         FOV: 0.7853982
         NearClip: 0.1
         FarClip: 1000
-  - Entity: 9501358418177257329
+  - Entity: 14457063187145071694
     Name: Directional Light
     ParentUUID: 0
     Components:
@@ -25,3 +25,15 @@ Entities:
       - Component: LightComponent
         Color: [1, 1, 1]
         Intensity: 1
+  - Entity: 11336611993396054072
+    Name: Cube
+    ParentUUID: 0
+    Components:
+      - Component: Transform
+        Translation: [0, 0, 0]
+        Rotation: [0, 0, 0]
+        Scale: [1, 1, 1]
+      - Component: MeshRenderer
+        MeshUUID: 1
+        ShaderUUID: 100
+        MeshTypeName: Cube

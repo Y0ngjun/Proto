@@ -1,6 +1,6 @@
 /*
  * 엔진 프로젝트 설정을 관리하는 클래스입니다.
- * 프로젝트 파일(.proto)의 로드, 저장 및 디렉토리 관리 기능을 담당합니다.
+ * 프로젝트 파일(.proj)의 로드, 저장 및 디렉토리 관리 기능을 담당합니다.
  */
 
 #include <yaml-cpp/yaml.h>
@@ -21,11 +21,11 @@ namespace Proto
 	namespace
 	{
 		static constexpr const char* DEFAULT_PROJECT_NAME = "DefaultProject";
-		static constexpr const char* DEFAULT_ASSET_DIR = "assets";
-		static constexpr const char* DEFAULT_SCENE_DIR = "scenes";
-		static constexpr const char* DEFAULT_START_SCENE = "scenes/DefaultScene.scene";
-		static constexpr const char* PROJECT_EXTENSION = ".proto";
-		static constexpr const char* SCENE_EXTENSION = ".scene";
+		static constexpr const char* DEFAULT_ASSET_DIR = "Assets";
+		static constexpr const char* DEFAULT_SCENE_DIR = "Assets/Scenes";
+		static constexpr const char* DEFAULT_START_SCENE = "Assets/Scenes/DefaultScene.proto";
+		static constexpr const char* PROJECT_EXTENSION = ".proj";
+		static constexpr const char* SCENE_EXTENSION = ".proto";
 	}
 
 	std::shared_ptr<Project> Project::m_ActiveProject = nullptr;

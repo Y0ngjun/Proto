@@ -73,6 +73,7 @@ namespace Proto
 			ImGui::EndDisabled();
 		}
 
+		ImGui::SetNextWindowPos(ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y));
 		ImGui::PopStyleVar(2);
 		if (ImGui::BeginPopup("HierarchyCreateMenu"))
 		{

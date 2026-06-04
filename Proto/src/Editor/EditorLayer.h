@@ -72,10 +72,13 @@ namespace Proto
 			return m_EditorCamera;
 		}
 
+		enum class GameAspectMode { Free, Aspect16_9, Aspect9_16, Aspect1_1 };
+
 	private:
 		void SetLightThemeColors();
 		void RenderMenuBar();
 		void RenderSceneViewportHeader();
+		void RenderGameViewportHeader();
 		void HandleGizmos(GameObject* selectedEntity, const glm::vec2& viewportMin, const glm::vec2& viewportSize);
 
 		void BeginFrame() const;
@@ -104,6 +107,7 @@ namespace Proto
 
 		int  m_GizmoType = 7; // ImGuizmo::OPERATION::TRANSLATE
 		bool m_ShouldResetLayout = false;
+		GameAspectMode m_GameAspectMode = GameAspectMode::Free;
 
 		// 팝업 창 활성화 여부를 컨트롤하는 불리언 변수들
 		bool m_ShowProjectSettingsPopup = false;

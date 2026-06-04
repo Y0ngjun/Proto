@@ -73,7 +73,7 @@ namespace Proto
 		}
 		catch (const YAML::ParserException& e)
 		{
-			PROTO_LOG_ERROR("[씬 직렬화 오류] .scene 파일을 로드하는데 실패했습니다: " + std::string(e.what()));
+			PROTO_LOG_ERROR("[씬 직렬화 오류] .proto 파일을 로드하는데 실패했습니다: " + std::string(e.what()));
 			return false;
 		}
 
