@@ -8,6 +8,12 @@
 
 namespace Proto
 {
+	void LightComponent::Reset()
+	{
+		Color     = glm::vec3(1.0f);
+		Intensity = 1.0f;
+	}
+
 	void LightComponent::Serialize(YAML::Emitter& out) const
 	{
 		out << YAML::BeginMap;

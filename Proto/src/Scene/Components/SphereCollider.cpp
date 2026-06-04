@@ -8,6 +8,13 @@
 
 namespace Proto
 {
+	void SphereCollider::Reset()
+	{
+		Radius    = 0.5f;
+		Offset    = glm::vec3(0.0f);
+		IsTrigger = true;
+	}
+
 	void SphereCollider::Serialize(YAML::Emitter& out) const
 	{
 		out << YAML::BeginMap;

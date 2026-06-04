@@ -5,6 +5,10 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+#include <functional>
+
 namespace Proto
 {
 	class Scene;
@@ -13,12 +17,24 @@ namespace Proto
 	class InspectorPanel
 	{
 	public:
-		InspectorPanel() = default;
+		InspectorPanel();
 		~InspectorPanel() = default;
 
 		void OnImGuiRender(GameObject* selectedContext);
 
 	private:
+		struct ComponentEntry
+		{
+			std::string                          displayName;
+			bool                                 separatorBefore = false;
+			std::function<bool(GameObject*)>     hasComponent;
+			std::function<void(GameObject*)>     draw;
+			std::function<void(GameObject*)>     addComponent; // null이면 AddComponent 메뉴에 표시 안 함
+		};
+
+		std::vector<ComponentEntry> m_ComponentEntries;
+
+		void RegisterComponents();
 		void DrawComponents(GameObject* gameObject);
 		void DrawAddComponentButton(GameObject* gameObject);
 	};

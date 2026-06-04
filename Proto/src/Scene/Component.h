@@ -23,6 +23,7 @@ namespace Proto
 		virtual void OnStart() {}
 		virtual void OnUpdate(float deltaTime) {}
 		virtual void OnDestroy() {}
+		virtual void Reset() {}
 
 		GameObject* GetGameObject() const
 		{

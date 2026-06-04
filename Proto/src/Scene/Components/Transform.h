@@ -19,7 +19,7 @@ namespace Proto
 	{
 	public:
 		glm::vec3 Translation = glm::vec3(0.0f);
-		glm::vec3 Rotation = glm::vec3(0.0f);
+		glm::vec3 Rotation = glm::vec3(0.0f); // 라디안 (XYZ 오일러)
 		glm::vec3 Scale = glm::vec3(1.0f);
 
 		Transform() = default;
@@ -31,6 +31,7 @@ namespace Proto
 
 		glm::mat4 GetTransform() const;
 
+		virtual void Reset() override;
 		virtual void Serialize(YAML::Emitter& out) const override;
 		virtual void Deserialize(const YAML::Node& node) override;
 

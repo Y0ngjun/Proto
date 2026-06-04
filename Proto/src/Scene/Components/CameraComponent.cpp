@@ -15,6 +15,13 @@ namespace Proto
 		static constexpr float DEFAULT_FAR_CLIP = 1000.0f;
 	}
 
+	void CameraComponent::Reset()
+	{
+		Camera.SetPerspective(glm::radians(45.0f), DEFAULT_NEAR_CLIP, DEFAULT_FAR_CLIP);
+		Primary          = true;
+		FixedAspectRatio = false;
+	}
+
 	void CameraComponent::Serialize(YAML::Emitter& out) const
 	{
 		out << YAML::BeginMap;

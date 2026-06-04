@@ -33,7 +33,7 @@ namespace Proto
 {
 	namespace
 	{
-		static constexpr float DRAG_SPEED = 0.1f;
+		static constexpr float DRAG_SPEED    = 0.1f;
 		static constexpr float DEFAULT_FOV_MIN = 1.0f;
 		static constexpr float DEFAULT_FOV_MAX = 179.0f;
 	}
@@ -42,9 +42,7 @@ namespace Proto
 	static void DrawComponent(const std::string& name, GameObject* gameObject, UIFunction uiFunction, bool canRemove = true)
 	{
 		if (!gameObject->HasComponent<T>())
-		{
 			return;
-		}
 
 		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed |
 			ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_FramePadding;
@@ -60,19 +58,19 @@ namespace Proto
 		ImGui::PopStyleVar();
 
 		ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
-		if (canRemove && ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
-		{
+		if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
 			ImGui::OpenPopup("ComponentSettings");
-		}
+		const ImVec2 popupPos(ImGui::GetItemRectMax().x, ImGui::GetItemRectMax().y);
 
 		bool removeComponent = false;
+		bool resetComponent  = false;
+		ImGui::SetNextWindowPos(popupPos, ImGuiCond_Always, ImVec2(1.0f, 0.0f));
 		if (ImGui::BeginPopup("ComponentSettings"))
 		{
-			if (ImGui::MenuItem("Remove Component"))
-			{
+			if (ImGui::MenuItem("Reset"))
+				resetComponent = true;
+			if (canRemove && ImGui::MenuItem("Remove Component"))
 				removeComponent = true;
-			}
-
 			ImGui::EndPopup();
 		}
 
@@ -82,12 +80,252 @@ namespace Proto
 			ImGui::TreePop();
 		}
 
+		if (resetComponent)
+		{
+			component.Reset();
+			Application::Get().GetActiveScene()->SetDirty(true);
+		}
+
 		if (removeComponent)
 		{
 			gameObject->RemoveComponent<T>();
 			Application::Get().GetActiveScene()->SetDirty(true);
 		}
 	}
+
+	// -------------------------------------------------------------------------
+	// 생성자 — 컴포넌트 등록
+	// -------------------------------------------------------------------------
+
+	InspectorPanel::InspectorPanel()
+	{
+		RegisterComponents();
+	}
+
+	void InspectorPanel::RegisterComponents()
+	{
+		// Transform — 항상 존재, 제거 불가
+		m_ComponentEntries.push_back({
+			"Transform", false,
+			[](GameObject* go) { return go->HasComponent<Transform>(); },
+			[](GameObject* go) {
+				DrawComponent<Transform>("Transform", go, [](auto& c)
+				{
+					if (ImGui::DragFloat3("Translation", &c.Translation.x, DRAG_SPEED))
+						Application::Get().GetActiveScene()->SetDirty(true);
+
+					glm::vec3 rotDeg = glm::degrees(c.Rotation);
+					if (ImGui::DragFloat3("Rotation", &rotDeg.x, DRAG_SPEED))
+					{
+						c.Rotation = glm::radians(rotDeg);
+						Application::Get().GetActiveScene()->SetDirty(true);
+					}
+
+					if (ImGui::DragFloat3("Scale", &c.Scale.x, DRAG_SPEED))
+						Application::Get().GetActiveScene()->SetDirty(true);
+				}, false);
+			},
+			nullptr
+		});
+
+		// Mesh Renderer
+		m_ComponentEntries.push_back({
+			"Mesh Renderer", false,
+			[](GameObject* go) { return go->HasComponent<MeshRenderer>(); },
+			[](GameObject* go) {
+				DrawComponent<MeshRenderer>("Mesh Renderer", go, [](auto& c)
+				{
+					const char* meshTypes[] = { "None", "Cube", "Plane", "Sphere", "Cylinder" };
+					std::string currentMeshType = c.GetMeshTypeName();
+					if (currentMeshType.empty()) currentMeshType = "None";
+
+					ImGui::Text("Mesh Type");
+					ImGui::SameLine();
+					if (ImGui::BeginCombo("##MeshType", currentMeshType.c_str()))
+					{
+						for (int i = 0; i < IM_ARRAYSIZE(meshTypes); i++)
+						{
+							bool isSelected = (currentMeshType == meshTypes[i]);
+							if (ImGui::Selectable(meshTypes[i], isSelected))
+							{
+								currentMeshType = meshTypes[i];
+								if      (currentMeshType == "None")     { c.SetMesh(nullptr); c.SetMeshTypeName(""); }
+								else if (currentMeshType == "Cube")     { c.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::CUBE)));     c.SetMeshTypeName("Cube"); }
+								else if (currentMeshType == "Plane")    { c.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::PLANE)));    c.SetMeshTypeName("Plane"); }
+								else if (currentMeshType == "Sphere")   { c.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::SPHERE)));   c.SetMeshTypeName("Sphere"); }
+								else if (currentMeshType == "Cylinder") { c.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::CYLINDER))); c.SetMeshTypeName("Cylinder"); }
+								Application::Get().GetActiveScene()->SetDirty(true);
+							}
+							if (isSelected) ImGui::SetItemDefaultFocus();
+						}
+						ImGui::EndCombo();
+					}
+
+					ImGui::Text(c.GetMesh()   ? "Mesh: Loaded"   : "Mesh: Not Set");
+					ImGui::Text(c.GetShader() ? "Shader: Loaded" : "Shader: Not Set");
+				});
+			},
+			[](GameObject* go) {
+				auto* mr = go->AddComponent<MeshRenderer>();
+				mr->SetShader(AssetManager::GetAssetAs<Shader>(UUID(DefaultAsset::SHADER)));
+			}
+		});
+
+		// Camera
+		m_ComponentEntries.push_back({
+			"Camera", false,
+			[](GameObject* go) { return go->HasComponent<CameraComponent>(); },
+			[](GameObject* go) {
+				DrawComponent<CameraComponent>("Camera", go, [](auto& c)
+				{
+					if (ImGui::Checkbox("Primary", &c.Primary))
+						Application::Get().GetActiveScene()->SetDirty(true);
+					if (ImGui::Checkbox("Fixed Aspect Ratio", &c.FixedAspectRatio))
+						Application::Get().GetActiveScene()->SetDirty(true);
+
+					float fov = glm::degrees(c.Camera.GetPerspectiveVerticalFOV());
+					float nearClip = c.Camera.GetPerspectiveNearClip();
+					float farClip  = c.Camera.GetPerspectiveFarClip();
+
+					if (ImGui::SliderFloat("FOV", &fov, DEFAULT_FOV_MIN, DEFAULT_FOV_MAX))
+					{
+						c.Camera.SetPerspective(glm::radians(fov), nearClip, farClip);
+						Application::Get().GetActiveScene()->SetDirty(true);
+					}
+					if (ImGui::DragFloat("Near Clip", &nearClip, 0.01f, 0.001f, farClip - 0.001f))
+					{
+						c.Camera.SetPerspective(glm::radians(fov), nearClip, farClip);
+						Application::Get().GetActiveScene()->SetDirty(true);
+					}
+					if (ImGui::DragFloat("Far Clip", &farClip, 1.0f, nearClip + 0.001f, 10000.0f))
+					{
+						c.Camera.SetPerspective(glm::radians(fov), nearClip, farClip);
+						Application::Get().GetActiveScene()->SetDirty(true);
+					}
+				});
+			},
+			[](GameObject* go) { go->AddComponent<CameraComponent>(); }
+		});
+
+		// Light
+		m_ComponentEntries.push_back({
+			"Light", false,
+			[](GameObject* go) { return go->HasComponent<LightComponent>(); },
+			[](GameObject* go) {
+				DrawComponent<LightComponent>("Light", go, [](auto& c)
+				{
+					if (ImGui::ColorEdit3("Color", &c.Color.x))
+						Application::Get().GetActiveScene()->SetDirty(true);
+					if (ImGui::SliderFloat("Intensity", &c.Intensity, 0.0f, 2.0f))
+						Application::Get().GetActiveScene()->SetDirty(true);
+				});
+			},
+			[](GameObject* go) { go->AddComponent<LightComponent>(); }
+		});
+
+		// Rigidbody — 물리 계열 첫 항목, 구분선 앞에 배치
+		m_ComponentEntries.push_back({
+			"Rigidbody", true,
+			[](GameObject* go) { return go->HasComponent<Rigidbody>(); },
+			[](GameObject* go) {
+				DrawComponent<Rigidbody>("Rigidbody", go, [](auto& c)
+				{
+					if (ImGui::SliderFloat("Mass", &c.Mass, 0.1f, 100.0f))
+						Application::Get().GetActiveScene()->SetDirty(true);
+					if (ImGui::DragFloat3("Velocity", &c.Velocity.x, DRAG_SPEED))
+						Application::Get().GetActiveScene()->SetDirty(true);
+					if (ImGui::Checkbox("Use Gravity", &c.UseGravity))
+						Application::Get().GetActiveScene()->SetDirty(true);
+					if (ImGui::SliderFloat("Drag", &c.Drag, 0.0f, 10.0f))
+						Application::Get().GetActiveScene()->SetDirty(true);
+				});
+			},
+			[](GameObject* go) { go->AddComponent<Rigidbody>(); }
+		});
+
+		// Box Collider
+		m_ComponentEntries.push_back({
+			"Box Collider", false,
+			[](GameObject* go) { return go->HasComponent<BoxCollider>(); },
+			[](GameObject* go) {
+				DrawComponent<BoxCollider>("Box Collider", go, [](auto& c)
+				{
+					if (ImGui::DragFloat3("Size",   &c.Size.x,   DRAG_SPEED, 0.01f, 100.0f))
+						Application::Get().GetActiveScene()->SetDirty(true);
+					if (ImGui::DragFloat3("Offset", &c.Offset.x, DRAG_SPEED))
+						Application::Get().GetActiveScene()->SetDirty(true);
+					if (ImGui::Checkbox("Is Trigger", &c.IsTrigger))
+						Application::Get().GetActiveScene()->SetDirty(true);
+				});
+			},
+			[](GameObject* go) { go->AddComponent<BoxCollider>(); }
+		});
+
+		// Sphere Collider
+		m_ComponentEntries.push_back({
+			"Sphere Collider", false,
+			[](GameObject* go) { return go->HasComponent<SphereCollider>(); },
+			[](GameObject* go) {
+				DrawComponent<SphereCollider>("Sphere Collider", go, [](auto& c)
+				{
+					if (ImGui::SliderFloat("Radius", &c.Radius, 0.01f, 50.0f))
+						Application::Get().GetActiveScene()->SetDirty(true);
+					if (ImGui::DragFloat3("Offset", &c.Offset.x, DRAG_SPEED))
+						Application::Get().GetActiveScene()->SetDirty(true);
+					if (ImGui::Checkbox("Is Trigger", &c.IsTrigger))
+						Application::Get().GetActiveScene()->SetDirty(true);
+				});
+			},
+			[](GameObject* go) { go->AddComponent<SphereCollider>(); }
+		});
+
+		// Native Script
+		m_ComponentEntries.push_back({
+			"Native Script", false,
+			[](GameObject* go) { return go->HasComponent<NativeScriptComponent>(); },
+			[](GameObject* go) {
+				DrawComponent<NativeScriptComponent>("Native Script", go, [](auto& c)
+				{
+					const std::vector<std::string> scriptNames = ScriptRegistry::GetScriptNames();
+					int currentScriptIndex = -1;
+					for (int i = 0; i < static_cast<int>(scriptNames.size()); ++i)
+					{
+						if (scriptNames[i] == c.ScriptName) { currentScriptIndex = i; break; }
+					}
+
+					std::vector<const char*> cStrs;
+					for (const auto& n : scriptNames) cStrs.push_back(n.c_str());
+
+					if (!cStrs.empty())
+					{
+						if (ImGui::Combo("##Script", &currentScriptIndex, cStrs.data(), static_cast<int>(cStrs.size())))
+						{
+							if (currentScriptIndex >= 0 && currentScriptIndex < static_cast<int>(scriptNames.size()))
+							{
+								ScriptRegistry::BindByName(scriptNames[currentScriptIndex], &c);
+								Application::Get().GetActiveScene()->SetDirty(true);
+							}
+						}
+					}
+					else
+					{
+						ImGui::TextColored(EditorStyle::COLOR_STATUS_WARNING, "No scripts registered");
+					}
+
+					if (!c.ScriptName.empty())
+					{
+						ImGui::Text("Current: %s", c.ScriptName.c_str());
+						ImGui::TextColored(
+							c.Instance ? EditorStyle::COLOR_STATUS_SUCCESS : EditorStyle::COLOR_STATUS_WARNING,
+							c.Instance ? "Instance: Ready" : "Instance: Pending OnStart");
+					}
+				});
+			},
+			[](GameObject* go) { go->AddComponent<NativeScriptComponent>(); }
+		});
+	}
+
+	// -------------------------------------------------------------------------
 
 	void InspectorPanel::OnImGuiRender(GameObject* selectedContext)
 	{
@@ -97,9 +335,7 @@ namespace Proto
 		ImGui::PushStyleColor(ImGuiCol_Text, EditorStyle::COLOR_PANEL_TEXT);
 
 		if (selectedContext)
-		{
 			DrawComponents(selectedContext);
-		}
 
 		ImGui::PopStyleColor();
 		ImGui::End();
@@ -108,255 +344,116 @@ namespace Proto
 	void InspectorPanel::DrawComponents(GameObject* gameObject)
 	{
 		if (!gameObject)
-		{
 			return;
-		}
 
-		if (!gameObject->GetName().empty())
+		char nameBuffer[256];
+		strncpy_s(nameBuffer, sizeof(nameBuffer), gameObject->GetName().c_str(), _TRUNCATE);
+
+		ImGui::SetNextItemWidth(-1);
+		// 입력칸: 흰 배경 + 검은 글자
+		ImGui::PushStyleColor(ImGuiCol_FrameBg,        EditorStyle::COLOR_INPUT_BG);
+		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, EditorStyle::COLOR_INPUT_BG);
+		ImGui::PushStyleColor(ImGuiCol_FrameBgActive,  EditorStyle::COLOR_INPUT_BG);
+		ImGui::PushStyleColor(ImGuiCol_Text,           EditorStyle::COLOR_INPUT_TEXT);
+		ImGui::PushStyleColor(ImGuiCol_InputTextCursor,EditorStyle::COLOR_INPUT_TEXT);
+		ImGui::InputText("##GameObjectName", nameBuffer, sizeof(nameBuffer));
+		const bool nameDeactivated = ImGui::IsItemDeactivatedAfterEdit();
+		ImGui::PopStyleColor(5);
+		if (nameDeactivated)
 		{
-			ImGui::Text("Name: %s", gameObject->GetName().c_str());
-			ImGui::Separator();
+			if (nameBuffer[0] != '\0')
+			{
+				auto* scene = Application::Get().GetActiveScene();
+				gameObject->SetName(scene->MakeUniqueName(nameBuffer, gameObject));
+				scene->SetDirty(true);
+			}
+			else
+			{
+				strncpy_s(nameBuffer, sizeof(nameBuffer), gameObject->GetName().c_str(), _TRUNCATE);
+			}
 		}
 
-		DrawAddComponentButton(gameObject);
+		for (const auto& entry : m_ComponentEntries)
+			entry.draw(gameObject);
+
+		ImGui::Separator();
 		ImGui::Spacing();
-
-		// Transform 컴포넌트 드로잉
-		DrawComponent<Transform>("Transform", gameObject, [](auto& component)
-			{
-				if (ImGui::DragFloat3("Translation", &component.Translation.x, DRAG_SPEED))
-					Application::Get().GetActiveScene()->SetDirty(true);
-
-				glm::vec3 rotationDegrees = glm::degrees(component.Rotation);
-				if (ImGui::DragFloat3("Rotation", &rotationDegrees.x, DRAG_SPEED))
-				{
-					component.Rotation = glm::radians(rotationDegrees);
-					Application::Get().GetActiveScene()->SetDirty(true);
-				}
-
-				if (ImGui::DragFloat3("Scale", &component.Scale.x, DRAG_SPEED))
-					Application::Get().GetActiveScene()->SetDirty(true);
-			}, false);
-
-		// MeshRenderer 컴포넌트 드로잉
-		DrawComponent<MeshRenderer>("Mesh Renderer", gameObject, [](auto& component)
-			{
-				const char* meshTypes[] = { "None", "Cube", "Plane", "Sphere", "Cylinder" };
-				std::string currentMeshType = component.GetMeshTypeName();
-				if (currentMeshType.empty()) currentMeshType = "None";
-
-				ImGui::Text("Mesh Type");
-				ImGui::SameLine();
-				if (ImGui::BeginCombo("##Mesh Type", currentMeshType.c_str()))
-				{
-					for (int i = 0; i < IM_ARRAYSIZE(meshTypes); i++)
-					{
-						bool isSelected = (currentMeshType == meshTypes[i]);
-
-						if (ImGui::Selectable(meshTypes[i], isSelected))
-						{
-							currentMeshType = meshTypes[i];
-							if (currentMeshType == "None")
-							{
-								component.SetMesh(nullptr);
-								component.SetMeshTypeName("");
-							}
-							else if (currentMeshType == "Cube")
-							{
-								component.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::CUBE)));
-								component.SetMeshTypeName("Cube");
-							}
-							else if (currentMeshType == "Plane")
-							{
-								component.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::PLANE)));
-								component.SetMeshTypeName("Plane");
-							}
-							else if (currentMeshType == "Sphere")
-							{
-								component.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::SPHERE)));
-								component.SetMeshTypeName("Sphere");
-							}
-							else if (currentMeshType == "Cylinder")
-							{
-								component.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::CYLINDER)));
-								component.SetMeshTypeName("Cylinder");
-							}
-
-							Application::Get().GetActiveScene()->SetDirty(true);
-						}
-
-						if (isSelected)
-							ImGui::SetItemDefaultFocus();
-					}
-					ImGui::EndCombo();
-				}
-
-				if (component.GetMesh())
-				{
-					ImGui::Text("Mesh: Loaded");
-				}
-				else
-				{
-					ImGui::TextColored(EditorStyle::COLOR_STATUS_ERROR, "Mesh: Not Set");
-				}
-
-				if (component.GetShader())
-				{
-					ImGui::Text("Shader: Loaded");
-				}
-				else
-				{
-					ImGui::TextColored(EditorStyle::COLOR_STATUS_ERROR, "Shader: Not Set");
-				}
-			});
-
-		// CameraComponent 컴포넌트 드로잉
-		DrawComponent<CameraComponent>("Camera", gameObject, [](auto& component)
-			{
-				if (ImGui::Checkbox("Primary", &component.Primary))
-					Application::Get().GetActiveScene()->SetDirty(true);
-				if (ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio))
-					Application::Get().GetActiveScene()->SetDirty(true);
-
-				float fov = glm::degrees(component.Camera.GetPerspectiveVerticalFOV());
-				if (ImGui::SliderFloat("FOV", &fov, DEFAULT_FOV_MIN, DEFAULT_FOV_MAX))
-				{
-					component.Camera.SetPerspective(glm::radians(fov), 0.1f, 1000.0f);
-					Application::Get().GetActiveScene()->SetDirty(true);
-				}
-			});
-
-		// LightComponent 컴포넌트 드로잉
-		DrawComponent<LightComponent>("Light", gameObject, [](auto& component)
-			{
-				if (ImGui::ColorEdit3("Color", &component.Color.x))
-					Application::Get().GetActiveScene()->SetDirty(true);
-				if (ImGui::SliderFloat("Intensity", &component.Intensity, 0.0f, 2.0f))
-					Application::Get().GetActiveScene()->SetDirty(true);
-			});
-
-		// Rigidbody 컴포넌트 드로잉
-		DrawComponent<Rigidbody>("Rigidbody", gameObject, [](auto& component)
-			{
-				if (ImGui::SliderFloat("Mass", &component.Mass, 0.1f, 100.0f))
-					Application::Get().GetActiveScene()->SetDirty(true);
-				if (ImGui::DragFloat3("Velocity", &component.Velocity.x, DRAG_SPEED))
-					Application::Get().GetActiveScene()->SetDirty(true);
-				if (ImGui::Checkbox("Use Gravity", &component.UseGravity))
-					Application::Get().GetActiveScene()->SetDirty(true);
-				if (ImGui::SliderFloat("Drag", &component.Drag, 0.0f, 10.0f))
-					Application::Get().GetActiveScene()->SetDirty(true);
-			});
-
-		// BoxCollider 컴포넌트 드로잉
-		DrawComponent<BoxCollider>("Box Collider", gameObject, [](auto& component)
-			{
-				if (ImGui::DragFloat3("Size", &component.Size.x, DRAG_SPEED, 0.1f, 100.0f))
-					Application::Get().GetActiveScene()->SetDirty(true);
-			});
-
-		// SphereCollider 컴포넌트 드로잉
-		DrawComponent<SphereCollider>("Sphere Collider", gameObject, [](auto& component)
-			{
-				if (ImGui::SliderFloat("Radius", &component.Radius, 0.1f, 50.0f))
-					Application::Get().GetActiveScene()->SetDirty(true);
-			});
-
-		// NativeScriptComponent 컴포넌트 드로잉
-		DrawComponent<NativeScriptComponent>("Native Script", gameObject, [](auto& component)
-			{
-				const std::vector<std::string> scriptNames = ScriptRegistry::GetScriptNames();
-				int currentScriptIndex = -1;
-
-				for (int i = 0; i < static_cast<int>(scriptNames.size()); ++i)
-				{
-					if (scriptNames[i] == component.ScriptName)
-					{
-						currentScriptIndex = i;
-						break;
-					}
-				}
-
-				std::vector<const char*> scriptNamesCStr;
-				for (const auto& name : scriptNames)
-				{
-					scriptNamesCStr.push_back(name.c_str());
-				}
-
-				if (!scriptNamesCStr.empty())
-				{
-					if (ImGui::Combo("##Script", &currentScriptIndex, scriptNamesCStr.data(), static_cast<int>(scriptNamesCStr.size())))
-					{
-						if (currentScriptIndex >= 0 && currentScriptIndex < static_cast<int>(scriptNames.size()))
-						{
-							ScriptRegistry::BindByName(scriptNames[currentScriptIndex], &component);
-							Application::Get().GetActiveScene()->SetDirty(true);
-						}
-					}
-				}
-				else
-				{
-					ImGui::TextColored(EditorStyle::COLOR_STATUS_WARNING, "No scripts registered");
-				}
-
-				if (!component.ScriptName.empty())
-				{
-					ImGui::Text("Current: %s", component.ScriptName.c_str());
-
-					if (component.Instance)
-					{
-						ImGui::TextColored(EditorStyle::COLOR_STATUS_SUCCESS, "Instance: Ready");
-					}
-					else
-					{
-						ImGui::TextColored(EditorStyle::COLOR_STATUS_WARNING, "Instance: Pending OnStart");
-					}
-				}
-			});
+		DrawAddComponentButton(gameObject);
 	}
 
 	void InspectorPanel::DrawAddComponentButton(GameObject* gameObject)
 	{
-		if (ImGui::Button("Add Component", ImVec2(-1, 0)))
-		{
+		const float btnWidth = EditorStyle::ADD_COMPONENT_BTN_WIDTH;
+		ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - btnWidth) * 0.5f + ImGui::GetCursorPosX());
+
+		ImGui::PushStyleColor(ImGuiCol_Button,        EditorStyle::COLOR_GIZMO_BTN);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, EditorStyle::COLOR_GIZMO_BTN_HOVERED);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive,  EditorStyle::COLOR_GIZMO_BTN_ACTIVE);
+		ImGui::PushStyleColor(ImGuiCol_Text,          EditorStyle::COLOR_GIZMO_BTN_TEXT);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+		const bool clicked = ImGui::Button("Add Component", ImVec2(btnWidth, 0));
+		ImGui::PopStyleVar();
+		ImGui::PopStyleColor(4);
+
+		if (clicked)
 			ImGui::OpenPopup("AddComponentPopup");
-		}
+
+		// 버튼 좌측 하단에 팝업 좌측 상단을 고정
+		const ImVec2 popupPos(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y);
+		ImGui::SetNextWindowPos(popupPos, ImGuiCond_Always, ImVec2(0.0f, 0.0f));
 
 		if (ImGui::BeginPopup("AddComponentPopup"))
 		{
-			auto DisplayMenuItem = [&](const std::string& name)
-				{
-					if (!ImGui::MenuItem(name.c_str()))
-					{
-						return;
-					}
+			bool componentAdded = false;
 
-					if (name == "MeshRenderer")
-					{
-						auto* mr = gameObject->AddComponent<MeshRenderer>();
-						mr->SetShader(AssetManager::GetAssetAs<Shader>(UUID(DefaultAsset::SHADER)));
-					}
-					else if (name == "CameraComponent")  gameObject->AddComponent<CameraComponent>();
-					else if (name == "LightComponent")   gameObject->AddComponent<LightComponent>();
-					else if (name == "Rigidbody")        gameObject->AddComponent<Rigidbody>();
-					else if (name == "BoxCollider")      gameObject->AddComponent<BoxCollider>();
-					else if (name == "SphereCollider")   gameObject->AddComponent<SphereCollider>();
-					else if (name == "NativeScriptComponent") gameObject->AddComponent<NativeScriptComponent>();
+			// Mesh
+			if (ImGui::MenuItem("Mesh"))
+			{
+				auto* mr = gameObject->AddComponent<MeshRenderer>();
+				mr->SetShader(AssetManager::GetAssetAs<Shader>(UUID(DefaultAsset::SHADER)));
+				componentAdded = true;
+			}
 
-					Application::Get().GetActiveScene()->SetDirty(true);
-					ImGui::CloseCurrentPopup();
-				};
+			// Physics
+			if (ImGui::BeginMenu("Physics"))
+			{
+				if (ImGui::MenuItem("Box Collider"))    { gameObject->AddComponent<BoxCollider>();    componentAdded = true; }
+				if (ImGui::MenuItem("Sphere Collider")) { gameObject->AddComponent<SphereCollider>(); componentAdded = true; }
+				if (ImGui::MenuItem("Rigidbody"))       { gameObject->AddComponent<Rigidbody>();      componentAdded = true; }
+				ImGui::EndMenu();
+			}
 
-			if (!gameObject->HasComponent<MeshRenderer>())          DisplayMenuItem("MeshRenderer");
-			if (!gameObject->HasComponent<CameraComponent>())      DisplayMenuItem("CameraComponent");
-			if (!gameObject->HasComponent<LightComponent>())       DisplayMenuItem("LightComponent");
+			// Scripts
+			if (ImGui::BeginMenu("Scripts"))
+			{
+				if (ImGui::MenuItem("Script"))     { gameObject->AddComponent<NativeScriptComponent>(); componentAdded = true; }
+				ImGui::BeginDisabled();
+				ImGui::MenuItem("New Script");
+				ImGui::EndDisabled();
+				ImGui::EndMenu();
+			}
 
-			ImGui::Separator();
+			// Camera
+			if (ImGui::MenuItem("Camera")) { gameObject->AddComponent<CameraComponent>(); componentAdded = true; }
 
-			if (!gameObject->HasComponent<Rigidbody>())            DisplayMenuItem("Rigidbody");
-			if (!gameObject->HasComponent<BoxCollider>())          DisplayMenuItem("BoxCollider");
-			if (!gameObject->HasComponent<SphereCollider>())       DisplayMenuItem("SphereCollider");
-			if (!gameObject->HasComponent<NativeScriptComponent>()) DisplayMenuItem("NativeScriptComponent");
+			// Light
+			if (ImGui::MenuItem("Light"))  { gameObject->AddComponent<LightComponent>();  componentAdded = true; }
+
+			// UI
+			if (ImGui::BeginMenu("UI"))
+			{
+				ImGui::BeginDisabled();
+				ImGui::MenuItem("Canvas");
+				ImGui::MenuItem("Text");
+				ImGui::EndDisabled();
+				ImGui::EndMenu();
+			}
+
+			if (componentAdded)
+			{
+				Application::Get().GetActiveScene()->SetDirty(true);
+				ImGui::CloseCurrentPopup();
+			}
 
 			ImGui::EndPopup();
 		}

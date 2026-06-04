@@ -8,6 +8,13 @@
 
 namespace Proto
 {
+	void BoxCollider::Reset()
+	{
+		Size      = glm::vec3(1.0f);
+		Offset    = glm::vec3(0.0f);
+		IsTrigger = true;
+	}
+
 	void BoxCollider::Serialize(YAML::Emitter& out) const
 	{
 		out << YAML::BeginMap;

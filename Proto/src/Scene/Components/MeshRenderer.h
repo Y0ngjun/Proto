@@ -55,6 +55,7 @@ namespace Proto
 			return m_MeshTypeName;
 		}
 
+		virtual void Reset() override;
 		virtual void Serialize(YAML::Emitter& out) const override;
 		virtual void Deserialize(const YAML::Node& node) override;
 

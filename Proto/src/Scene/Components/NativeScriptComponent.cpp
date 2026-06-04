@@ -9,6 +9,15 @@
 
 namespace Proto
 {
+	void NativeScriptComponent::Reset()
+	{
+		if (Instance && DestroyScript)
+			DestroyScript(this);
+		ScriptName        = "";
+		InstantiateScript = nullptr;
+		DestroyScript     = nullptr;
+	}
+
 	void NativeScriptComponent::Serialize(YAML::Emitter& out) const
 	{
 		out << YAML::BeginMap;

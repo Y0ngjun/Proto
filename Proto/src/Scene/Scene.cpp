@@ -319,13 +319,15 @@ namespace Proto
 
 		if (boxA && boxB)
 		{
-			const glm::vec3 posA = transformA->Translation + boxA->Offset;
-			const glm::vec3 minA = posA - boxA->Size * 0.5f;
-			const glm::vec3 maxA = posA + boxA->Size * 0.5f;
+			const glm::vec3 posA = transformA->Translation + boxA->Offset * transformA->Scale;
+			const glm::vec3 halfA = boxA->Size * transformA->Scale * 0.5f;
+			const glm::vec3 minA = posA - halfA;
+			const glm::vec3 maxA = posA + halfA;
 
-			const glm::vec3 posB = transformB->Translation + boxB->Offset;
-			const glm::vec3 minB = posB - boxB->Size * 0.5f;
-			const glm::vec3 maxB = posB + boxB->Size * 0.5f;
+			const glm::vec3 posB = transformB->Translation + boxB->Offset * transformB->Scale;
+			const glm::vec3 halfB = boxB->Size * transformB->Scale * 0.5f;
+			const glm::vec3 minB = posB - halfB;
+			const glm::vec3 maxB = posB + halfB;
 
 			isColliding = (minA.x < maxB.x && maxA.x > minB.x) &&
 				(minA.y < maxB.y && maxA.y > minB.y) &&
@@ -354,10 +356,12 @@ namespace Proto
 		}
 		else if (sphereA && sphereB)
 		{
-			const glm::vec3 posA = transformA->Translation + sphereA->Offset;
-			const glm::vec3 posB = transformB->Translation + sphereB->Offset;
+			const glm::vec3 posA = transformA->Translation + sphereA->Offset * transformA->Scale;
+			const glm::vec3 posB = transformB->Translation + sphereB->Offset * transformB->Scale;
 			const float distSq = glm::dot(posA - posB, posA - posB);
-			const float radSum = sphereA->Radius + sphereB->Radius;
+			const float scaledRadA = sphereA->Radius * std::max({ transformA->Scale.x, transformA->Scale.y, transformA->Scale.z });
+			const float scaledRadB = sphereB->Radius * std::max({ transformB->Scale.x, transformB->Scale.y, transformB->Scale.z });
+			const float radSum = scaledRadA + scaledRadB;
 
 			if (distSq < (radSum * radSum) && distSq > COLLISION_EPSILON)
 			{

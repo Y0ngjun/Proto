@@ -8,6 +8,15 @@
 
 namespace Proto
 {
+	void Rigidbody::Reset()
+	{
+		Velocity     = glm::vec3(0.0f);
+		Acceleration = glm::vec3(0.0f);
+		Mass         = 1.0f;
+		UseGravity   = false;
+		Drag         = 0.0f;
+	}
+
 	void Rigidbody::Serialize(YAML::Emitter& out) const
 	{
 		out << YAML::BeginMap;

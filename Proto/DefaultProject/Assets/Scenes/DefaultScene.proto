@@ -25,3 +25,27 @@ Entities:
       - Component: LightComponent
         Color: [1, 1, 1]
         Intensity: 1
+  - Entity: 8192684374262331382
+    Name: Cube (1) (1)
+    ParentUUID: 0
+    Components:
+      - Component: Transform
+        Translation: [0, 0, 0]
+        Rotation: [0, 0, 0]
+        Scale: [1, 1, 1]
+      - Component: MeshRenderer
+        MeshUUID: 3
+        ShaderUUID: 100
+        MeshTypeName: Sphere
+  - Entity: 3179261050876385636
+    Name: Cube (1)
+    ParentUUID: 0
+    Components:
+      - Component: Transform
+        Translation: [2.0048676, 0, 0]
+        Rotation: [0, -0, 0]
+        Scale: [1, 1, 1]
+      - Component: MeshRenderer
+        MeshUUID: 1
+        ShaderUUID: 100
+        MeshTypeName: Cube

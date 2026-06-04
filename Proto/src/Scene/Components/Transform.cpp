@@ -8,6 +8,13 @@
 
 namespace Proto
 {
+	void Transform::Reset()
+	{
+		Translation = glm::vec3(0.0f);
+		Rotation    = glm::vec3(0.0f);
+		Scale       = glm::vec3(1.0f);
+	}
+
 	glm::mat4 Transform::GetTransform() const
 	{
 		// 오일러 각도를 쿼터니언으로 변환하여 회전 행렬 생성

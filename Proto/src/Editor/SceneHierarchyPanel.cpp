@@ -239,25 +239,6 @@ namespace Proto
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
-		if (m_RenamingGameObject)
-		{
-			ImGui::SetNextItemWidth(-1);
-			if (ImGui::InputText("##RenameInput", m_RenamingBuffer, RENAME_BUFFER_SIZE, ImGuiInputTextFlags_EnterReturnsTrue))
-			{
-				if (m_RenamingBuffer[0] != '\0')
-				{
-					m_RenamingGameObject->SetName(m_Context->MakeUniqueName(m_RenamingBuffer, m_RenamingGameObject));
-				}
-
-				m_RenamingGameObject = nullptr;
-			}
-
-			if (ImGui::IsItemDeactivated() && !ImGui::IsKeyPressed(ImGuiKey_Enter))
-			{
-				m_RenamingGameObject = nullptr;
-			}
-		}
-
 		// 패널 전체를 배경 드롭 타겟으로: 노드 위 드롭은 각 노드 타겟이 우선 처리 (더 작은 rect 우선)
 		if (ImGuiWindow* win = ImGui::GetCurrentWindow())
 		{
@@ -283,15 +264,57 @@ namespace Proto
 
 		bool deleted = false;
 		const bool hasChildren = !gameObject->GetChildren().empty();
+
+		// 리네임 중인 노드는 트리 노드 대신 제자리에 입력 필드를 표시
+		if (m_RenamingGameObject == gameObject)
+		{
+			ImGui::SetNextItemWidth(-1);
+			// 입력칸: 흰 배경 + 검은 글자
+			ImGui::PushStyleColor(ImGuiCol_FrameBg,        EditorStyle::COLOR_INPUT_BG);
+			ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, EditorStyle::COLOR_INPUT_BG);
+			ImGui::PushStyleColor(ImGuiCol_FrameBgActive,  EditorStyle::COLOR_INPUT_BG);
+			ImGui::PushStyleColor(ImGuiCol_Text,           EditorStyle::COLOR_INPUT_TEXT);
+			ImGui::PushStyleColor(ImGuiCol_InputTextCursor,EditorStyle::COLOR_INPUT_TEXT);
+			const bool renameCommitted = ImGui::InputText("##RenameInput", m_RenamingBuffer, RENAME_BUFFER_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
+			const bool renameDeactivated = ImGui::IsItemDeactivated() && !ImGui::IsKeyPressed(ImGuiKey_Enter);
+			ImGui::PopStyleColor(5);
+
+			if (renameCommitted)
+			{
+				if (m_RenamingBuffer[0] != '\0')
+				{
+					gameObject->SetName(m_Context->MakeUniqueName(m_RenamingBuffer, gameObject));
+				}
+
+				m_RenamingGameObject = nullptr;
+			}
+
+			if (renameDeactivated)
+			{
+				m_RenamingGameObject = nullptr;
+			}
+
+			ImGui::PopID();
+			return;
+		}
+
+		const bool isSelected = (m_SelectionContext == gameObject);
 		ImGuiTreeNodeFlags flags =
-			((m_SelectionContext == gameObject) ? ImGuiTreeNodeFlags_Selected : 0) |
+			(isSelected ? ImGuiTreeNodeFlags_Selected : 0) |
 			ImGuiTreeNodeFlags_OpenOnArrow |
 			ImGuiTreeNodeFlags_SpanAvailWidth;
 		// 자식이 없으면 리프 노드로 표시 (화살표 숨김, TreePush 생략)
 		if (!hasChildren)
 			flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
+		// 계층 패널 전용 강조색 (전역 헤더색과 분리)
+		// HeaderHovered/Active는 선택/비선택 노드가 공유하므로 노드별로 색을 분기:
+		// 선택 노드는 호버해도 선택색 유지, 비선택 노드는 호버 시 회색 표시
+		ImGui::PushStyleColor(ImGuiCol_Header,        EditorStyle::COLOR_HIERARCHY_SELECTED);
+		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, isSelected ? EditorStyle::COLOR_HIERARCHY_SELECTED_HOVERED : EditorStyle::COLOR_HIERARCHY_HOVERED);
+		ImGui::PushStyleColor(ImGuiCol_HeaderActive,  isSelected ? EditorStyle::COLOR_HIERARCHY_SELECTED_ACTIVE  : EditorStyle::COLOR_HIERARCHY_HOVERED);
 		const bool opened = ImGui::TreeNodeEx((void*)gameObject, flags, "%s", gameObject->GetName().c_str());
+		ImGui::PopStyleColor(3);
 
 		if (ImGui::IsItemClicked())
 			m_SelectionContext = gameObject;

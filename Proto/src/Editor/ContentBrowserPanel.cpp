@@ -236,8 +236,17 @@ namespace Proto
 					if (isRenaming)
 					{
 						ImGui::SetNextItemWidth(-1);
-						if (ImGui::InputText("##rename", m_RenameBuffer, RENAME_BUFFER_SIZE,
-							ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+						// 입력칸: 흰 배경 + 검은 글자
+						ImGui::PushStyleColor(ImGuiCol_FrameBg,        EditorStyle::COLOR_INPUT_BG);
+						ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, EditorStyle::COLOR_INPUT_BG);
+						ImGui::PushStyleColor(ImGuiCol_FrameBgActive,  EditorStyle::COLOR_INPUT_BG);
+						ImGui::PushStyleColor(ImGuiCol_Text,           EditorStyle::COLOR_INPUT_TEXT);
+						ImGui::PushStyleColor(ImGuiCol_InputTextCursor,EditorStyle::COLOR_INPUT_TEXT);
+						const bool renameCommitted = ImGui::InputText("##rename", m_RenameBuffer, RENAME_BUFFER_SIZE,
+							ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll);
+						const bool renameDeactivated = ImGui::IsItemDeactivated() && !ImGui::IsKeyPressed(ImGuiKey_Enter);
+						ImGui::PopStyleColor(5);
+						if (renameCommitted)
 						{
 							if (m_RenameBuffer[0] != '\0')
 							{
@@ -247,7 +256,7 @@ namespace Proto
 							}
 							m_RenamingPath.clear();
 						}
-						if (ImGui::IsItemDeactivated() && !ImGui::IsKeyPressed(ImGuiKey_Enter))
+						if (renameDeactivated)
 							m_RenamingPath.clear();
 					}
 					else

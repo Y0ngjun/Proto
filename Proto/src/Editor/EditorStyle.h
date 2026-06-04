@@ -12,6 +12,9 @@ namespace Proto::EditorStyle
 	static constexpr ImVec4 COLOR_PANEL_TEXT       = ImVec4(0.05f, 0.05f, 0.05f, 1.0f); // 패널 본문 텍스트
 	static constexpr ImVec4 COLOR_POPUP_BG         = ImVec4(0.95f, 0.95f, 0.95f, 1.0f); // 드롭다운 팝업 배경
 
+	static constexpr ImVec4 COLOR_INPUT_BG         = ImVec4(1.0f,  1.0f,  1.0f,  1.0f); // 텍스트 입력칸 배경 (흰색)
+	static constexpr ImVec4 COLOR_INPUT_TEXT       = ImVec4(0.0f,  0.0f,  0.0f,  1.0f); // 텍스트 입력칸 글자 (검정)
+
 	static constexpr ImVec4 COLOR_HEADER           = ImVec4(0.80f, 0.80f, 0.80f, 1.0f); // 트리 헤더 (기본)
 	static constexpr ImVec4 COLOR_HEADER_HOVER     = ImVec4(0.80f, 0.80f, 0.80f, 1.0f); // 트리 헤더 (호버)
 	static constexpr ImVec4 COLOR_HEADER_ACTIVE    = ImVec4(0.85f, 0.85f, 0.85f, 1.0f); // 트리 헤더 (클릭)
@@ -97,11 +100,21 @@ namespace Proto::EditorStyle
 	static constexpr ImVec4 COLOR_GIZMO_BTN_SELECTED_TEXT = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // 선택된 기즈모 버튼 텍스트
 
 	// -----------------------------------------------------------------------
+	// 계층 패널
+	// -----------------------------------------------------------------------
+	static constexpr ImVec4 COLOR_HIERARCHY_SELECTED         = ImVec4(0.227f, 0.447f, 0.690f, 1.0f); // 선택된 오브젝트
+	static constexpr ImVec4 COLOR_HIERARCHY_SELECTED_HOVERED = ImVec4(0.227f, 0.447f, 0.690f, 1.0f); // 선택 + 호버
+	static constexpr ImVec4 COLOR_HIERARCHY_SELECTED_ACTIVE  = ImVec4(0.227f, 0.447f, 0.690f, 1.0f); // 선택 + 클릭
+	static constexpr ImVec4 COLOR_HIERARCHY_HOVERED          = ImVec4(0.60f,  0.60f,  0.60f,  1.0f); // 비선택 호버/클릭
+
+	// -----------------------------------------------------------------------
 	// 인스펙터 패널
 	// -----------------------------------------------------------------------
 	static constexpr ImVec4 COLOR_STATUS_ERROR   = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // 오류 (Red)
 	static constexpr ImVec4 COLOR_STATUS_WARNING = ImVec4(1.0f, 0.5f, 0.0f, 1.0f); // 경고 (Orange)
 	static constexpr ImVec4 COLOR_STATUS_SUCCESS = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // 정상 (Green)
+
+	static constexpr float  ADD_COMPONENT_BTN_WIDTH = 240.0f; // Add Component 버튼 너비
 
 	// -----------------------------------------------------------------------
 	// 콘텐츠 브라우저 패널

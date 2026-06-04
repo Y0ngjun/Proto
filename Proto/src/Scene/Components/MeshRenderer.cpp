@@ -73,6 +73,13 @@ namespace Proto
 		}
 	}
 
+	void MeshRenderer::Reset()
+	{
+		m_VertexArray = nullptr;
+		m_Shader      = nullptr;
+		m_MeshTypeName = "";
+	}
+
 	void MeshRenderer::Serialize(YAML::Emitter& out) const
 	{
 		out << YAML::BeginMap;
