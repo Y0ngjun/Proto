@@ -76,7 +76,11 @@ namespace Proto
 
 		if (open)
 		{
+			ImGui::PushStyleColor(ImGuiCol_FrameBg,        EditorStyle::COLOR_INSPECTOR_FIELD_BG);
+			ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, EditorStyle::COLOR_INSPECTOR_FIELD_BG);
+			ImGui::PushStyleColor(ImGuiCol_FrameBgActive,  EditorStyle::COLOR_INSPECTOR_FIELD_BG);
 			uiFunction(component);
+			ImGui::PopStyleColor(3);
 			ImGui::TreePop();
 		}
 
@@ -135,12 +139,15 @@ namespace Proto
 			[](GameObject* go) {
 				DrawComponent<MeshRenderer>("Mesh Renderer", go, [](auto& c)
 				{
+					const float labelColW = ImGui::GetWindowWidth() * 0.35f;
+
 					const char* meshTypes[] = { "None", "Cube", "Plane", "Sphere", "Cylinder" };
 					std::string currentMeshType = c.GetMeshTypeName();
 					if (currentMeshType.empty()) currentMeshType = "None";
 
 					ImGui::Text("Mesh Type");
-					ImGui::SameLine();
+					ImGui::SameLine(labelColW);
+					ImGui::SetNextItemWidth(-1);
 					if (ImGui::BeginCombo("##MeshType", currentMeshType.c_str()))
 					{
 						for (int i = 0; i < IM_ARRAYSIZE(meshTypes); i++)
@@ -149,11 +156,11 @@ namespace Proto
 							if (ImGui::Selectable(meshTypes[i], isSelected))
 							{
 								currentMeshType = meshTypes[i];
-								if      (currentMeshType == "None")     { c.SetMesh(nullptr); c.SetMeshTypeName(""); }
-								else if (currentMeshType == "Cube")     { c.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::CUBE)));     c.SetMeshTypeName("Cube"); }
-								else if (currentMeshType == "Plane")    { c.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::PLANE)));    c.SetMeshTypeName("Plane"); }
-								else if (currentMeshType == "Sphere")   { c.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::SPHERE)));   c.SetMeshTypeName("Sphere"); }
-								else if (currentMeshType == "Cylinder") { c.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::CYLINDER))); c.SetMeshTypeName("Cylinder"); }
+								if      (currentMeshType == "None")     { c.SetMesh(nullptr); }
+								else if (currentMeshType == "Cube")     { c.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::CUBE)));     }
+								else if (currentMeshType == "Plane")    { c.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::PLANE)));    }
+								else if (currentMeshType == "Sphere")   { c.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::SPHERE)));   }
+								else if (currentMeshType == "Cylinder") { c.SetMesh(AssetManager::GetAssetAs<VertexArray>(UUID(DefaultAsset::CYLINDER))); }
 								Application::Get().GetActiveScene()->SetDirty(true);
 							}
 							if (isSelected) ImGui::SetItemDefaultFocus();
@@ -161,8 +168,11 @@ namespace Proto
 						ImGui::EndCombo();
 					}
 
-					ImGui::Text(c.GetMesh()   ? "Mesh: Loaded"   : "Mesh: Not Set");
-					ImGui::Text(c.GetShader() ? "Shader: Loaded" : "Shader: Not Set");
+					ImGui::Text("Color");
+					ImGui::SameLine(labelColW);
+					ImGui::SetNextItemWidth(-1);
+					if (ImGui::ColorEdit3("##Color", &c.Color.x))
+						Application::Get().GetActiveScene()->SetDirty(true);
 				});
 			},
 			[](GameObject* go) {

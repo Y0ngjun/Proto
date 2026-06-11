@@ -6,11 +6,11 @@ namespace Proto::EditorStyle
 	// -----------------------------------------------------------------------
 	// 전역 설정
 	// -----------------------------------------------------------------------
-	static constexpr ImVec4 COLOR_TEXT             = ImVec4(0.05f, 0.05f, 0.05f, 1.0f); // 전역 기본 텍스트
+	static constexpr ImVec4 COLOR_TEXT             = ImVec4(0.0f,  0.0f,  0.0f, 1.0f); // 전역 기본 텍스트
 	static constexpr ImVec4 COLOR_WINDOW_BG        = ImVec4(0.72f, 0.72f, 0.72f, 1.0f); // 패널 배경
 	static constexpr ImVec4 COLOR_PANEL_HEADER_BG  = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // 패널 헤더 바 배경
-	static constexpr ImVec4 COLOR_PANEL_TEXT       = ImVec4(0.05f, 0.05f, 0.05f, 1.0f); // 패널 본문 텍스트
-	static constexpr ImVec4 COLOR_POPUP_BG         = ImVec4(0.95f, 0.95f, 0.95f, 1.0f); // 드롭다운 팝업 배경
+	static constexpr ImVec4 COLOR_PANEL_TEXT       = ImVec4(0.0f,  0.0f,  0.0f, 1.0f); // 패널 본문 텍스트
+	static constexpr ImVec4 COLOR_POPUP_BG         = ImVec4(1.0f,  1.0f,  1.0f, 1.0f); // 드롭다운 팝업 배경
 
 	static constexpr ImVec4 COLOR_INPUT_BG         = ImVec4(1.0f,  1.0f,  1.0f,  1.0f); // 텍스트 입력칸 배경 (흰색)
 	static constexpr ImVec4 COLOR_INPUT_TEXT       = ImVec4(0.0f,  0.0f,  0.0f,  1.0f); // 텍스트 입력칸 글자 (검정)
@@ -50,8 +50,8 @@ namespace Proto::EditorStyle
 	// -----------------------------------------------------------------------
 	// 메뉴바
 	// -----------------------------------------------------------------------
-	static constexpr ImVec4 COLOR_MENUBAR_BG   = ImVec4(0.95f, 0.95f, 0.95f, 1.0f); // 메뉴바 배경
-	static constexpr ImVec4 COLOR_MENUBAR_TEXT = ImVec4(0.05f, 0.05f, 0.05f, 1.0f); // 메뉴바 텍스트
+	static constexpr ImVec4 COLOR_MENUBAR_BG   = ImVec4(1.0f,  1.0f,  1.0f, 1.0f); // 메뉴바 배경
+	static constexpr ImVec4 COLOR_MENUBAR_TEXT = ImVec4(0.0f,  0.0f,  0.0f, 1.0f); // 메뉴바 텍스트
 
 	// -----------------------------------------------------------------------
 	// 툴바
@@ -110,6 +110,8 @@ namespace Proto::EditorStyle
 	// -----------------------------------------------------------------------
 	// 인스펙터 패널
 	// -----------------------------------------------------------------------
+	static constexpr ImVec4 COLOR_INSPECTOR_FIELD_BG = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // 값 수정 필드 배경 (흰색)
+
 	static constexpr ImVec4 COLOR_STATUS_ERROR   = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // 오류 (Red)
 	static constexpr ImVec4 COLOR_STATUS_WARNING = ImVec4(1.0f, 0.5f, 0.0f, 1.0f); // 경고 (Orange)
 	static constexpr ImVec4 COLOR_STATUS_SUCCESS = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // 정상 (Green)

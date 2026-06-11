@@ -112,7 +112,6 @@ namespace Proto
 
 		mr->SetMesh(AssetManager::GetAssetAs<VertexArray>(meshUUID));
 		mr->SetShader(AssetManager::GetAssetAs<Shader>(UUID(DefaultAsset::SHADER)));
-		mr->SetMeshTypeName(name);
 
 		return go;
 	}
@@ -457,7 +456,7 @@ namespace Proto
 			}
 
 			auto shader = mr->GetShader();
-			auto mesh = mr->GetMesh();
+			auto mesh = mr->GetVertexArray();
 
 			if (!shader || !mesh)
 			{
@@ -470,6 +469,7 @@ namespace Proto
 			shader->UploadUniformFloat3("u_ViewPos", viewPos);
 			shader->UploadUniformFloat3("u_LightDir", light.Direction);
 			shader->UploadUniformFloat3("u_LightColor", light.Color * light.Intensity);
+			shader->UploadUniformFloat3("u_ObjectColor", mr->Color);
 
 			if (isEditor)
 			{

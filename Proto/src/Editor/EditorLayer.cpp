@@ -76,7 +76,7 @@ namespace Proto
 
 		m_EditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
 		m_EditorCamera.SetDistance(10.0f);
-		m_EditorCamera.SetPitch(0.6f);
+		m_EditorCamera.SetPitch(0.0f);
 	}
 
 	void EditorLayer::Shutdown()
@@ -493,7 +493,13 @@ namespace Proto
 		ImGui::PopStyleVar(3);
 
 		const ImGuiID dockspaceID = ImGui::GetID("MyDockSpace");
-		if (ImGui::DockBuilderGetNode(dockspaceID) == nullptr || m_ShouldResetLayout)
+		if (ImGui::DockBuilderGetNode(dockspaceID) == nullptr)
+		{
+			// 즉시 설정해 첫 프레임 flash 방지, 다음 프레임에 올바른 WorkSize로 재실행
+			ResetDefaultLayout();
+			m_ShouldResetLayout = true;
+		}
+		else if (m_ShouldResetLayout)
 		{
 			m_ShouldResetLayout = false;
 			ResetDefaultLayout();
