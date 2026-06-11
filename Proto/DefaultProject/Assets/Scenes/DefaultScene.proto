@@ -1,0 +1,27 @@
+Scene: Untitled
+Entities:
+  - Entity: 12093768059767472631
+    Name: Main Camera
+    ParentUUID: 0
+    Components:
+      - Component: Transform
+        Translation: [0, 0, 5]
+        Rotation: [0, 0, 0]
+        Scale: [1, 1, 1]
+      - Component: CameraComponent
+        Primary: true
+        FixedAspectRatio: false
+        FOV: 0.7853982
+        NearClip: 0.1
+        FarClip: 1000
+  - Entity: 15889124808394726525
+    Name: Directional Light
+    ParentUUID: 0
+    Components:
+      - Component: Transform
+        Translation: [0, 0, 0]
+        Rotation: [2.35619, 0, 0.785398]
+        Scale: [1, 1, 1]
+      - Component: LightComponent
+        Color: [1, 1, 1]
+        Intensity: 1

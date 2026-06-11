@@ -113,5 +113,8 @@ namespace Proto
 		bool m_ShowProjectSettingsPopup = false;
 		bool m_ShowShortcutsPopup = false;
 		bool m_ShowProtoAPIPopup = false;
+
+		float m_UIScale = 1.0f;
+		void ApplyUIScale(float scale);
 	};
 }

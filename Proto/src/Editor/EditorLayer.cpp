@@ -46,10 +46,6 @@ namespace Proto
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-		float xScale, yScale;
-		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xScale, &yScale);
-		io.FontGlobalScale = 1.1f * xScale;
-
 		// 한글 출력을 위한 시스템 폰트 로드 (윈도우 전용)
 		const char* fontPath = "C:\\Windows\\Fonts\\malgun.ttf";
 		if (std::filesystem::exists(fontPath))
@@ -57,8 +53,19 @@ namespace Proto
 			io.Fonts->AddFontFromFileTTF(fontPath, 18.0f, NULL, io.Fonts->GetGlyphRangesKorean());
 		}
 
-		SetLightThemeColors();
-		ImGui::GetStyle().ScaleAllSizes(xScale);
+		// 모니터 배율을 읽어 지원 배율 중 가장 가까운 값으로 초기화
+		float xScale, yScale;
+		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xScale, &yScale);
+		static constexpr float supportedScales[] = { 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f };
+		float nearest = 1.0f;
+		float minDiff = FLT_MAX;
+		for (float s : supportedScales)
+		{
+			float diff = xScale - s;
+			if (diff < 0.0f) diff = -diff;
+			if (diff < minDiff) { minDiff = diff; nearest = s; }
+		}
+		ApplyUIScale(nearest);
 
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui_ImplOpenGL3_Init("#version 330");
@@ -206,6 +213,21 @@ namespace Proto
 		colors[ImGuiCol_ButtonActive]      = COLOR_BUTTON_ACTIVE;
 	}
 
+	void EditorLayer::ApplyUIScale(float scale)
+	{
+		m_UIScale = scale;
+		ImGui::GetStyle() = ImGuiStyle();
+		SetLightThemeColors();
+		ImGui::GetStyle().ScaleAllSizes(scale);
+
+		// ScaleAllSizes는 ImTrunc로 값을 버림하므로, 75%(0.75) 같은 축소 배율에서는
+		// SeparatorSize(기본 1.0)가 0이 되어 Separator() 렌더 시 assert(thickness > 0)로 크래시한다.
+		// 두께가 0이 되지 않도록 최소 1.0으로 보정한다.
+		ImGui::GetStyle().SeparatorSize = ImMax(ImGui::GetStyle().SeparatorSize, 1.0f);
+
+		ImGui::GetIO().FontGlobalScale = 1.1f * scale;
+	}
+
 	void EditorLayer::RenderMenuBar()
 	{
 		ImGui::PushStyleColor(ImGuiCol_Text, COLOR_MENUBAR_TEXT);
@@ -272,6 +294,20 @@ namespace Proto
 			ImGui::EndMenu();
 		}
 
+		if (ImGui::BeginMenu("Scale"))
+		{
+			static constexpr float scales[] = { 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f };
+			static constexpr const char* labels[] = { "75%", "100%", "125%", "150%", "175%", "200%" };
+			for (int i = 0; i < 6; ++i)
+			{
+				if (ImGui::MenuItem(labels[i], nullptr, m_UIScale == scales[i]))
+				{
+					ApplyUIScale(scales[i]);
+				}
+			}
+			ImGui::EndMenu();
+		}
+
 		if (ImGui::BeginMenu("Layout"))
 		{
 			if (ImGui::MenuItem("Default"))
@@ -322,10 +358,8 @@ namespace Proto
 	void EditorLayer::RenderToolbar(Scene*& activeScene)
 	{
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		float xScale, yScale;
-		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xScale, &yScale);
 
-		const float toolbarHeight = TOOLBAR_HEIGHT * yScale;
+		const float toolbarHeight = TOOLBAR_HEIGHT * m_UIScale;
 
 		ImGui::SetNextWindowPos(viewport->WorkPos);
 		ImGui::SetNextWindowSize(ImVec2(viewport->WorkSize.x, toolbarHeight));
@@ -346,10 +380,10 @@ namespace Proto
 
 		ImGui::Begin("Toolbar", nullptr, toolbarFlags);
 
-		const float buttonWidth       = TOOLBAR_BUTTON_WIDTH       * xScale;
-		const float pauseButtonWidth  = TOOLBAR_PAUSE_BUTTON_WIDTH * xScale;
-		const float buttonHeight      = TOOLBAR_BUTTON_HEIGHT      * yScale;
-		const float spacing           = TOOLBAR_BUTTON_SPACING     * xScale;
+		const float buttonWidth       = TOOLBAR_BUTTON_WIDTH       * m_UIScale;
+		const float pauseButtonWidth  = TOOLBAR_PAUSE_BUTTON_WIDTH * m_UIScale;
+		const float buttonHeight      = TOOLBAR_BUTTON_HEIGHT      * m_UIScale;
+		const float spacing           = TOOLBAR_BUTTON_SPACING     * m_UIScale;
 		const float windowWidth       = ImGui::GetWindowWidth();
 		const float windowHeight      = ImGui::GetWindowHeight();
 		const float offsetY           = std::max(0.0f, (windowHeight - buttonHeight) * 0.5f);
@@ -425,10 +459,8 @@ namespace Proto
 	void EditorLayer::ResetDefaultLayout()
 	{
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		float xScale, yScale;
-		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xScale, &yScale);
 
-		const float toolbarHeight = TOOLBAR_HEIGHT * yScale;
+		const float toolbarHeight = TOOLBAR_HEIGHT * m_UIScale;
 		const ImVec2 dockspaceSize = ImVec2(viewport->WorkSize.x, viewport->WorkSize.y - toolbarHeight);
 		const ImGuiID dockspaceID = ImGui::GetID("MyDockSpace");
 
@@ -469,10 +501,8 @@ namespace Proto
 	void EditorLayer::RenderDockSpace()
 	{
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		float xScale, yScale;
-		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xScale, &yScale);
 
-		const float toolbarHeight = TOOLBAR_HEIGHT * yScale;
+		const float toolbarHeight = TOOLBAR_HEIGHT * m_UIScale;
 		const ImVec2 dockspacePos = ImVec2(viewport->WorkPos.x, viewport->WorkPos.y + toolbarHeight);
 		const ImVec2 dockspaceSize = ImVec2(viewport->WorkSize.x, viewport->WorkSize.y - toolbarHeight);
 
