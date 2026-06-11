@@ -7,6 +7,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <algorithm>
 
 #include "Scene.h"
@@ -122,6 +125,10 @@ namespace Proto
 		// 순환 관계 검사: newParent가 child의 자손이면 무시
 		GameObject* cursor = newParent;
 		while (cursor) { if (cursor == child) return; cursor = cursor->GetParent(); }
+
+		// 부모 변경 전 자식의 월드 변환을 저장 (월드 위치 보존용)
+		const glm::mat4 oldWorld = GetWorldTransform(child);
+
 		// 기존 부모의 자식 목록에서 제거
 		if (child->m_Parent)
 		{
@@ -131,7 +138,31 @@ namespace Proto
 		// 새 부모 연결
 		child->m_Parent = newParent;
 		if (newParent) newParent->m_Children.push_back(child);
+
+		// 새 부모의 좌표계 기준으로 로컬 변환을 재계산해 월드 위치를 그대로 유지
+		// newLocal = inverse(newParentWorld) × oldChildWorld
+		const glm::mat4 newParentWorld = newParent ? GetWorldTransform(newParent) : glm::mat4(1.0f);
+		const glm::mat4 newLocal = glm::inverse(newParentWorld) * oldWorld;
+
+		if (auto* t = child->GetComponent<Transform>())
+		{
+			glm::vec3 scale, translation, skew;
+			glm::vec4 perspective;
+			glm::quat orientation;
+			if (glm::decompose(newLocal, scale, orientation, translation, skew, perspective))
+			{
+				t->Translation = translation;
+				t->Rotation = glm::eulerAngles(orientation); // 라디안
+				t->Scale = scale;
+			}
+		}
+
 		SetDirty(true);
+	}
+
+	glm::mat4 Scene::GetWorldTransform(GameObject* gameObject) const
+	{
+		return ComputeWorldTransform(gameObject);
 	}
 
 	void Scene::RemoveGameObject(GameObject* gameObject)

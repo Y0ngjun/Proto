@@ -466,6 +466,14 @@ namespace Proto
 				delete m_Scene;
 			}
 			m_Scene = newScene;
+
+			// 복원된 씬의 카메라에 현재 뷰포트 크기를 다시 주입해 종횡비/투영 행렬을 복구
+			if (m_EditorLayer)
+			{
+				const auto gameSpec = m_EditorLayer->GetGameFramebuffer()->GetSpecification();
+				m_Scene->OnViewportResize(gameSpec.Width, gameSpec.Height);
+			}
+
 			PROTO_LOG_INFO("씬 복원 완료");
 		}
 		else

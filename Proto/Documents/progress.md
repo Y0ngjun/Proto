@@ -7,7 +7,7 @@ Proto: 5계층 아키텍처 기반 3D 엔진 | MVP 목표: 3D 탄막 게임
 - 숏컷 구현
 - 레이아웃 구현 (색깔)
 - Camera Component 배경 타입 옵션 추가 (SkyGradient / SolidColor) + 하늘 그라디언트 상수를 Scene 레이어 내 별도 설정 헤더로 분리
-- 직렬화/역직렬화 전수조사 (현재 카메라가 Stop 시 역직렬화 안됨)
+- 직렬화/역직렬화 전수조사
 - 하이어라키 오브젝트 생성시 바로 rename
 - 프로젝트 패널 파일 생성시 바로 rename
 - 컴포넌트 전수 조사
@@ -26,6 +26,8 @@ Proto: 5계층 아키텍처 기반 3D 엔진 | MVP 목표: 3D 탄막 게임
 - **인프라** — 입력 시스템 분리(RawInput/Input), 에디터 고도화, 단위 테스트 94개
 - **에디터 UX** — Scene 뷰포트 하늘/대지 그라디언트 배경 (카메라 방향 연동)
 - **하이어라키 계층** — 드래그앤드롭으로 부모-자식 관계 설정/해제, 재귀 렌더링, 월드 변환(자식이 부모 Transform 상속), 직렬화 지원
+- **버그 수정** — Play→Stop 후 카메라 복원 문제 해결 (씬 교체 시 `OnViewportResize` 누락 → 종횡비 0으로 투영 행렬 손상). `Application::OnSceneStop`에서 복원 직후 뷰포트 크기 재주입
+- **버그 수정** — 부모 설정 시 자식이 부모 좌표계로 끌려가고 기즈모가 어긋나던 문제 해결. (1) `Scene::SetParent`가 월드 변환을 보존하도록 로컬 재계산(`inverse(parentWorld)×oldWorld`), (2) `EditorLayer::HandleGizmos`가 월드 변환 위에서 조작 후 부모 좌표계로 역변환 기록. 공통으로 `Scene::GetWorldTransform` public 접근자 추가
 
 ---
 

@@ -656,7 +656,9 @@ namespace Proto
 			return;
 		}
 
-		glm::mat4 transform = tc->GetTransform();
+		// 기즈모는 월드 변환 위에서 조작한다. (렌더링도 월드 변환을 사용하므로 일치)
+		Scene* scene = Application::Get().GetActiveScene();
+		glm::mat4 transform = scene->GetWorldTransform(selectedEntity);
 		const bool snap = RawInput::GetKey(GLFW_KEY_LEFT_CONTROL);
 		const float snapValue = (m_GizmoType == ImGuizmo::OPERATION::ROTATE) ? 45.0f : 0.5f;
 		const float snapValues[3] = { snapValue, snapValue, snapValue };
@@ -667,14 +669,20 @@ namespace Proto
 
 		if (ImGuizmo::IsUsing())
 		{
+			// 조작된 월드 변환을 부모 좌표계 기준 로컬 변환으로 역변환해 기록
+			// newLocal = inverse(parentWorld) × newWorld
+			GameObject* parent = selectedEntity->GetParent();
+			const glm::mat4 parentWorld = parent ? scene->GetWorldTransform(parent) : glm::mat4(1.0f);
+			const glm::mat4 localTransform = glm::inverse(parentWorld) * transform;
+
 			float translation[3], rotation[3], scale[3];
-			ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), translation, rotation, scale);
+			ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(localTransform), translation, rotation, scale);
 
 			tc->Translation = glm::vec3(translation[0], translation[1], translation[2]);
 			tc->Rotation = glm::vec3(glm::radians(rotation[0]), glm::radians(rotation[1]), glm::radians(rotation[2]));
 			tc->Scale = glm::vec3(scale[0], scale[1], scale[2]);
 
-			Application::Get().GetActiveScene()->SetDirty(true);
+			scene->SetDirty(true);
 		}
 	}
 
