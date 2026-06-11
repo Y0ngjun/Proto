@@ -38,3 +38,6 @@ Release/
 **/imgui.ini
 build.log
 build_log.txt
+
+# Default project
+DefaultProject/
